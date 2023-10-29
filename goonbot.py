@@ -36,7 +36,7 @@ class Goonbot(commands.Bot):
             if not any(x in file.name for x in ["__init__", "template_cog"]):
                 yield file.as_posix()[:-3].replace("/", ".")
 
-    async def load_cogs(self):
+    async def load_cogs(self) -> None:
         for cog in self.get_cogs():
             try:
                 await self.load_extension(cog)
@@ -64,6 +64,12 @@ goonbot = Goonbot(
 
 
 # Sync command
+# - This is a new standard for modern discord.py bots
+# - "Why?" Because of those fancy /slash commands discord forced on us
+# - Anytime a new app_command is added, this must be manually ran from any server
+#   you'd like to use the command (lest you wait up to an hour to start debugging)
+# - "Can't you put the sync code in the startup command?" Discord will rate limit
+#   you into next week
 @goonbot.command(name="sync", description="[Meta] Syncs commands to server")
 async def sync(ctx: commands.Context):
     if not await goonbot.is_owner(ctx.author):
