@@ -4,6 +4,21 @@ Many helpers to support the seemingly simple calendar commands
 from dataclasses import dataclass
 import datetime as dt
 from operator import itemgetter
+from random import choice
+
+
+def make_possessive(noun: str) -> str:
+    """
+    Makes a noun possessive 
+    Examples:
+        - Jake -> Jake's
+        - James -> James'
+    """
+    return f"{noun}'" if noun[-1] == "s" else f"{noun}'s"
+
+
+def random_birthday_emoji() -> str:
+    return choice(["🧁", "🎂", "🍰", "🎉", "🥳", "🎁"])
 
 
 def get_events_dict(today: dt.date) -> dict[str, dt.date]:
@@ -20,8 +35,8 @@ def get_events_dict(today: dt.date) -> dict[str, dt.date]:
         "Conrad": dt.date(current_year, 10, 2),
     }
     BIRTHDAYS = {
-        f"""{goon}{"'" if goon[-1] == "s" else "'s"} birthday""" + " 🧁": date
-        for goon, date in BIRTHDAYS.items()
+        f"{make_possessive(goon_name)} birthday {random_birthday_emoji()}": date
+        for goon_name, date in BIRTHDAYS.items()
     }
 
     HOLIDAYS = {
