@@ -33,14 +33,29 @@ class GoonCalendar(commands.Cog):
 
     @app_commands.command(name="today")
     async def today(self, interaction: discord.Interaction):
+        """Check if today has a special event!"""
         today = dt.date.today()
-        today_embed = self.bot.embed()
         events = get_events(today, remaining_only=True)
-        todays_events = [e for e in events if e.is_today]
+        todays_events = [e for e in events if e.is_today()]
+        remaining_events = [e for e in events if not e.is_today()]
+        next_event = remaining_events[0]
+        # Create embed
+        today_embed = self.bot.embed()
+        # How many days until next event (default title)
+        today_embed.title = f"{next_event.days_until} days until {next_event.name}"
+        # If there's an event tomorrow, make it the highlight (might get overwritten later)
+        tomorrow = today + dt.timedelta(days=1)
+        if next_event.date == tomorrow:
+            today_embed.title = f"Tomorrow is {next_event.name}"
+        # Unless today has an event, then add a reminder (as a description)
+        if next_event.date == tomorrow and todays_events:
+            today_embed.description = f"and tomorrow is {next_event.name}"
+        # If today has anything special going on, overwrite the default title
         if todays_events:
-            todays_events_str = " and ".join(e.name for e in todays_events if e.is_today)
-            today_embed.title = f"Today is {todays_events_str}!"
-            await interaction.response.send_message(embed=today_embed)
+            todays_events_str = " and ".join(e.name for e in todays_events)
+            today_embed.title = f"Today is {todays_events_str}"
+        # Send it
+        await interaction.response.send_message(embed=today_embed)
 
 
 async def setup(bot):
