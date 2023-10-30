@@ -22,6 +22,7 @@ def random_birthday_emoji() -> str:
 
 
 def get_events_dict(today: dt.date) -> dict[str, dt.date]:
+    """Return all dict of special events relevant to the server"""
     current_year = today.year
     BIRTHDAYS = {
         "Hudson": dt.date(current_year, 2, 14),
@@ -48,6 +49,8 @@ def get_events_dict(today: dt.date) -> dict[str, dt.date]:
     }
 
     # Combine
+    # Note: Birthdays must come first
+    # so if there's many events occur on the same day, birthdays take priority
     CALENDAR_EVENTS = {**BIRTHDAYS, **HOLIDAYS}
     # Sort by date
     SORTED_CALENDAR_EVENTS = dict(sorted(CALENDAR_EVENTS.items(), key=itemgetter(1)))
