@@ -1,6 +1,7 @@
 """
 Many helpers to support the seemingly simple calendar commands
 """
+from dataclasses import dataclass
 import datetime as dt
 from operator import itemgetter
 
@@ -37,14 +38,12 @@ def get_events_dict(today: dt.date) -> dict[str, dt.date]:
     SORTED_CALENDAR_EVENTS = dict(sorted(CALENDAR_EVENTS.items(), key=itemgetter(1)))
     return SORTED_CALENDAR_EVENTS
 
-
+@dataclass
 class SpecialEvent:
-    def __init__(self, today: dt.date, name: str, date: dt.date) -> None:
-        self.today = today
-        self.name = name
-        self.date = date
+    today: dt.date
+    name: str
+    date: dt.date
 
-    @property
     def is_today(self):
         return self.today == self.date
 
@@ -54,6 +53,12 @@ class SpecialEvent:
 
 
 def get_events(today: dt.date, remaining_only: bool):
+    """
+    Return all list of special events
+
+    Parameters
+        remaining_only (bool): Return only the events have yet to occur (or are occuring today)
+    """
     events = [
         SpecialEvent(today, event_name, event_date)
         for event_name, event_date in get_events_dict(today).items()
