@@ -1,5 +1,9 @@
 """
 Many helpers to support the seemingly simple calendar commands
+
+"Why does everything take a date object?"
+It's important each time calendar commands are used, a "fresh" dt.date.today() is passed
+Without a fresh object, the bot is stuck at whatever day it was last started
 """
 import datetime as dt
 from dataclasses import dataclass
