@@ -1,15 +1,16 @@
 """
 Many helpers to support the seemingly simple calendar commands
 """
-from dataclasses import dataclass
 import datetime as dt
+from dataclasses import dataclass
 from operator import itemgetter
 from random import choice
 
 
 def make_possessive(noun: str) -> str:
     """
-    Makes a noun possessive 
+    Makes a noun possessive
+
     Examples:
         - Jake -> Jake's
         - James -> James'
@@ -55,6 +56,7 @@ def get_events_dict(today: dt.date) -> dict[str, dt.date]:
     # Sort by date
     SORTED_CALENDAR_EVENTS = dict(sorted(CALENDAR_EVENTS.items(), key=itemgetter(1)))
     return SORTED_CALENDAR_EVENTS
+
 
 @dataclass
 class SpecialEvent:
