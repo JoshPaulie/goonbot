@@ -30,6 +30,7 @@ def get_events_dict(today: dt.date) -> dict[str, dt.date]:
     """Return all dict of special events relevant to the server"""
     current_year = today.year
     BIRTHDAYS = {
+        "Marcos": dt.date(current_year, 2, 3),
         "Hudson": dt.date(current_year, 2, 14),
         "Chris": dt.date(current_year, 4, 21),
         "Alex": dt.date(current_year, 4, 15),
