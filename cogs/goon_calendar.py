@@ -34,7 +34,10 @@ class GoonCalendar(commands.Cog):
     @app_commands.command(name="today")
     async def today(self, interaction: discord.Interaction):
         """Check if today has a special event!"""
+        # QoL Variables
         today = dt.date.today()
+        tomorrow = today + dt.timedelta(days=1)
+        # Gather and sort events
         events = get_events(today, remaining_only=True)
         todays_events = [e for e in events if e.is_today()]
         remaining_events = [e for e in events if not e.is_today()]
@@ -44,7 +47,6 @@ class GoonCalendar(commands.Cog):
         # How many days until next event (default title)
         today_embed.title = f"{next_event.days_until} days until {next_event.name}"
         # If there's an event tomorrow, make it the highlight (might get overwritten later)
-        tomorrow = today + dt.timedelta(days=1)
         if next_event.date == tomorrow:
             today_embed.title = f"Tomorrow is {next_event.name}"
         # Unless today has an event, then add a reminder (as a description)
