@@ -22,12 +22,10 @@ def make_possessive(noun: str) -> str:
     return f"{noun}'" if noun[-1] == "s" else f"{noun}'s"
 
 
-def random_birthday_emoji() -> str:
-    return choice(["🧁", "🎂", "🍰", "🎉", "🥳", "🎁"])
 
 
 def get_events_dict(today: dt.date) -> dict[str, dt.date]:
-    """Return all dict of special events relevant to the server"""
+    """Return dict of special events relevant to the server"""
     current_year = today.year
     BIRTHDAYS = {
         "Marcos": dt.date(current_year, 2, 3),
@@ -41,6 +39,9 @@ def get_events_dict(today: dt.date) -> dict[str, dt.date]:
         "Hobo": dt.date(current_year, 9, 11),
         "Conrad": dt.date(current_year, 10, 2),
     }
+
+    def random_birthday_emoji() -> str:
+        return choice(["🧁", "🎂", "🍰", "🎉", "🥳", "🎁"])
     BIRTHDAYS = {
         f"{make_possessive(goon_name)} birthday {random_birthday_emoji()}": date
         for goon_name, date in BIRTHDAYS.items()
