@@ -10,18 +10,7 @@ from dataclasses import dataclass
 from operator import itemgetter
 from random import choice
 
-
-def make_possessive(noun: str) -> str:
-    """
-    Makes a noun possessive
-
-    Examples:
-        - Jake -> Jake's
-        - James -> James'
-    """
-    return f"{noun}'" if noun[-1] == "s" else f"{noun}'s"
-
-
+from text_processing import make_possessive
 
 
 def get_events_dict(today: dt.date) -> dict[str, dt.date]:
@@ -42,6 +31,7 @@ def get_events_dict(today: dt.date) -> dict[str, dt.date]:
 
     def random_birthday_emoji() -> str:
         return choice(["🧁", "🎂", "🍰", "🎉", "🥳", "🎁"])
+
     BIRTHDAYS = {
         f"{make_possessive(goon_name)} birthday {random_birthday_emoji()}": date
         for goon_name, date in BIRTHDAYS.items()
