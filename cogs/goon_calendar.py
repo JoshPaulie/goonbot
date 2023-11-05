@@ -32,37 +32,42 @@ class GoonCalendar(commands.Cog):
         # Send it
         await interaction.response.send_message(embed=calendar_embed)
 
-    @app_commands.command(name="today")
+    @app_commands.command(name="today", description="Check if today has any special events!")
     async def today(self, interaction: discord.Interaction):
         """Check if today has a special event!"""
         today = dt.date.today()
-        tomorrow = today + dt.timedelta(days=1)
+
         # Gather and sort events
         events = get_events(today, remaining_only=True)
         today_events = [e for e in events if e.is_today()]
-        remaining_events = [e for e in events if not e.is_today()]
-        if remaining_events:
-            next_event = remaining_events[0]
-        else:
-            # If there's no more events in the year, fallback to the following New Year's Day
-            next_year = today.year + 1
-            next_event = SpecialEvent(today, f"New Year's Day, {next_year}!", dt.date(next_year, 1, 1))
-        # Create embed
+        tomorrow_events = [e for e in events if e.is_tomorrow()]
+        remaining_events = [e for e in events if not e.is_today() and not e.is_tomorrow()]
+
         today_embed = self.bot.embed()
-        # How many days until next event (default title)
-        today_embed.title = f"{next_event.days_until} days until {next_event.name}"
-        # If there's an event tomorrow, make it the title
-        # (might get overwritten later, if there is an event today)
-        if next_event.date == tomorrow:
-            today_embed.title = f"Tomorrow is {next_event.name}"
-        # If there's event(s) today AND tomorrow,
-        # move the reminder for tomorrow's event to be the description
-        if next_event.date == tomorrow and today_events:
-            today_embed.description = f"and tomorrow is {next_event.name}"
-        # If today has anything special going on, overwrite the default title
-        if today_events:
-            todays_events_str = comma_list([e.name for e in today_events])
-            today_embed.title = f"Today is {todays_events_str}"
+        # No events today or tomorrow
+        if not today_events and not tomorrow_events:
+            # Get the next event, that isn't today or tomorrow
+            if remaining_events:
+                next_event = remaining_events[0]
+                today_embed.title = f"{next_event.days_until} days until {next_event}"
+            # I don't think this would ever display the the end user,
+            # but I'd rather cover all the edge cases
+            today_embed.title = "There are no more events for this year."
+            today_embed.description = f"Enjoy the rest of {today.year}."
+
+        # No events today, but event tomorrow
+        if not today_events and tomorrow_events:
+            today_embed.title = f"Tomorrow is {comma_list([e.name for e in tomorrow_events])}"
+
+        # Events today, and tomorrow
+        if today_events and tomorrow_events:
+            today_embed.title = f"Today is {comma_list([e.name for e in today_events])}"
+            today_embed.description = f"...and tomorrow is {comma_list([e.name for e in tomorrow_events])}"
+
+        # Event(s) today, but not tomorrow (arguably the default case)
+        if today_events and not tomorrow_events:
+            today_embed.title = f"Today is {comma_list([e.name for e in today_events])}"
+
         # Send it
         await interaction.response.send_message(embed=today_embed)
 

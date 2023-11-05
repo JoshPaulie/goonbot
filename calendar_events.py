@@ -47,8 +47,6 @@ def get_events_dict(today: dt.date) -> dict[str, dt.date]:
     }
 
     # Combine
-    # Note: Birthdays must come first
-    # so if there's many events occur on the same day, birthdays take priority
     CALENDAR_EVENTS = {**BIRTHDAYS, **HOLIDAYS}
     # Sort by date
     SORTED_CALENDAR_EVENTS = dict(sorted(CALENDAR_EVENTS.items(), key=itemgetter(1)))
@@ -64,14 +62,23 @@ class SpecialEvent:
     def is_today(self):
         return self.today == self.date
 
+    def is_tomorrow(self):
+        return self.date == self.today + dt.timedelta(days=1)
+
     @property
     def days_until(self):
         return (self.date - self.today).days
 
+    def __str__(self) -> str:
+        return self.name
+
+    def __eq__(self, __value: object) -> bool:
+        return self.date == __value
+
 
 def get_events(today: dt.date, remaining_only: bool):
     """
-    Return all list of special events
+    Return list of special events
 
     Parameters
         remaining_only (bool): Return only the events have yet to occur (or are occuring today)
