@@ -27,9 +27,11 @@ class Rats(commands.Cog):
             embed=self.bot.embed(title="Rat").set_image(url=next_rat),
         )
 
-    async def report_broken_rat(self, interaction: discord.Interaction, message: discord.Message):
+    async def report_broken_rat(
+        self, interaction: discord.Interaction, message: discord.Message
+    ):
         """For whatever reason, links break. This offers a way for users to report images that no longer load in discord embeds"""
-        # Use short circuiting to first check if there are embeds, then checking the title of the first one
+        # Use short-circuiting to first check if there are embeds, then checking the title of the first one
         if not message.embeds or message.embeds[0].title != "Rat":
             return await interaction.response.send_message(
                 embed=self.bot.embed(title="This isn't a rat post."), ephemeral=True
@@ -39,7 +41,7 @@ class Rats(commands.Cog):
         rat_embed = message.embeds[0]
         offending_rat_link = rat_embed.image.url
 
-        # Make sure it's not been reported since last restart
+        # Make sure its not been reported since last restart
         if offending_rat_link in self.recently_reported_rats:
             return await interaction.response.send_message(
                 embed=self.bot.embed(
@@ -48,10 +50,10 @@ class Rats(commands.Cog):
                 )
             )
 
-        # Handle the report
+        # Add rat to recent offenders list
         self.recently_reported_rats.append(offending_rat_link)
 
-        # Send message to alert channel
+        # Send message to alert channel (handle report)
         assert interaction.guild
         # ? does this work when the guild is different from the one handling the interaction?
         goonbot_alert_channel = interaction.guild.get_channel(1171291004175912980)
