@@ -50,10 +50,11 @@ class GoonCalendar(commands.Cog):
             if remaining_events:
                 next_event = remaining_events[0]
                 today_embed.title = f"{next_event.days_until} days until {next_event}"
-            # I don't think this would ever display the the end user,
-            # but I'd rather cover all the edge cases
-            today_embed.title = "There are no more events for this year."
-            today_embed.description = f"Enjoy the rest of {today.year}."
+            else:
+                # I don't think this would ever display the the end user,
+                # but I'd rather cover all the edge cases
+                today_embed.title = "There are no more events for this year."
+                today_embed.description = f"Enjoy the rest of {today.year}."
 
         # No events today, but event tomorrow
         if not today_events and tomorrow_events:
