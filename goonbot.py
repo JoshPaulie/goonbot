@@ -42,7 +42,9 @@ class Goonbot(commands.Bot):
                 await self.load_extension(cog)
                 logging.info(f"Loaded cog: {cog}!")
             except Exception as exc:
-                logging.warning(f"Could not load extension {cog} due to {exc.__class__.__name__}: {exc}")
+                logging.warning(
+                    f"Could not load extension {cog} due to {exc.__class__.__name__}: {exc}"
+                )
                 print(f"{cog} failed to load: {exc.__class__.__name__}")
 
     async def setup_hook(self):
