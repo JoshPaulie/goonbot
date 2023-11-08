@@ -1,12 +1,13 @@
+import logging
 import os
 
 from goonbot import goonbot
-from log_handling import handler
 
 DISCORD_TOKEN = "GOONBOT_TOKEN"
 
 
 def main():
+    handler = logging.FileHandler(filename="bot.log", encoding="utf-8", mode="a")
     if token := os.environ.get(DISCORD_TOKEN):
         print("starting bot..")
         goonbot.run(token, log_handler=handler, root_logger=True)
