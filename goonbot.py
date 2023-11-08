@@ -79,3 +79,9 @@ async def sync(ctx: commands.Context):
     await goonbot.tree.sync(guild=ctx.guild)
     await ctx.reply(f"Bot commands synced to {ctx.guild.name}", ephemeral=True)
     await ctx.message.delete()
+@goonbot.tree.context_menu(name="Profile pic")
+async def pfp(interaction: discord.Interaction, user: discord.User):
+    assert user.avatar
+    await interaction.response.send_message(
+        embed=goonbot.embed(title=user.name).set_image(url=user.avatar.url)
+    )
