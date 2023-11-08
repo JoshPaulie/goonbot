@@ -79,6 +79,19 @@ async def sync(ctx: commands.Context):
     await goonbot.tree.sync(guild=ctx.guild)
     await ctx.reply(f"Bot commands synced to {ctx.guild.name}", ephemeral=True)
     await ctx.message.delete()
+
+
+# Context menus are most easily defined here, directly in the goonbot instance file
+# This is fine for general commands like this first one, pfp
+# but not for cog specific commands like cog/rats.report_rap
+# To make these "cog specific" context menu commands, read (written by the author of discord.py)
+# https://github.com/Rapptz/discord.py/issues/7823#issuecomment-1086830458
+
+
+# "What are context menus?"
+# They're commands that you can bind to particular "contexts," namley messages or users.
+# This enables you to right click either a message or a user, go to Apps,
+# and a list will display with the available commands for that particular "context"
 @goonbot.tree.context_menu(name="Profile pic")
 async def pfp(interaction: discord.Interaction, user: discord.User):
     assert user.avatar
