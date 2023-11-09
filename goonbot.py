@@ -90,7 +90,11 @@ async def sync(ctx: commands.Context):
     """
     assert ctx.guild
     await goonbot.tree.sync(guild=ctx.guild)
-    await ctx.reply(f"Bot commands synced to {ctx.guild.name}", ephemeral=True)
+    assert goonbot.user
+    await ctx.reply(
+        embed=goonbot.embed(title=f"{goonbot.user.name} commands synced to {ctx.guild.name}"),
+        ephemeral=True,
+    )
     await ctx.message.add_reaction("✅")
 
 
