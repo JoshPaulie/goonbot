@@ -1,6 +1,4 @@
-import asyncio
 import logging
-import random
 import traceback
 from functools import partial
 from pathlib import Path
@@ -93,7 +91,7 @@ async def sync(ctx: commands.Context):
     assert ctx.guild
     await goonbot.tree.sync(guild=ctx.guild)
     await ctx.reply(f"Bot commands synced to {ctx.guild.name}", ephemeral=True)
-    await ctx.message.delete()
+    await ctx.message.add_reaction("✅")
 
 
 @goonbot.event
@@ -106,11 +104,7 @@ async def on_command_error(ctx: commands.Context, error: commands.CommandError):
             ),
             ephemeral=True,
         )
-        await asyncio.sleep(5)
-        # Delete original message...
-        # we wouldn't want to encourage this behavior in others 🚨
-        await ctx.message.delete()
-        await ctx.message.add_reaction(random.choice(["❌", "💀"]))
+        await ctx.message.add_reaction("❌")
     else:
         # Without this line, prefixed commands throwing exceptions that will get gobbled
         # up by this event and make me real mad later when I break something
