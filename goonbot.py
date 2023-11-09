@@ -81,13 +81,14 @@ async def sync(ctx: commands.Context):
     """
     This command syncs all of the bot's commands (names & descriptions) to a given server
 
-    It's a newer standard for discord.py bots, and is required to quickly debug and deplop new features
+    It's a newer standard for discord.py bots, and is required to quickly debug and develop new features.
     Without syncing the bot command tree to a server, it can take an hour (or longer) for changes to
-    trickle all the servers the bot is in
+    trickle to all the servers the bot is in.
 
-    It might be tempting to add the bot.tree.sync(guild) line in bot.setup_hook(), but if you synced your bot commands every time
-    it restarted, and you're developing new features, you'll get rate limited into next week by discord. They really don't you like
-    spamming app commands to servers
+    It might be tempting to add the bot.tree.sync(guild) line in bot.setup_hook().
+    However, if you sync your bot commands every time it restarts, especially during the development
+    of new features when frequent restarts are necessary, you'll get rate-limited by Discord into next week.
+    They really don't like people spamming app command syncs to servers.
     """
     assert ctx.guild
     await goonbot.tree.sync(guild=ctx.guild)
@@ -117,7 +118,7 @@ async def on_command_error(ctx: commands.Context, error: commands.CommandError):
 
 
 # Context menus
-# They're most easily defined here, directly in the goonbot instance file
+# Context menus are most easily defined here, directly in the goonbot instance file
 # Defining most of the general contexts menus here would make since
 # but not for cog specific commands like cog/rats.report_rap.
 
