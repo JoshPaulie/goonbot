@@ -1,4 +1,7 @@
+import asyncio
 import logging
+import random
+import traceback
 from functools import partial
 from pathlib import Path
 from typing import Iterator
@@ -71,10 +74,8 @@ goonbot = Goonbot(
 # - "Can't you put the sync code in the startup command?" Discord will rate limit
 #   you into next week
 @goonbot.command(name="sync", description="[Meta] Syncs commands to server")
+@commands.is_owner()
 async def sync(ctx: commands.Context):
-    if not await goonbot.is_owner(ctx.author):
-        await ctx.reply("Only jarsh needs to use this 😬", ephemeral=True)
-        return
     assert ctx.guild
     await goonbot.tree.sync(guild=ctx.guild)
     await ctx.reply(f"Bot commands synced to {ctx.guild.name}", ephemeral=True)
@@ -85,6 +86,27 @@ async def sync(ctx: commands.Context):
 # This is fine for general commands like this first one, pfp
 # but not for cog specific commands like cog/rats.report_rap
 # To make these "cog specific" context menu commands, read (written by the author of discord.py)
+@goonbot.event
+async def on_command_error(ctx: commands.Context, error: commands.CommandError):
+    if isinstance(error, commands.NotOwner):
+        await ctx.reply(
+            embed=goonbot.embed(
+                title="This is an administrative command, sorry 🤭",
+                color=discord.Color.greyple(),
+            ),
+            ephemeral=True,
+        )
+        await asyncio.sleep(5)
+        # Delete original message...
+        # we wouldn't want to encourage this behavior in others 🚨
+        await ctx.message.delete()
+        await ctx.message.add_reaction(random.choice(["❌", "💀"]))
+    else:
+        # Without this line, prefixed commands throwing exceptions that will get gobbled
+        # up by this event and make me real mad later when I break something
+        traceback.print_exc()
+
+
 # https://github.com/Rapptz/discord.py/issues/7823#issuecomment-1086830458
 
 
