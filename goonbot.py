@@ -49,6 +49,7 @@ class Goonbot(commands.Bot):
                 print(f"{cog} failed to load: {exc.__class__.__name__}")
 
     async def setup_hook(self):
+        # todo: explain setup_hook(), self.tree.copy_global_to()
         await self.load_cogs()
         # self.tree.copy_global_to(guild=GOON_HQ)
         self.tree.copy_global_to(guild=BOTTING_TOGETHER)
@@ -66,26 +67,34 @@ goonbot = Goonbot(
 )
 
 
-# Sync command
-# - This is a new standard for modern discord.py bots
-# - "Why?" Because of those fancy /slash commands discord forced on us
-# - Anytime a new app_command is added, this must be manually ran from any server
-#   you'd like to use the command (lest you wait up to an hour to start debugging)
-# - "Can't you put the sync code in the startup command?" Discord will rate limit
-#   you into next week
+# Prefix commands
+# Prefix commands are old school bot commands from years back. This bot uses "." as its prefix
+# Nowadays, most commands are app_commands (aka /slash commands) and auto complete after you type "/"
+# Prefix commands aren't listed in the app_command menu in discord, and were originally argrigated in the "help command"
+# You'll notice the help command is disabled in the bot definition, as it's set to None. If it was enabled, users could see
+# all of the prefix commands by typing ".help"
+
+
 @goonbot.command(name="sync", description="[Meta] Syncs commands to server")
 @commands.is_owner()
 async def sync(ctx: commands.Context):
+    """
+    This command syncs all of the bot's commands (names & descriptions) to a given server
+
+    It's a newer standard for discord.py bots, and is required to quickly debug and deplop new features
+    Without syncing the bot command tree to a server, it can take an hour (or longer) for changes to
+    trickle all the servers the bot is in
+
+    It might be tempting to add the bot.tree.sync(guild) line in bot.setup_hook(), but if you synced your bot commands every time
+    it restarted, and you're developing new features, you'll get rate limited into next week by discord. They really don't you like
+    spamming app commands to servers
+    """
     assert ctx.guild
     await goonbot.tree.sync(guild=ctx.guild)
     await ctx.reply(f"Bot commands synced to {ctx.guild.name}", ephemeral=True)
     await ctx.message.delete()
 
 
-# Context menus are most easily defined here, directly in the goonbot instance file
-# This is fine for general commands like this first one, pfp
-# but not for cog specific commands like cog/rats.report_rap
-# To make these "cog specific" context menu commands, read (written by the author of discord.py)
 @goonbot.event
 async def on_command_error(ctx: commands.Context, error: commands.CommandError):
     if isinstance(error, commands.NotOwner):
@@ -107,13 +116,21 @@ async def on_command_error(ctx: commands.Context, error: commands.CommandError):
         traceback.print_exc()
 
 
-# https://github.com/Rapptz/discord.py/issues/7823#issuecomment-1086830458
+# Context menus
+# They're most easily defined here, directly in the goonbot instance file
+# Defining most of the general contexts menus here would make since
+# but not for cog specific commands like cog/rats.report_rap.
 
+# To make these "cog specific" context menu commands, read the following
+# (written by the author of discord.py)
+# https://github.com/Rapptz/discord.py/issues/7823#issuecomment-1086830458
 
 # "What are context menus?"
 # They're commands that you can bind to particular "contexts," namley messages or users.
 # This enables you to right click either a message or a user, go to Apps,
 # and a list will display with the available commands for that particular "context"
+
+
 @goonbot.tree.context_menu(name="Profile pic")
 async def pfp(interaction: discord.Interaction, user: discord.User):
     assert user.avatar
