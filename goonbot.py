@@ -178,6 +178,5 @@ async def send_love(interaction: discord.Interaction, user: discord.User):
     await interaction.response.send_message(
         embed=goonbot.embed(
             title=random.choice(affirmations),
-            description=f" - {interaction.user.global_name} 😌",
         )
     )
