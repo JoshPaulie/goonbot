@@ -1,4 +1,5 @@
 import logging
+import random
 import traceback
 from functools import partial
 from pathlib import Path
@@ -135,4 +136,24 @@ async def pfp(interaction: discord.Interaction, user: discord.User):
     assert user.avatar
     await interaction.response.send_message(
         embed=goonbot.embed(title=user.name).set_image(url=user.avatar.url)
+    )
+
+
+@goonbot.tree.context_menu(name="Send love")
+async def send_love(interaction: discord.Interaction, user: discord.User):
+    """
+    Classic goonbot command, used to send an affirmation to a user
+
+    We're an affectionate group, lol.
+    """
+    permenant_affirmations = "I love you,You are my friend,I like hanging out with you".split(",")
+    # Temporary affirmations/affirmations I think will get old eventually
+    trendy_affirmations = "Stick out that gyatt,You're so skibidi,You're so fanum tax".split(",")
+    affirmations = permenant_affirmations + trendy_affirmations
+    assert user
+    await interaction.response.send_message(
+        embed=goonbot.embed(
+            title=random.choice(affirmations),
+            description=f" - {interaction.user.global_name} 😌",
+        )
     )
