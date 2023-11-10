@@ -28,10 +28,7 @@ def bullet_points(lst: Sequence[Any]) -> str:
 
 def multiline_string(lst: Sequence[str]) -> str:
     """Helper for writing multiline embed descriptions, field values, etc. easier to hardcode"""
-    result = ""
-    for line in lst:
-        result += f"{line}\n"
-    return result
+    return "\n".join(lst)
 
 
 def comma_list(nouns: Sequence[str]) -> str:
