@@ -174,9 +174,10 @@ async def send_love(interaction: discord.Interaction, user: discord.User):
     # Temporary affirmations/affirmations I think will get old eventually
     trendy_affirmations = "Stick out that gyatt,You're so skibidi,You're so fanum tax".split(",")
     affirmations = permenant_affirmations + trendy_affirmations
+    affirmation = random.choice(affirmations)
     assert user
     await interaction.response.send_message(
         embed=goonbot.embed(
-            title=random.choice(affirmations),
+            title=affirmation,
         )
     )
