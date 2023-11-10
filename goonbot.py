@@ -47,7 +47,9 @@ class Goonbot(commands.Bot):
                 await self.load_extension(cog)
                 logging.info(f"Loaded cog: {cog}!")
             except Exception as exc:
-                logging.warning(f"Could not load extension {cog} due to {exc.__class__.__name__}: {exc}")
+                logging.warning(
+                    f"Could not load extension {cog} due to {exc.__class__.__name__}: {exc}"
+                )
                 print(f"{cog} failed to load: {exc.__class__.__name__}")
 
     async def setup_hook(self):
@@ -111,7 +113,9 @@ async def sync(ctx: commands.Context):
     await goonbot.tree.sync(guild=ctx.guild)
     assert goonbot.user
     await ctx.reply(
-        embed=goonbot.embed(title=f"{goonbot.user.name} commands synced to {ctx.guild.name}"),
+        embed=goonbot.embed(
+            title=f"{goonbot.user.name} commands synced to {ctx.guild.name}"
+        ),
         ephemeral=True,
     )
     await ctx.message.add_reaction("✅")
