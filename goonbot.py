@@ -174,9 +174,17 @@ async def send_love(interaction: discord.Interaction, user: discord.User):
 
     We're an affectionate group, lol.
     """
-    permenant_affirmations = "I love you,You are my friend,I like hanging out with you".split(",")
+    permenant_affirmations = [
+        "I love you",
+        "You are my friend",
+        "I like hanging out with you",
+    ]
     # Temporary affirmations/affirmations I think will get old eventually
-    trendy_affirmations = "Stick out that gyatt,You're so skibidi,You're so fanum tax".split(",")
+    trendy_affirmations = [
+        "Stick out that gyatt",
+        "You're so skibidi",
+        "You're so fanum tax",
+    ]
     affirmations = permenant_affirmations + trendy_affirmations
     affirmation = random.choice(affirmations)
     assert user
