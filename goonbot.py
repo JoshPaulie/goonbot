@@ -8,7 +8,9 @@ from typing import Iterator
 import discord
 from discord.ext import commands
 
+# The main server
 GOON_HQ = discord.Object(177125557954281472)
+# The testing server
 BOTTING_TOGETHER = discord.Object(510865274594131968)
 
 
@@ -39,6 +41,7 @@ class Goonbot(commands.Bot):
                 yield file.as_posix()[:-3].replace("/", ".")
 
     async def load_cogs(self) -> None:
+        """Loads all of the files from cogs/ into the bot as extensions"""
         for cog in self.get_cogs():
             try:
                 await self.load_extension(cog)
@@ -48,12 +51,27 @@ class Goonbot(commands.Bot):
                 print(f"{cog} failed to load: {exc.__class__.__name__}")
 
     async def setup_hook(self):
-        # todo: explain setup_hook(), self.tree.copy_global_to()
+        """
+        Called while the bot is logging in, but before it's ready to be used by users.
+        Handles startup actions like call load_cogs(), and copy all the commands to
+        both servers, allowing for new features and changes to be used immediately
+
+        > "What's the difference between 'syncing' and 'copying' commands to a server?"
+        I'm not super sure at this time. Copy seems to be a primer for sync in some way.
+        What I do know for sure is that copying can be done added to the startup_hook(),
+        while syncing shouldn't. (Citation needed)
+        """
         await self.load_cogs()
-        # self.tree.copy_global_to(guild=GOON_HQ)
-        self.tree.copy_global_to(guild=BOTTING_TOGETHER)
+        guilds = [
+            # Goon HQ will be uncommented once the bot is ready for "production"
+            # GOON_HQ,
+            BOTTING_TOGETHER,
+        ]
+        for guild in guilds:
+            self.tree.copy_global_to(guild=guild)
 
     async def on_ready(self):
+        """Called after the bot is finished logging in and is ready to use"""
         assert self.user
         logging.info(f"Logged on as {self.user} (ID: {self.user.id})")
         print(f"{self.user.name} is ready")
@@ -133,6 +151,12 @@ async def on_command_error(ctx: commands.Context, error: commands.CommandError):
 
 @goonbot.tree.context_menu(name="Profile pic")
 async def pfp(interaction: discord.Interaction, user: discord.User):
+    """
+    Get the profile picture of a user
+
+    For whatever reason, you can't really magnify profile pictures in the discord client.
+    This supplements as the functionality in the meantime, and lets you download
+    """
     assert user.avatar
     await interaction.response.send_message(
         embed=goonbot.embed(title=user.name).set_image(url=user.avatar.url)
