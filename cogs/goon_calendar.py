@@ -5,9 +5,9 @@ import discord
 from discord import app_commands
 from discord.ext import commands
 
-from calendar_events import SpecialEvent, get_events
+from calendar_events import get_events
 from goonbot import Goonbot
-from text_processing import comma_list
+from text_processing import comma_list, multiline_string
 
 
 class GoonCalendar(commands.Cog):
@@ -50,24 +50,39 @@ class GoonCalendar(commands.Cog):
             if remaining_events:
                 next_event = remaining_events[0]
                 today_embed.title = f"{next_event.days_until} days until {next_event}"
-            else:
-                # I don't think this would ever display the the end user,
-                # but I'd rather cover all the edge cases
-                today_embed.title = "There are no more events for this year."
-                today_embed.description = f"Enjoy the rest of {today.year}."
 
         # No events today, but event tomorrow
-        if not today_events and tomorrow_events:
+        elif not today_events and tomorrow_events:
             today_embed.title = f"Tomorrow is {comma_list([e.name for e in tomorrow_events])}"
 
         # Events today, and tomorrow
-        if today_events and tomorrow_events:
+        elif today_events and tomorrow_events:
             today_embed.title = f"Today is {comma_list([e.name for e in today_events])}"
             today_embed.description = f"...and tomorrow is {comma_list([e.name for e in tomorrow_events])}"
 
         # Event(s) today, but not tomorrow (arguably the default case)
-        if today_events and not tomorrow_events:
+        elif today_events and not tomorrow_events:
             today_embed.title = f"Today is {comma_list([e.name for e in today_events])}"
+
+        # I don't think this would ever display the the end user,
+        # but I'd rather cover all the edge cases
+        else:
+            logging.warning(f"Edge case encountered, is this a bug? Date: {today.isoformat}")
+            today_embed.title = "There are no more events for this year."
+            today_embed.description = f"Enjoy the rest of {today.year}."
+            # ! todo, figure out this typing
+            await interaction.channel.send(  # type: ignore
+                embed=self.bot.embed(
+                    title="Hey, look.",
+                    description=multiline_string(
+                        [
+                            "It's that weird edge case you thought would never be encountered.",
+                            "",
+                            "You kinda suck at, lol @jarsh",
+                        ]
+                    ),
+                )
+            )
 
         # Send it
         await interaction.response.send_message(embed=today_embed)
