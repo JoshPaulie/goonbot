@@ -112,7 +112,7 @@ async def sync(ctx: commands.Context):
     assert ctx.guild
     await goonbot.tree.sync(guild=ctx.guild)
     assert goonbot.user
-    await ctx.reply(
+    await ctx.send(
         embed=goonbot.embed(
             title=f"{goonbot.user.name} commands synced to {ctx.guild.name}"
         ),
