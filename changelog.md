@@ -22,25 +22,29 @@ The code is, dare I say, much more Pythonic and is no longer littered with `type
 
 ### Added
 
-### Changed
+### Fixed
+- `/wie`
+  - now follows the social convetion of considering early morning hours to be part of the previous day's "nighttime"
 - `/today` & `/calendar`
-  - previous versions of goonbot required the bot to be restarted after the start of each year for both commands to start working again
-  - refactored to handle many events on one day
+  - previous interations of these commands required the bot to be restarted each new year. commands now continue working, despite the change of year
   - covered every edgecase imaginable, as previous iterations of this command were prone to breakage
   - fixed 4th of July date which, and I'm not kidding, had the wrong date set
   - added halloween
+
+### Changed
+- `/today` & `/calendar`
+  - refactored to handle many events on one day
 - `/rats`
   - broken rats are now reportable, allowing broken images to be tested, then fixed or removed
   - links are manually "fixed" by reuploading gifs to discord and using the discord URL, which links to their CDN instead of Tenor (for whatever reason Tenor gifs don't work in discord embeds)
-- `/wie`
-  - now follows the social convetion of considering early morning hours to be part of the previous day's "nighttime"
 - `/wni`
   - new responses
   - responses don't repeat until they've all been used
 - **I love you** user command now has permanent and rotating affirmations
 
 ### Removed
-- `/username` was removed (seldom used)
-- gambling games
+- Hobo's `/username`
+  - seldom used
+- Gambling games
   - little interest from dev
   - annoying to maintain and balance related games
