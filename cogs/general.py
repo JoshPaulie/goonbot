@@ -6,10 +6,26 @@ import discord
 from discord import app_commands
 from discord.ext import commands
 
+from bex_tools import cycle_random
 from goonbot import Goonbot
 
 
 class General(commands.Cog):
+    wow_no_invite_responses = cycle_random(
+        [
+            "and good thing, I hate doing that with my friend.",
+            "dang and I really like doing that..",
+            "i was busy anyway.",
+            "did it get lost in the mail?",
+            "not shocked",
+            "i thought we were friends?",
+            "guess I'll hang out here..alone..",
+            "that's too bad, I'll be doing something much cooler"
+            "i'm starting to get the impression you don't actually want to hangout with me",
+            "are you mad at me?",
+        ]
+    )
+
     def __init__(self, bot: Goonbot):
         self.bot = bot
 
@@ -22,20 +38,7 @@ class General(commands.Cog):
         await interaction.response.send_message(
             embed=self.bot.embed(
                 title="Wow, no invite?",
-                description=random.choice(
-                    [
-                        "and good thing, I hate doing that with my friend.",
-                        "dang and I really like doing that..",
-                        "i was busy anyway.",
-                        "did it get lost in the mail?",
-                        "not shocked",
-                        "i thought we were friends?",
-                        "guess I'll hang out here..alone..",
-                        "that's too bad, I'll be doing something much cooler"
-                        "i'm starting to get the impression you don't actually want to hangout with me",
-                        "are you mad at me?",
-                    ]
-                ),
+                description=next(self.wow_no_invite_responses),
             )
         )
 
