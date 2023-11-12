@@ -121,6 +121,30 @@ async def sync(ctx: commands.Context):
     await ctx.message.add_reaction("✅")
 
 
+@goonbot.command(name="img")
+@commands.is_owner()
+async def test_image(ctx: commands.Context, image_url: str | None = None):
+    """Test how images are displayed in an embed, mostly used for checking broken rats"""
+    if not image_url:
+        return await ctx.send(
+            embed=goonbot.embed(
+                title="You didn't include an image", color=discord.Color.red()
+            ),
+            ephemeral=True,
+        )
+
+    try:
+        await ctx.send(embed=goonbot.embed(title="Test image").set_image(url=image_url))
+    except Exception as e:
+        await ctx.send(
+            embed=goonbot.embed(
+                title="Something catastrophic happened",
+                description=e.with_traceback,
+                color=discord.Color.red(),
+            )
+        )
+
+
 @goonbot.event
 async def on_command_error(ctx: commands.Context, error: commands.CommandError):
     if isinstance(error, commands.NotOwner):
