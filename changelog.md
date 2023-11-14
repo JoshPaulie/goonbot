@@ -33,7 +33,7 @@ The code is, dare I say, much more Pythonic and is no longer littered with `type
 
 ### Changed
 - `/today` & `/calendar`
-  - refactored to handle many events on one day
+  - refactored to handle many events on the same day
 - `/rats`
   - broken rats are now reportable, allowing broken images to be tested, then fixed or removed
   - links are manually "fixed" by reuploading gifs to discord and using the discord URL, which links to their CDN instead of Tenor (for whatever reason Tenor gifs don't work in discord embeds)
@@ -41,6 +41,8 @@ The code is, dare I say, much more Pythonic and is no longer littered with `type
   - new responses
   - responses don't repeat until they've all been used
 - **I love you** user command now has permanent and rotating affirmations
+- Switch to the async **pytwitchapi** for twitch integration, instead of `youtube-twitch`
+  - youtube-twitch was both synchronous and the creator seems to be taking a break from maintaining it
 
 ### Removed
 - Hobo's `/username`
