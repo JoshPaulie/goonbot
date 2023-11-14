@@ -8,6 +8,8 @@ from typing import Iterator
 import discord
 from discord.ext import commands
 
+from keys import Keys
+
 # The main server
 GOON_HQ = discord.Object(177125557954281472)
 # The testing server
@@ -15,6 +17,8 @@ BOTTING_TOGETHER = discord.Object(510865274594131968)
 
 
 class Goonbot(commands.Bot):
+    keys = Keys
+
     # A default embed that will sprinkled around (so I don't have to manually set the color every time)
     embed = partial(discord.Embed, color=discord.Color.blurple())
 
@@ -47,9 +51,7 @@ class Goonbot(commands.Bot):
                 await self.load_extension(cog)
                 logging.info(f"Loaded cog: {cog}!")
             except Exception as exc:
-                logging.warning(
-                    f"Could not load extension {cog} due to {exc.__class__.__name__}: {exc}"
-                )
+                logging.warning(f"Could not load extension {cog} due to {exc.__class__.__name__}: {exc}")
                 print(f"{cog} failed to load: {exc.__class__.__name__}")
 
     async def setup_hook(self):
@@ -113,9 +115,7 @@ async def sync(ctx: commands.Context):
     await goonbot.tree.sync(guild=ctx.guild)
     assert goonbot.user
     await ctx.send(
-        embed=goonbot.embed(
-            title=f"{goonbot.user.name} commands synced to {ctx.guild.name}"
-        ),
+        embed=goonbot.embed(title=f"{goonbot.user.name} commands synced to {ctx.guild.name}"),
         ephemeral=True,
     )
     await ctx.message.add_reaction("✅")
@@ -127,9 +127,7 @@ async def test_image(ctx: commands.Context, image_url: str | None = None):
     """Test how images are displayed in an embed, mostly used for checking broken rats"""
     if not image_url:
         return await ctx.send(
-            embed=goonbot.embed(
-                title="You didn't include an image", color=discord.Color.red()
-            ),
+            embed=goonbot.embed(title="You didn't include an image", color=discord.Color.red()),
             ephemeral=True,
         )
 
