@@ -25,9 +25,24 @@ class CreatorView(discord.ui.View):
     """
 
     @staticmethod
-    def how_long_since(started_at: dt.datetime) -> dt.timedelta:
+    def ftime(seconds: int):
+        """Input seconds and return a string of how many minutes, but it's formatted nicely
+
+        Seconds are inputted because they're readily available from dt.timedeltas"""
+        hours, remainder = divmod(seconds, 60 * 60)
+        minutes, _ = divmod(remainder, 60)
+        if not hours:
+            return f"{minutes} minute" if minutes == 1 else f"{minutes} minutes"
+            # todo finish
+        elif hours and not minutes:
+            return f"{hours} hour(s)"
+        return f"{hours} hour(s), {minutes} minute(s)"
+
+    @staticmethod
+    def how_long_since(started_at: dt.datetime) -> int:
+        """Takes a reference datetime and returns (roughly) how many seconds since"""
         now = dt.datetime.now(tz=dt.timezone.utc)
-        return now - started_at
+        return (now - started_at).seconds // 60
 
     def __init__(
         self,
@@ -63,16 +78,16 @@ class CreatorView(discord.ui.View):
         twitch_embed = discord.Embed()
         if stream:
             twitch_embed.title = f"{streamer.login} is live!"
-            twitch_embed.description = (
-                f"Stream started {self.how_long_since(stream.started_at).seconds // 60} minutes ago"
-            )
+            twitch_embed.description = stream.title
             twitch_embed.set_thumbnail(url=streamer.profile_image_url)
             twitch_embed.url = "https://www.twitch.tv/" + self.twitch_user
             twitch_embed.add_field(name="Viewer Count", value=stream.viewer_count)
             twitch_embed.add_field(name="Game", value=stream.game_name)
+            twitch_embed.add_field(name="Started", value=self.ftime(self.how_long_since(stream.started_at)))
             twitch_embed.set_footer(text=", ".join(stream.tags))
         else:
             twitch_embed.title = f"{streamer.login} is offline. 😌"
+            twitch_embed.set_image(url=streamer.offline_image_url)
 
         # Send embed
         assert interaction.message
