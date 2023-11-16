@@ -111,8 +111,11 @@ class CreatorView(discord.ui.View):
     async def get_streamer(self, login: str) -> tuple[TwitchUser, Stream | None]:
         """Returns a twitch user and (if they're live) their stream info"""
         twitch = await Twitch(self.bot.keys.TWITCH_CLIENT_ID, self.bot.keys.TWITCH_CLIENT_SECRET)
+        # Gets the streamer data
+        # Used for profile pic, offline profile pic, official username
         streamer = await first(twitch.get_users(logins=[login]))
         assert streamer
+        # Gets stream data
         stream = await first(twitch.get_streams(user_login=[login]))
         await twitch.close()
         return streamer, stream
