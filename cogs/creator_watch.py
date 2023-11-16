@@ -6,6 +6,7 @@ import datetime as dt
 from typing import Optional
 
 import discord
+import pyyoutube
 from discord import app_commands
 from discord.ext import commands
 from twitchAPI.helper import first
@@ -47,8 +48,8 @@ class CreatorView(discord.ui.View):
         self,
         *,
         timeout: float | None = 30,
-        youtube_channel_id: Optional[str],
-        twitch_username: Optional[str],
+        youtube_channel_id: Optional[str] = None,
+        twitch_username: Optional[str] = None,
         bot: Goonbot,
     ):
         self.bot = bot
@@ -68,8 +69,16 @@ class CreatorView(discord.ui.View):
             self.add_item(twitch_button)
 
     async def youtube_button_callback(self, interaction: discord.Interaction):
+        yt = pyyoutube.Api(api_key=self.bot.keys.GOOGLE_API)
+
+        channel_info = yt.get_channel_info(channel_id=self.youtube_channel_id)
+        uploads_playlist_id = channel_info.items[0].contentDetails.relatedPlaylists.uploads  # type: ignore
+        playlist_items = yt.get_playlist_items(playlist_id=uploads_playlist_id, count=1)  # type: ignore
+        lastest_upload_id = playlist_items.items[0].contentDetails.videoId  # type: ignore
+        lastest_upload_url = f"https://www.youtube.com/watch?v={lastest_upload_id}"
+
         assert interaction.message
-        await interaction.message.edit(content="You clicked Youtube", view=None)
+        await interaction.message.edit(content=lastest_upload_url, view=None)  # type: ignore
 
     async def twitch_button_callback(self, interaction: discord.Interaction):
         assert self.twitch_user
@@ -87,6 +96,7 @@ class CreatorView(discord.ui.View):
             twitch_embed.add_field(
                 name="Started",
                 value=self.ftime(self.how_long_since(stream.started_at)) + " ago",
+                inline=False,
             )
             twitch_embed.set_footer(text=", ".join(stream.tags))
         else:
