@@ -28,15 +28,14 @@ class CreatorView(discord.ui.View):
     def ftime(seconds: int):
         """Input seconds and return a string of how many minutes, but it's formatted nicely
 
-        Seconds are inputted because they're readily available from dt.timedeltas"""
+        Seconds are passed because they're readily available from dt.timedeltas"""
         hours, remainder = divmod(seconds, 60 * 60)
         minutes, _ = divmod(remainder, 60)
         if not hours:
-            return f"{minutes} minute" if minutes == 1 else f"{minutes} minutes"
-            # todo finish
+            return f"{minutes} min"
         elif hours and not minutes:
-            return f"{hours} hour(s)"
-        return f"{hours} hour(s), {minutes} minute(s)"
+            return f"{hours} hr"
+        return f"{hours} hr, {minutes} min"
 
     @staticmethod
     def how_long_since(started_at: dt.datetime) -> int:
