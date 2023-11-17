@@ -27,11 +27,11 @@ class Rats(commands.Cog):
             embed=self.bot.embed(title="Rat").set_image(url=next_rat),
         )
 
-    async def report_broken_rat(
-        self, interaction: discord.Interaction, message: discord.Message
-    ):
+    async def report_broken_rat(self, interaction: discord.Interaction, message: discord.Message):
         """For whatever reason, links break. This offers a way for users to report images that no longer load in discord embeds"""
-        # Use short-circuiting to first check if there are embeds, then checking the title of the first one
+        # Because any message could be reported, we need to validate we're processing a "rat message" before continuing
+        # We use short-circuiting to first make there the message has an embed, THEN check if the embed's title is "rat"
+        # If either is not true, return early and abort
         if not message.embeds or message.embeds[0].title != "Rat":
             return await interaction.response.send_message(
                 embed=self.bot.embed(title="This isn't a rat post."), ephemeral=True
