@@ -21,6 +21,8 @@ Goonbot 6.0 is considerably more thought out than previous versions. Most comman
 The code is, dare I say, much more Pythonic and is no longer littered with `type: ignore`
 
 ### Added
+- `/about <docs page>`
+  - command that relays a doc page for certain features, explaining how they work
 
 ### Fixed
 - `/wie`
@@ -41,8 +43,10 @@ The code is, dare I say, much more Pythonic and is no longer littered with `type
   - new responses
   - responses don't repeat until they've all been used
 - **I love you** user command now has permanent and rotating affirmations
-- Switch to the async **pytwitchapi** for twitch integration, instead of `youtube-twitch`
+- Switch to the async **pytwitchapi** for twitch integration, instead of `python-twitch`
   - youtube-twitch was both synchronous and the creator seems to be taking a break from maintaining it
+- Switch to Google's official API client library from, instead of `youtube-python`
+  - youtube-python was an untyped mess, littered with `# type: ignore`s. Although Google's client is also untyped, it's basically a json to dict wrapper. No type ignoring needed.
 
 ### Removed
 - Hobo's `/username`
