@@ -6,12 +6,17 @@ from discord.ext import commands
 
 from goonbot import Goonbot
 
+# This should be outside docs_pages_autocomplete(). With how autocomplete works,
+# if this was within the function, the pathlib lookup would occur everytime a user
+# entered a new character. This has the slight disadvantage needing to restart the bot
+# when a new page is added.
+docs_dir = pathlib.Path("docs")
+docs_pages = [p for p in docs_dir.glob("*.md")]
+
 
 async def doc_pages_autocomplete(
     interaction: discord.Interaction, current: str
 ) -> list[app_commands.Choice[str]]:
-    docs_dir = pathlib.Path("docs")
-    docs_pages = [p for p in docs_dir.glob("*.md")]
     return [
         app_commands.Choice(name=page.name[:-3].title(), value=page.as_posix())
         for page in docs_pages
