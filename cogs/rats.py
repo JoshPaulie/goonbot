@@ -30,7 +30,7 @@ class Rats(commands.Cog):
     async def report_broken_rat(self, interaction: discord.Interaction, message: discord.Message):
         """For whatever reason, links break. This offers a way for users to report images that no longer load in discord embeds"""
         # Because any message could be reported, we need to validate we're processing a "rat message" before continuing
-        # We use short-circuiting to first make there the message has an embed, THEN check if the embed's title is "rat"
+        # We use short-circuiting to first make sure the message has an embed, THEN check if the embed's title is "rat"
         # If either is not true, return early and abort
         if not message.embeds or message.embeds[0].title != "Rat":
             return await interaction.response.send_message(
