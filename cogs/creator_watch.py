@@ -6,9 +6,9 @@ import datetime as dt
 from typing import Optional
 
 import discord
-import pyyoutube
 from discord import app_commands
 from discord.ext import commands
+from googleapiclient.discovery import build
 from twitchAPI.helper import first
 from twitchAPI.twitch import Stream, Twitch, TwitchUser
 
@@ -68,17 +68,11 @@ class CreatorView(discord.ui.View):
         if twitch_username:
             self.add_item(twitch_button)
 
+
     async def youtube_button_callback(self, interaction: discord.Interaction):
-        yt = pyyoutube.Api(api_key=self.bot.keys.GOOGLE_API)
-
-        channel_info = yt.get_channel_info(channel_id=self.youtube_channel_id)
-        uploads_playlist_id = channel_info.items[0].contentDetails.relatedPlaylists.uploads  # type: ignore
-        playlist_items = yt.get_playlist_items(playlist_id=uploads_playlist_id, count=1)  # type: ignore
-        lastest_upload_id = playlist_items.items[0].contentDetails.videoId  # type: ignore
-        lastest_upload_url = f"https://www.youtube.com/watch?v={lastest_upload_id}"
-
+        latest_upload_url = self.get_latest_youtube_video(self.youtube_channel_id)
         assert interaction.message
-        await interaction.message.edit(content=lastest_upload_url, view=None)  # type: ignore
+        await interaction.message.edit(content=latest_upload_url, view=None)
 
     async def twitch_button_callback(self, interaction: discord.Interaction):
         assert self.twitch_user
@@ -103,7 +97,6 @@ class CreatorView(discord.ui.View):
             twitch_embed.title = f"{streamer.login} is offline. 😌"
             twitch_embed.set_image(url=streamer.offline_image_url)
             twitch_embed.color = discord.Color.greyple()
-
         # Send embed
         assert interaction.message
         await interaction.message.edit(embed=twitch_embed, view=None)
@@ -119,6 +112,27 @@ class CreatorView(discord.ui.View):
         stream = await first(twitch.get_streams(user_login=[login]))
         await twitch.close()
         return streamer, stream
+
+    def get_latest_youtube_video(self, channel_id):
+        # This is pretty much lifted straight for the docs
+        # Sadly, the google api client a glorified wrapper that returns untyped dicts
+        # Build YouTube interface
+        youtube = build("youtube", "v3", developerKey=self.bot.keys.GOOGLE_API)
+        # Get channel info
+        channel_info = youtube.channels().list(id=channel_id, part="contentDetails").execute()
+        # Blindly hack and slash until we get the ID for their uploads playlist
+        # fun fact: all channels have a "hidden" uploads playlist. This is what you see when
+        # you visit someone's youtube channel. It's predictably a list of all public videos on the channel
+        uploads_playlist_id = channel_info["items"][0]["contentDetails"]["relatedPlaylists"]["uploads"]
+        uploads_playlist_response = (
+            youtube.playlistItems()
+            .list(playlistId=uploads_playlist_id, part="snippet", maxResults=1)
+            .execute()
+        )
+        # Snipe that video ID amidst the chaos that is the JSON response
+        video_id = uploads_playlist_response["items"][0]["snippet"]["resourceId"]["videoId"]
+        # Finally, assemble the url by appending the video idea to the base youtube video url
+        return "https://www.youtube.com/watch?v=" + video_id
 
 
 class CreatorWatch(commands.Cog):
