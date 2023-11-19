@@ -21,8 +21,8 @@ class CreatorView(discord.ui.View):
     channel. The Twitch portion has the extra flair of checking of checking if they are currently live
     streaming now. If so, the title and for how long
 
-    Ideally, if the creator only had one of the other, the relevant embed would just send. This way the user
-    wouldn't have to click the sole available button. It feels redundant.
+    Ideally, if the creator only published one of the two platforms, the relevant embed would just sent.
+    This way the user wouldn't have to click the sole available button. It feels redundant.
     """
 
     @staticmethod
@@ -57,6 +57,8 @@ class CreatorView(discord.ui.View):
         self.twitch_user = twitch_username
         super().__init__(timeout=timeout)
 
+        # Because we don't want both buttons every time, we must declare each button, assign it callback
+        # functions, and finally add them to the view.
         twitch_button = discord.ui.Button(label="Twitch", style=discord.ButtonStyle.blurple)
         twitch_button.callback = self.twitch_button_callback
         youtube_button = discord.ui.Button(label="YouTube", style=discord.ButtonStyle.red)
