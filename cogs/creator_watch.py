@@ -70,6 +70,9 @@ class CreatorView(discord.ui.View):
         if twitch_username:
             self.add_item(twitch_button)
 
+    async def on_timeout(self) -> None:
+        self.clear_items()
+        return await super().on_timeout()
 
     async def youtube_button_callback(self, interaction: discord.Interaction):
         latest_upload_url = self.get_latest_youtube_video(self.youtube_channel_id)
