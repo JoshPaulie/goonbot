@@ -10,10 +10,8 @@ from discord.ext import commands
 
 from keys import Keys
 
-# The main server
-GOON_HQ = discord.Object(177125557954281472)
-# The testing server
-BOTTING_TOGETHER = discord.Object(510865274594131968)
+GOON_HQ = discord.Object(177125557954281472)  # The main ("production") server
+BOTTING_TOGETHER = discord.Object(510865274594131968)  # The development server
 
 
 class Goonbot(commands.Bot):
@@ -165,11 +163,7 @@ async def on_command_error(ctx: commands.Context, error: commands.CommandError):
 # Defining most of the general contexts menus here would make since
 # but not for cog specific commands like cog/rats.report_rap.
 
-# To make these "cog specific" context menu commands, read the following
-# (written by the author of discord.py)
-# https://github.com/Rapptz/discord.py/issues/7823#issuecomment-1086830458
-
-# "What are context menus?"
+# > "What are context menus?"
 # They're commands that you can bind to particular "contexts," namley messages or users.
 # This enables you to right click either a message or a user, go to Apps,
 # and a list will display with the available commands for that particular "context"

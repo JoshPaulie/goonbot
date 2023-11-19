@@ -14,8 +14,12 @@ class Rats(commands.Cog):
 
     def __init__(self, bot: Goonbot):
         self.bot = bot
+        # To make a "cog specific" context menu command, we gotta do this little song-and-dance
+        # of defining the command as a method, then attaching it to the bot. More can be read here:
+        # https://github.com/Rapptz/discord.py/issues/7823#issuecomment-1086830458, written by the library author
         self.report_rat_ctx_menu = app_commands.ContextMenu(
-            name="Report Rat", callback=self.report_broken_rat
+            name="Report Rat",
+            callback=self.report_broken_rat,
         )
         self.bot.tree.add_command(self.report_rat_ctx_menu)
 
@@ -28,7 +32,12 @@ class Rats(commands.Cog):
         )
 
     async def report_broken_rat(self, interaction: discord.Interaction, message: discord.Message):
-        """For whatever reason, links break. This offers a way for users to report images that no longer load in discord embeds"""
+        """
+        For whatever reason, links break. This offers a way for users to report images that no longer load in discord embeds
+
+        I'm choosing this over attaching a view to rat message because I find the buttons to be spammy.
+        This is a design choice. Buttons take up more vertical real estate than a message without buttons, so only use when necessary
+        """
         # Because any message could be reported, we need to validate we're processing a "rat message" before continuing
         # We use short-circuiting to first make sure the message has an embed, THEN check if the embed's title is "rat"
         # If either is not true, return early and abort
