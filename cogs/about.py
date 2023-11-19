@@ -18,9 +18,14 @@ async def doc_pages_autocomplete(
     interaction: discord.Interaction, current: str
 ) -> list[app_commands.Choice[str]]:
     return [
-        app_commands.Choice(name=page.name[:-3].title(), value=page.as_posix())
+        app_commands.Choice(
+            # Cleans up file names for the end user
+            # goon_calendar.md -> Goon Calendar
+            name=page.name[:-3].title().replace("-", " "),
+            value=page.as_posix(),
+        )
         for page in docs_pages
-        if current.lower() in page.name.lower()
+        if current.lower() in page.name.lower().replace("-", " ")
     ]
 
 
