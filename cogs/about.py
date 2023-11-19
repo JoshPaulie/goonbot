@@ -35,11 +35,12 @@ class About(commands.Cog):
 
     @app_commands.command(name="about")
     @app_commands.autocomplete(page=doc_pages_autocomplete)
-    async def about(self, interaction: discord.Interaction, page: str):
+    async def about(self, interaction: discord.Interaction, page: str, broadcast: bool = False):
         """Read a page from the goonbot documentation!"""
         docs_page = pathlib.Path(page)
         await interaction.response.send_message(
             embed=self.bot.embed(description=docs_page.read_text()),
+            ephemeral=not broadcast,
         )
 
 
