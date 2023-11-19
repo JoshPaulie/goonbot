@@ -54,11 +54,9 @@ class Rats(commands.Cog):
         self.recently_reported_rats.append(offending_rat_link)
 
         # Send message to alert channel (handle report)
-        assert interaction.guild
-        # ? does this work when the guild is different from the one handling the interaction?
-        goonbot_alert_channel = interaction.guild.get_channel(1171291004175912980)
-        #                             ! Figure out this typing !
-        await goonbot_alert_channel.send(  # type: ignore
+        goonbot_alert_channel = self.bot.get_channel(1171291004175912980)
+        assert isinstance(goonbot_alert_channel, discord.TextChannel)
+        await goonbot_alert_channel.send(
             embed=self.bot.embed(
                 title="Rat report",
                 description=offending_rat_link,
