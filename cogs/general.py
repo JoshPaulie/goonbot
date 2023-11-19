@@ -53,12 +53,11 @@ class General(commands.Cog):
         Sends a message indicating the general time of day (morning, afternoon, night) based on the current hour.
             The time of day is determined as follows:
             - 12AM to 4AM is considered as the previous day's night.
-            - 6AM to 12PM is considered morning.
-            - 1PM to 5PM is considered afternoon.
+            - 6AM to 11AM is considered morning.
+            - 12PM to 5PM is considered afternoon.
             - Any other time is considered night.
-
-            This is based on the social convention that early hours are often considered part of the previous day's night.
-            This is because most people are still awake from the previous day or consider it as the end of their day.
+                - This is based on the social convention that early hours are often considered part of the previous day's night.
+                - If you hear someone say "I was up until 2AM Saturday night," you understand they mean "I stayed up until 2AM Sunday morning"
         """
         today = dt.datetime.today()
         current_hour = dt.datetime.now().hour
@@ -68,11 +67,11 @@ class General(commands.Cog):
             # Early morning should be night of the day after
             today -= dt.timedelta(days=1)
             response.description = f"It's a {today.strftime('%A')} night!"
-        # 6AM to 12PM
-        elif current_hour in [n for n in range(6, 11 + 1)]:
+        # 6AM to 11PM
+        elif current_hour in [n for n in range(6, 10 + 1)]:
             response.description = f"It's a {today.strftime('%A')} morning!"
-        # 1PM to 5PM
-        elif current_hour in [n for n in range(13, 16 + 1)]:
+        # 12PM to 5PM
+        elif current_hour in [n for n in range(12, 16 + 1)]:
             response.description = f"It's a {today.strftime('%A')} afternoon!"
         # 6PM to (effectively) 4AM
         else:
