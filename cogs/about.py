@@ -25,7 +25,7 @@ async def doc_pages_autocomplete(
             value=page.as_posix(),
         )
         for page in docs_pages
-        if current.lower() in page.name.lower().replace("-", " ")
+        if current.lower() in page.name[:-3].lower().replace("-", " ")
     ]
 
 
