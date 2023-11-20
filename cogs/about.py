@@ -11,7 +11,7 @@ from goonbot import Goonbot
 # entered a new character. This has the slight disadvantage needing to restart the bot
 # when a new page is added.
 docs_dir = pathlib.Path("docs")
-docs_pages = [p for p in docs_dir.glob("*.md")]
+docs_pages = sorted([p for p in docs_dir.glob("*.md") if "readme" not in p.name.lower()])
 
 
 async def doc_pages_autocomplete(
