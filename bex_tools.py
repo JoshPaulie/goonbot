@@ -8,22 +8,9 @@ from typing import Any, Sequence
 def cycle_random(items: Sequence[Any]):
     """
     Generates an infinite sequence of items from the given sequence, ensuring that each item is yielded before repeating any.
-    The order of the items is randomized each time the sequence cycles. Functionally similar to itertools.cycle()
+    The order of the items is randomized each time the sequence cycles.
 
-    Example:
-        >>> colors = ["Red", "Blue", "Yellow"]
-        >>> generator = cycle_random(colors)
-        >>> next(generator)
-        'Blue'
-        >>> next(generator)
-        'Red'
-        >>> next(generator)
-        'Yellow'
-        >>> next(generator)
-        'Red'
-        >>> next(generator)
-        'Yellow'
-        ...
+    Functionally similar to itertools.cycle(), but (effectively) shuffles the order each time.
     """
     used_items = []
     while True:
