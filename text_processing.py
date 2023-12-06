@@ -1,6 +1,11 @@
 from typing import Any, Sequence
 
 
+def make_plural(noun: str) -> str:
+    """VERY crude way of making nouns plural. Naive to English rules, simply adds an 's' to the end"""
+    return noun + "s"
+
+
 def make_possessive(noun: str) -> str:
     """
     Makes a noun possessive
