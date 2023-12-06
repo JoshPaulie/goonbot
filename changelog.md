@@ -20,6 +20,16 @@ Goonbot 6.0 is considerably more thought out than previous versions. Most comman
 
 The code is, dare I say, much more Pythonic and is no longer littered with `type: ignore`
 
+### Dependency changes
+#### Discord
+As previously mentioned, we are now using **discord.py**, and no longer using **pycord**
+#### Youtube
+Swapped from the (questionably typed) **youtube-python** for the official **Google API Client**
+#### Twitch
+Swapped the synchronous **python-twitch** with the asynchronous **pytwitchapi**
+#### Riot games
+Previous generations of goonbot relied on **cassiopeia**, a synchronous library, lovely library with beautiful caching. It was wonderful, other than it sucked. We're now using **pulsefire**
+
 ### Added
 - `/about <docs page>`
   - command that relays a doc page for certain features, explaining how they work
@@ -34,6 +44,7 @@ The code is, dare I say, much more Pythonic and is no longer littered with `type
   - added halloween
 
 ### Changed
+- all commands that utilize randomness (rats, wow no invite responses) won't repeat content until all available options have been served
 - `/today` & `/calendar`
   - refactored to handle many events on the same day
 - `/rats`
@@ -41,12 +52,6 @@ The code is, dare I say, much more Pythonic and is no longer littered with `type
   - links are manually "fixed" by reuploading gifs to discord and using the discord URL, which links to their CDN instead of Tenor (for whatever reason Tenor gifs don't work in discord embeds)
 - `/wni`
   - new responses
-  - responses don't repeat until they've all been used
-- **I love you** user command now has permanent and rotating affirmations
-- Switch to the async **pytwitchapi** for twitch integration, instead of `python-twitch`
-  - youtube-twitch was both synchronous and the creator seems to be taking a break from maintaining it
-- Switch to Google's official API client library from, instead of `youtube-python`
-  - youtube-python was an untyped mess, littered with `# type: ignore`s. Although Google's client is also untyped, it's basically a json to dict wrapper. No type ignoring needed.
 
 ### Removed
 - Hobo's `/username`
