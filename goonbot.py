@@ -85,6 +85,23 @@ goonbot = Goonbot(
     intents=discord.Intents.all(),
 )
 
+# Generic last-resort error message to be sent, in hopes of negating all "interaction failed messages"
+# (by effectively replacing it with a different error message lol)
+# Doesn't catch "unknown interaction" failures
+command_tree = goonbot.tree
+
+
+@command_tree.error
+async def on_app_command_error(interaction: discord.Interaction, error: discord.app_commands.AppCommandError):
+    await interaction.followup.send(
+        embed=goonbot.embed(
+            title="An unknown error occurred.",
+            description="If this happens many times, ping jarsh",
+        ),
+        ephemeral=True,
+    )
+    logging.error(traceback.format_exc())
+
 
 # Prefix commands
 # Prefix commands are old school bot commands from years back. This bot uses "." as its prefix
