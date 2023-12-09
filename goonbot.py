@@ -39,7 +39,7 @@ class Goonbot(commands.Bot):
         """
         files = Path("cogs").rglob("*.py")
         for file in files:
-            if not any(x in file.name for x in ["__init__", "template_cog"]):
+            if not any(x in file.name for x in ["__init__", "template_cog", "utils"]):
                 yield file.as_posix()[:-3].replace("/", ".")
 
     async def load_cogs(self) -> None:
