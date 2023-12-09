@@ -295,7 +295,7 @@ class League(commands.Cog):
         deaths = target_summoner["deaths"]
         assists = target_summoner["assists"]
         kda = f"{kills}/{deaths}/{assists}"
-        if kills == 0:
+        if deaths == 0:
             kda_ratio = "PERF!"
         else:
             kda_ratio = str(round((kills + assists) / deaths, 2)) + " ratio"
@@ -386,7 +386,7 @@ class League(commands.Cog):
         )
 
         # Multi kill field
-        if target_summoner["largestMultiKill"] > 0:
+        if target_summoner["largestMultiKill"] > 1:
             multi_kills = [
                 MultiKill("Double Kill", target_summoner["doubleKills"]),
                 MultiKill("Triple Kill", target_summoner["tripleKills"]),
