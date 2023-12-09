@@ -78,13 +78,15 @@ def calc_participant_stat(
     | match_info_participant_stat_keys,  # JOSH STOP MOVING THE LITERALS HERE, YOU NEVER LIKE IT
 ) -> ParticipantStat:
     """"""
-    # Todo - refactor this to take a couple of stats, so we can calc kill participation
     # Todo - refactor to take (and return) the stat name, similar to how MultiKills function
     participant_team_id = None
     participant_stat_value = 0
     team_stat_value = 0
+
+    # if a single stat is passed, just add it to a list
     if not isinstance(stat_names, list):
         stat_names = [stat_names]
+
     for stat_name in stat_names:
         for participant in participants:
             if participant["puuid"] == target_participant["puuid"]:
