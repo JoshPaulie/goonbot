@@ -158,6 +158,7 @@ async def test_image(ctx: commands.Context, image_url: str | None = None):
         )
 
 
+# This catches and processes ext (or "prefixed") commands
 @goonbot.event
 async def on_command_error(ctx: commands.Context, error: commands.CommandError):
     if isinstance(error, commands.NotOwner):
@@ -172,7 +173,7 @@ async def on_command_error(ctx: commands.Context, error: commands.CommandError):
     else:
         # Without this line, prefixed commands throwing exceptions that will get gobbled
         # up by this event and make me real mad later when I break something
-        traceback.print_exc()
+        logging.error(traceback.format_exc())
 
 
 # Context menus
