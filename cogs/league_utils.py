@@ -109,3 +109,37 @@ def calc_participant_stat(
         percentage_amount = 0.0
 
     return ParticipantStat(participant_stat_value, team_stat_value, percentage_amount)
+
+
+def calc_kill_participation(
+    participants: list[RiotAPISchema.LolMatchV5MatchInfoParticipant],
+    target_participant: RiotAPISchema.LolSummonerV4Summoner,
+):
+    participant_team_id = None
+    participant_stat_value = 0
+    team_stat_value = 0
+    stat_names: list[match_info_participant_stat_keys] = ["kills", "assists"]
+    for stat_name in stat_names:
+        for participant in participants:
+            if participant["puuid"] == target_participant["puuid"]:
+                participant_team_id = participant["teamId"]
+                participant_stat_value += participant[stat_name]
+                break
+
+        participant_teammates = [
+            participant for participant in participants if participant["teamId"] == participant_team_id
+        ]
+
+        # We only want to tally kills for the team, we don't care about assists
+        if stat_name == "kills":
+            for participant in participant_teammates:
+                stat_amount = participant[stat_name]
+                team_stat_value += stat_amount
+
+    # Covers: Divide by 0 exception
+    if team_stat_value != 0:
+        percentage_amount = round((participant_stat_value / team_stat_value) * 100, 1)
+    else:
+        percentage_amount = 0.0
+
+    return ParticipantStat(participant_stat_value, team_stat_value, percentage_amount)
