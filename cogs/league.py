@@ -382,14 +382,25 @@ class League(commands.Cog):
         cs_per_min = round(creep_score / game_duration_minutes, 1)
         total_gold = target_summoner_stats["goldEarned"]
         gold_per_min = round(total_gold / game_duration_minutes, 1)
+        gold_vision_stats: list[tuple[str, ParticipantStat]] = [
+            ("Vision score", calc_participant_stat(teammates, summoner, "visionScore")),
+            ("Wards Placed", calc_participant_stat(teammates, summoner, "wardsPlaced")),
+            ("Wards Destroyed", calc_participant_stat(teammates, summoner, "wardsKilled")),
+        ]
         last_match_embed.add_field(
             name="Farming & Vision 🧑‍🌾",
             value=multiline_string(
                 [
-                    fstat("CS", f"{creep_score}", extra_stat=f"{cs_per_min} cs/min"),
-                    fstat("Gold", f"{total_gold:,d}", extra_stat=f"{gold_per_min:,} gp/min"),
-                    fstat("Vision Score", target_summoner["visionScore"]),
-                    fstat("Wards destroyed", target_summoner["wardsKilled"]),
+                    fstat("CS", creep_score, extra_stat=f"{cs_per_min} cs/min"),
+                    fstat("Gold", format_number(total_gold), extra_stat=f"{gold_per_min:,} gp/min"),
+                    *[
+                        fstat(
+                            stat[0],
+                            stat[1].participant_value,
+                            extra_stat=f"{stat[1].participant_team_value}%",
+                        )
+                        for stat in gold_vision_stats
+                    ],
                 ]
             ),
         )
