@@ -7,6 +7,9 @@ Provides a few details like rank in each queue type (if any), current in-game pr
 ## Last Game
 Last game is a simple analytic tool that checks your last game.
 
+### Final score
+The final score is in the following format: **ally team kills** | **enemy team kills**
+
 ### "Stats" section
 The **stats** section is made up of lines consisting of a stat name, how much you earned/dealt/received, and how much of yours contributes to the total amount your team outputted.
 
