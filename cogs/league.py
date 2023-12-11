@@ -27,7 +27,7 @@ def get_cdragon_url(path: str) -> str:
     return base_cdragon_url + trimmed_path
 
 
-def format_seconds(duration_seconds: int) -> str:
+def timestamp_from_seconds(duration_seconds: int) -> str:
     """Takes seconds and responds with a timestamp of the following format: 00:00
 
     Examples
@@ -236,23 +236,23 @@ class League(commands.Cog):
 
         # Pull stats for description
         # Specify the participant
-        target_summoner = None
+        target_summoner_stats = None
         for participant in last_match["info"]["participants"]:
             if participant["puuid"] == summoner["puuid"]:
-                target_summoner = participant
+                target_summoner_stats = participant
                 break
-        assert target_summoner
+        assert target_summoner_stats
 
         # Game outcome
-        won_game = target_summoner["win"]
+        won_game = target_summoner_stats["win"]
 
         # champion meta
-        champion_id = target_summoner["championId"]
+        champion_id = target_summoner_stats["championId"]
         champion_image_path = champion_id_to_image_path[champion_id]
         champion_image_path_full = get_cdragon_url(champion_image_path)
 
         # team meta
-        team_id = target_summoner["teamId"]
+        team_id = target_summoner_stats["teamId"]
         teammates: list[RiotAPISchema.LolMatchV5MatchInfoParticipant] = sorted(
             [
                 participant
@@ -263,8 +263,8 @@ class League(commands.Cog):
         )
 
         # Determine role
-        lane = target_summoner["lane"]
-        role = target_summoner["role"]
+        lane = target_summoner_stats["lane"]
+        role = target_summoner_stats["role"]
 
         if role == "NONE":
             role = None
@@ -291,9 +291,9 @@ class League(commands.Cog):
             final_score = f"{team_200_kills} | {team_100_kills}"
 
         # KDA
-        kills = target_summoner["kills"]
-        deaths = target_summoner["deaths"]
-        assists = target_summoner["assists"]
+        kills = target_summoner_stats["kills"]
+        deaths = target_summoner_stats["deaths"]
+        assists = target_summoner_stats["assists"]
         kda = f"{kills}/{deaths}/{assists}"
         if deaths == 0:
             kda_ratio = "PERF!"
@@ -333,7 +333,7 @@ class League(commands.Cog):
 
         # Teammates field
         teammate_puuids_no_target = [
-            tm["puuid"] for tm in teammates if tm["puuid"] != target_summoner["puuid"]
+            tm["puuid"] for tm in teammates if tm["puuid"] != target_summoner_stats["puuid"]
         ]
         last_match_embed.add_field(
             name="Teammates",
@@ -369,9 +369,11 @@ class League(commands.Cog):
 
         # Farming and Vision stats field
         game_duration_minutes = last_match["info"]["gameDuration"] // 60
-        creep_score = target_summoner["totalMinionsKilled"] + target_summoner["neutralMinionsKilled"]
+        creep_score = (
+            target_summoner_stats["totalMinionsKilled"] + target_summoner_stats["neutralMinionsKilled"]
+        )
         cs_per_min = round(creep_score / game_duration_minutes, 1)
-        total_gold = target_summoner["goldEarned"]
+        total_gold = target_summoner_stats["goldEarned"]
         gold_per_min = round(total_gold / game_duration_minutes, 1)
         last_match_embed.add_field(
             name="Farming & Vision",
@@ -386,12 +388,12 @@ class League(commands.Cog):
         )
 
         # Multi kill field
-        if target_summoner["largestMultiKill"] > 1:
+        if target_summoner_stats["largestMultiKill"] > 1:
             multi_kills = [
-                MultiKill("Double Kill", target_summoner["doubleKills"]),
-                MultiKill("Triple Kill", target_summoner["tripleKills"]),
-                MultiKill("Quadra Kill", target_summoner["quadraKills"]),
-                MultiKill("Penta Kill", target_summoner["pentaKills"]),
+                MultiKill("Double Kill", target_summoner_stats["doubleKills"]),
+                MultiKill("Triple Kill", target_summoner_stats["tripleKills"]),
+                MultiKill("Quadra Kill", target_summoner_stats["quadraKills"]),
+                MultiKill("👑 Penta Kill", target_summoner_stats["pentaKills"]),
             ]
             # Format the multikills for output, and only include the stat if they had at least 1
             multi_kills = [
