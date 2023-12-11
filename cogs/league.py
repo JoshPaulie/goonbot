@@ -166,7 +166,7 @@ class League(commands.Cog):
             champions = await client.get_lol_v1_champion_summary()
         champion_id_to_name = {champion["id"]: champion["name"] for champion in champions}
         top_5_mp_champs = [
-            f"{champion_id_to_name[champ_mastery_stats['championId']]} {champ_mastery_stats['championPoints']:,d}"
+            f"{champion_id_to_name[champ_mastery_stats['championId']]} {format_number(champ_mastery_stats['championPoints'])}"
             for champ_mastery_stats in mastery_points[:5]
         ]
         summoner_embed.set_footer(text=" · ".join(top_5_mp_champs))
