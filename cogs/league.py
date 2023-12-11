@@ -12,7 +12,7 @@ from pulsefire.clients import CDragonClient, RiotAPIClient, RiotAPISchema
 from pulsefire.taskgroups import TaskGroup
 
 from goonbot import Goonbot
-from text_processing import make_plural, make_possessive, multiline_string
+from text_processing import make_plural, make_possessive, multiline_string, time_ago
 
 from .league_utils import MultiKill, ParticipantStat, calc_participant_stat
 
@@ -316,20 +316,31 @@ class League(commands.Cog):
             case _ as unknown_game_mode:
                 game_mode = f"Unknown game mode: {unknown_game_mode} (ping jarsh)"
 
+        # Gametime stats
+        game_duration_minutes = last_match["info"]["gameDuration"] // 60
+        game_duration = timestamp_from_seconds(last_match["info"]["gameDuration"])
+        if game_duration_minutes < 20 and won_game:
+            game_duration += " 🔥"
+        if game_duration_minutes > 40:
+            game_duration += " 🐢"
+        ended_ago = time_ago(last_match["info"]["gameStartTimestamp"] // 1000)
+
         # Build embed
-        last_match_embed = discord.Embed(
-            title=f"{make_possessive(summoner['name'])} last game analysis",
-            description=multiline_string(
-                [
-                    fstat("Game mode", game_mode, extra_stat="Victory!" if won_game else "Defeat."),
-                    fstat("Duration", format_seconds(last_match["info"]["gameDuration"])),
-                    fstat("Final score", final_score),
-                    fstat("KDA", f"{kda}", extra_stat=kda_ratio),
-                    fstat("Position", lane.title())
-                    if not role
-                    else fstat("Position", lane.title(), extra_stat=role.title()),
-                ]
-            ),
+        last_match_embed = discord.Embed(title=f"{make_possessive(summoner['name'])} last game analysis")
+        last_match_embed.set_thumbnail(url=champion_image_path_full)
+        last_match_embed.color = discord.Color.brand_green() if won_game else discord.Color.brand_red()
+
+        # Game meta, final score, kda
+        last_match_embed.description = multiline_string(
+            [
+                fstat("Game mode", game_mode, extra_stat="Victory!" if won_game else "Defeat."),
+                fstat("Duration", game_duration, extra_stat=ended_ago),
+                fstat("Final score", final_score),
+                fstat("KDA", kda, extra_stat=kda_ratio),
+                fstat("Position", lane.title())
+                if not role
+                else fstat("Position", lane.title(), extra_stat=role.title()),
+            ]
         )
 
         # Teammates field
