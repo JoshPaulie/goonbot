@@ -14,7 +14,7 @@ from pulsefire.taskgroups import TaskGroup
 from goonbot import Goonbot
 from text_processing import make_plural, make_possessive, multiline_string, time_ago
 
-from .league_utils import MultiKill, ParticipantStat, calc_participant_stat
+from .league_utils import MultiKill, ParticipantStat, calc_kill_participation, calc_participant_stat
 
 
 def get_cdragon_url(path: str) -> str:
