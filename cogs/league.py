@@ -1,6 +1,7 @@
 import asyncio
 import operator
 import time
+from itertools import batched
 from typing import Optional
 
 import discord
@@ -344,26 +345,25 @@ class League(commands.Cog):
         # Stats field
         # Todo - move from tuples to dataclass
         popular_stats: list[tuple[str, ParticipantStat]] = [
-            ("Champion damage", calc_participant_stat(teammates, summoner, "totalDamageDealtToChampions")),
-            ("Damage Taken", calc_participant_stat(teammates, summoner, "totalDamageTaken")),
-            ("Objective damage", calc_participant_stat(teammates, summoner, "damageDealtToObjectives")),
-            ("Ally Healing", calc_participant_stat(teammates, summoner, "totalHealsOnTeammates")),
-            ("Kill participation", calc_participant_stat(teammates, summoner, ["kills", "assists"])),
-            ("Feed participation", calc_participant_stat(teammates, summoner, "deaths")),
+            ("💪 Champ damage", calc_participant_stat(teammates, summoner, "totalDamageDealtToChampions")),
+            ("🏰 Obj. damage", calc_participant_stat(teammates, summoner, "damageDealtToObjectives")),
+            ("🛡️ Damage Taken", calc_participant_stat(teammates, summoner, "totalDamageTaken")),
+            ("❤️‍🩹 Ally Healing", calc_participant_stat(teammates, summoner, "totalHealsOnTeammates")),
+            ("🩸 Kill participation", calc_kill_participation(teammates, summoner)),
+            ("💀 Feed participation", calc_participant_stat(teammates, summoner, "deaths")),
         ]
+        formated_popular_stats = [
+            fstat(
+                stat[0],
+                format_number(stat[1].participant_value),
+                extra_stat=f"{stat[1].total_stat_percent}%",
+            )
+            for stat in popular_stats
+        ]
+        formated_popular_stats_batched = batched(formated_popular_stats, 2)
         last_match_embed.add_field(
-            name="Stats",
-            value=multiline_string(
-                [
-                    fstat(
-                        stat[0],
-                        f"{stat[1].participant_value:,d}",
-                        extra_stat=f"{stat[1].total_stat_percent}%",
-                    )
-                    for stat in popular_stats
-                    if stat[1].total_stat_percent > 10
-                ]
-            ),
+            name="Stats 📊",
+            value=multiline_string([" · ".join(pair) for pair in formated_popular_stats_batched]),
             inline=False,
         )
 
