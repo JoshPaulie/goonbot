@@ -288,6 +288,7 @@ class League(commands.Cog):
         kda = f"{kills}/{deaths}/{assists}"
         if deaths == 0:
             kda_ratio = "PERF!"
+            kda += " 🥵"
         else:
             kda_ratio = str(round((kills + assists) / deaths, 2)) + " ratio"
 
@@ -382,7 +383,7 @@ class League(commands.Cog):
         total_gold = target_summoner_stats["goldEarned"]
         gold_per_min = round(total_gold / game_duration_minutes, 1)
         last_match_embed.add_field(
-            name="Farming & Vision",
+            name="Farming & Vision 🧑‍🌾",
             value=multiline_string(
                 [
                     fstat("CS", f"{creep_score}", extra_stat=f"{cs_per_min} cs/min"),
@@ -408,7 +409,7 @@ class League(commands.Cog):
                 if mk.count > 0
             ]
             last_match_embed.add_field(
-                name="Multi kills",
+                name="Multi kills ⚔️",
                 value=multiline_string(multi_kills),
             )
 
