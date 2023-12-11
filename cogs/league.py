@@ -353,6 +353,12 @@ class League(commands.Cog):
             inline=False,
         )
 
+        # Stop the show if it was less than 5 minutes
+        if game_duration_minutes < 5:
+            last_match_embed.description += "\n\nGame was remade."
+            last_match_embed.color = discord.Color.greyple()
+            return await interaction.followup.send(embed=last_match_embed, ephemeral=True)
+
         # Stats field
         # Todo - move from tuples to dataclass
         popular_stats: list[tuple[str, ParticipantStat]] = [
