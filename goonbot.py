@@ -9,6 +9,7 @@ import discord
 from discord.ext import commands
 
 from keys import Keys
+from text_processing import multiline_string
 
 GOON_HQ = discord.Object(177125557954281472)  # The main ("production") server
 BOTTING_TOGETHER = discord.Object(510865274594131968)  # The development server
@@ -96,7 +97,12 @@ async def on_app_command_error(interaction: discord.Interaction, error: discord.
     await interaction.followup.send(
         embed=goonbot.embed(
             title="An unknown error occurred.",
-            description="If this happens many times, ping jarsh",
+            description=multiline_string(
+                (
+                    "Try again. The interaction has been logged.",
+                    "If this happens many times, ping jarsh",
+                )
+            ),
         ),
         ephemeral=True,
     )
