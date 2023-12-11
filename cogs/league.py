@@ -119,7 +119,6 @@ class League(commands.Cog):
             account_details: list[RiotAPISchema.AccountV1Account] = tg.results()
 
         base_log_url = "https://www.leagueofgraphs.com/summoner/na/"
-        # return base_log_url + game_name.replace(" ", "+") + "-" + tag_line
         return [
             f"[{acc['gameName']}]({base_log_url}{acc['gameName'].replace(' ', '+')}-{acc['tagLine']})"
             for acc in account_details
@@ -127,7 +126,6 @@ class League(commands.Cog):
 
     @app_commands.command(name="summoner", description="Get stats for a summoner")
     async def summoner(self, interaction: discord.Interaction, summoner_name: str):
-        start_time = time.perf_counter()
         await interaction.response.defer()
         # Get summoner data
         async with RiotAPIClient(default_headers={"X-Riot-Token": self.bot.keys.RIOT_API}) as client:
@@ -173,9 +171,6 @@ class League(commands.Cog):
         ]
         summoner_embed.set_footer(text=" · ".join(top_5_mp_champs))
         # Send embed
-        end_time = time.perf_counter()
-        loading_time = round(end_time - start_time, 2)
-        summoner_embed.set_footer(text=f"Elapsed loading time: {loading_time}ms")
         await interaction.followup.send(embed=summoner_embed)
 
     # Todo - make this generic so both commands can use it
@@ -272,11 +267,6 @@ class League(commands.Cog):
 
         if lane == "NONE":
             lane = "N/A"
-
-        if role:
-            position = f"{lane.title()} ({role.title()})"
-        else:
-            position = lane.title()
 
         # Final score
         team_100_kills = 0
@@ -385,7 +375,6 @@ class League(commands.Cog):
         )
 
         # Farming and Vision stats field
-        game_duration_minutes = last_match["info"]["gameDuration"] // 60
         creep_score = (
             target_summoner_stats["totalMinionsKilled"] + target_summoner_stats["neutralMinionsKilled"]
         )
@@ -422,10 +411,6 @@ class League(commands.Cog):
                 name="Multi kills",
                 value=multiline_string(multi_kills),
             )
-
-        # Finishing touches
-        last_match_embed.set_thumbnail(url=champion_image_path_full)
-        last_match_embed.color = discord.Color.brand_green() if won_game else discord.Color.brand_red()
 
         # Send embed
         end_time = time.perf_counter()
