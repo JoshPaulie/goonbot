@@ -49,7 +49,6 @@ def make_profile_url(profile_id: int) -> str:
     return f"https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/profile-icons/{profile_id}.jpg"
 
 
-# Todo add optional extra stat for ()
 def fstat(
     name: str,
     value: str | int | float,
@@ -183,15 +182,18 @@ class League(commands.Cog):
                         color=discord.Color.brand_red(),
                     )
                 )
+
             league_entries = await client.get_lol_league_v4_entries_by_summoner(
                 region=REGION_NA1, summoner_id=summoner["id"]
             )
             mastery_points = await client.get_lol_champion_v4_masteries_by_puuid(
                 region=REGION_NA1, puuid=summoner["puuid"]
             )
+
         # Build embed
         summoner_embed = self.bot.embed(title=summoner["name"])
         summoner_embed.set_thumbnail(url=make_profile_url(summoner["profileIconId"]))
+
         # Get league ranks
         for league_entry in league_entries:
             match league_entry["queueType"]:
@@ -206,6 +208,7 @@ class League(commands.Cog):
                         name=f"Flex {rank_reaction_strs[league_entry['tier'].lower()]}",
                         value=create_queue_field(league_entry),
                     )
+
         # Set mastries
         async with self.cdragon_client as client:
             champions = await client.get_lol_v1_champion_summary()
@@ -215,6 +218,7 @@ class League(commands.Cog):
             for champ_mastery_stats in mastery_points[:5]
         ]
         summoner_embed.set_footer(text=" · ".join(top_5_mp_champs))
+
         # Send embed
         await interaction.followup.send(embed=summoner_embed)
 
