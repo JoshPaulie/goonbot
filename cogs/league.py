@@ -148,7 +148,28 @@ class League(commands.Cog):
             for acc in account_details
         ]
 
+    async def summoner_name_autocomplete(self, interaction: discord.Interaction, current: str):
+        GOON_SUMMONER_NAMES = [
+            "bexli",
+            "mltsimpleton",
+            "ectoplax",
+            "roninalex",
+            "artificialmeat",
+            "large frog tamer",
+            "boxrog",
+            "vynle",
+            "poydok",
+            "cradmajone",
+        ]
+
+        return [
+            app_commands.Choice(name=name, value=name)
+            for name in sorted(GOON_SUMMONER_NAMES)
+            if current.lower() in name.lower()
+        ]
+
     @app_commands.command(name="summoner", description="Get stats for a summoner")
+    @app_commands.autocomplete(summoner_name=summoner_name_autocomplete)
     async def summoner(self, interaction: discord.Interaction, summoner_name: str):
         await interaction.response.defer()
         # Get summoner data
@@ -197,29 +218,8 @@ class League(commands.Cog):
         # Send embed
         await interaction.followup.send(embed=summoner_embed)
 
-    # Todo - make this generic so both commands can use it
-    @summoner.autocomplete("summoner_name")
-    async def summoner_name_autocomplete(self, interaction: discord.Interaction, current: str):
-        GOON_SUMMONER_NAMES = [
-            "bexli",
-            "mltsimpleton",
-            "ectoplax",
-            "roninalex",
-            "artificialmeat",
-            "large frog tamer",
-            "boxrog",
-            "vynle",
-            "poydok",
-            "cradmajone",
-        ]
-
-        return [
-            app_commands.Choice(name=name, value=name)
-            for name in sorted(GOON_SUMMONER_NAMES)
-            if current.lower() in name.lower()
-        ]
-
     @app_commands.command(name="lastgame", description="An analysis of your lastest league game!")
+    @app_commands.autocomplete(summoner_name=summoner_name_autocomplete)
     async def last_match_analysis(self, interaction: discord.Interaction, summoner_name: str):
         """"""
         # Start timer for response time
