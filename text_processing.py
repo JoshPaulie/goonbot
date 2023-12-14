@@ -93,3 +93,15 @@ def time_ago(timestamp: int) -> str:
     if seconds == 1:
         return "a second ago"
     return f"{math.floor(seconds)} seconds ago"
+
+
+def html_to_md(text: str) -> str:
+    mappings = {
+        "<i>": "*",
+        "</i>": "*",
+        "<b>": "**",
+        "</b>": "**",
+    }
+    for html_token, md_token in mappings.items():
+        text = text.replace(html_token, md_token)
+    return text
