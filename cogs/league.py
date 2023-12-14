@@ -110,7 +110,7 @@ class League(commands.Cog):
         self.bot = bot
 
     async def build_log_urls(self, puuids: list[str]):
-        async with self.riot_client as client:
+        async with RiotAPIClient(default_headers={"X-Riot-Token": self.bot.keys.RIOT_API}) as client:
             async with TaskGroup(asyncio.Semaphore(100)) as tg:
                 for puuid in puuids:
                     await tg.create_task(client.get_account_v1_by_puuid(region="americas", puuid=puuid))
