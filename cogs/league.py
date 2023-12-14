@@ -16,6 +16,17 @@ from text_processing import make_plural, make_possessive, multiline_string, time
 
 from .league_utils import MultiKill, ParticipantStat, calc_kill_participation, calc_participant_stat
 
+discord_to_summoner_name = {
+    177131156028784640: "bexli",
+    186642971972730881: "mltsimpleton",
+    104488848309895168: "ectoplax",
+    218567485308403712: "roninalex",
+    104488534936666112: "boxrog",
+    164598493933993984: "vynle",
+    196009306133495812: "poydok",
+    164600098142158848: "cradmajone",
+}
+
 
 def get_cdragon_url(path: str) -> str:
     """ "Maps" paths according to the provided link. Some responses from pulsefire are incomplete and need to be
@@ -124,28 +135,18 @@ class League(commands.Cog):
         ]
 
     async def summoner_name_autocomplete(self, interaction: discord.Interaction, current: str):
-        GOON_SUMMONER_NAMES = [
-            "bexli",
-            "mltsimpleton",
-            "ectoplax",
-            "roninalex",
-            "artificialmeat",
-            "large frog tamer",
-            "boxrog",
-            "vynle",
-            "poydok",
-            "cradmajone",
-        ]
-
         return [
             app_commands.Choice(name=name, value=name)
-            for name in sorted(GOON_SUMMONER_NAMES)
+            for name in sorted(discord_to_summoner_name.values())
             if current.lower() in name.lower()
         ]
 
     @app_commands.command(name="summoner", description="Get stats for a summoner")
     @app_commands.autocomplete(summoner_name=summoner_name_autocomplete)
-    async def summoner(self, interaction: discord.Interaction, summoner_name: str):
+    async def summoner(self, interaction: discord.Interaction, summoner_name: str | None):
+        if summoner_name is None:
+            summoner_name = discord_to_summoner_name[interaction.user.id]
+
         await interaction.response.defer()
         # Get summoner data
         async with RiotAPIClient(default_headers={"X-Riot-Token": self.bot.keys.RIOT_API}) as client:
@@ -200,8 +201,11 @@ class League(commands.Cog):
 
     @app_commands.command(name="lastgame", description="An analysis of your lastest league game!")
     @app_commands.autocomplete(summoner_name=summoner_name_autocomplete)
-    async def last_match_analysis(self, interaction: discord.Interaction, summoner_name: str):
+    async def last_match_analysis(self, interaction: discord.Interaction, summoner_name: str | None):
         """"""
+        if summoner_name is None:
+            summoner_name = discord_to_summoner_name[interaction.user.id]
+
         # Start timer for response time
         start_time = time.perf_counter()
         # If an interaction takes more than 3 seconds, discord considers it failed.
