@@ -9,13 +9,6 @@ from aiohttp.client_exceptions import ClientResponseError
 from discord import app_commands
 from discord.ext import commands
 from pulsefire.clients import CDragonClient, RiotAPIClient, RiotAPISchema
-from pulsefire.middlewares import (
-    http_error_middleware,
-    json_response_middleware,
-    rate_limiter_middleware,
-    ttl_cache_middleware,
-)
-from pulsefire.ratelimiters import RateLimiter, RiotAPIRateLimiter
 from pulsefire.taskgroups import TaskGroup
 
 from goonbot import Goonbot
@@ -115,23 +108,6 @@ REGION_AMERICAS = "americas"
 class League(commands.Cog):
     def __init__(self, bot: Goonbot):
         self.bot = bot
-        self.riot_client = RiotAPIClient(
-            default_headers={"X-Riot-Token": self.bot.keys.RIOT_API},
-            middlewares=[
-                ttl_cache_middleware(1800, lambda _: True),  # Caches for 30 minutes
-                json_response_middleware(),
-                http_error_middleware(),
-                rate_limiter_middleware(RiotAPIRateLimiter()),
-            ],
-        )
-        self.cdragon_client = CDragonClient(
-            default_params={"patch": "latest", "locale": "default"},
-            middlewares=[
-                ttl_cache_middleware(1800, lambda _: True),  # Caches for 30 minutes
-                json_response_middleware(),
-                http_error_middleware(),
-            ],
-        )
 
     async def build_log_urls(self, puuids: list[str]):
         async with self.riot_client as client:
@@ -172,7 +148,7 @@ class League(commands.Cog):
     async def summoner(self, interaction: discord.Interaction, summoner_name: str):
         await interaction.response.defer()
         # Get summoner data
-        async with self.riot_client as client:
+        async with RiotAPIClient(default_headers={"X-Riot-Token": self.bot.keys.RIOT_API}) as client:
             try:
                 summoner = await client.get_lol_summoner_v4_by_name(region=REGION_NA1, name=summoner_name)
             except ClientResponseError:
@@ -210,7 +186,7 @@ class League(commands.Cog):
                     )
 
         # Set mastries
-        async with self.cdragon_client as client:
+        async with CDragonClient(default_params={"patch": "latest", "locale": "default"}) as client:
             champions = await client.get_lol_v1_champion_summary()
         champion_id_to_name = {champion["id"]: champion["name"] for champion in champions}
         top_5_mp_champs = [
@@ -232,7 +208,7 @@ class League(commands.Cog):
         # The remedy to this oddity is to "defer" the response, then "follow up" later
         await interaction.response.defer()
 
-        async with self.riot_client as client:
+        async with RiotAPIClient(default_headers={"X-Riot-Token": self.bot.keys.RIOT_API}) as client:
             # Get summoner data
             try:
                 summoner = await client.get_lol_summoner_v4_by_name(region=REGION_NA1, name=summoner_name)
@@ -253,7 +229,7 @@ class League(commands.Cog):
             last_match = await client.get_lol_match_v5_match(region="americas", id=last_match_id)
 
         # Get champion data (for champion image)
-        async with self.cdragon_client as client:
+        async with CDragonClient(default_params={"patch": "latest", "locale": "default"}) as client:
             champions = await client.get_lol_v1_champion_summary()
         # Dict to get champ image paths
         champion_id_to_image_path = {champion["id"]: champion["squarePortraitPath"] for champion in champions}
