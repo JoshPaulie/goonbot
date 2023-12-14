@@ -1,6 +1,10 @@
 # League of Legends intergeration
 Goonbot has a couple of analytic commands for League.
 
+> All league commands have the ability to call the command with no summoner passed. If no summoner name is provided, the bot will fallback to your personal summoner name.
+> 
+> This means that if Jarsh wanted to get his last game, he'd just type `/lastgame` and not `/lastgame bexli`
+
 ## Summoner
 Provides a few details like rank in each queue type (if any), current in-game profile picture, and top champion masteries.
 
