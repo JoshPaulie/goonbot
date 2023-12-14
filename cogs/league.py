@@ -8,11 +8,11 @@ import discord
 from aiohttp.client_exceptions import ClientResponseError
 from discord import app_commands
 from discord.ext import commands
-from pulsefire.clients import CDragonClient, RiotAPIClient, RiotAPISchema
+from pulsefire.clients import CDragonClient, CDragonSchema, RiotAPIClient, RiotAPISchema
 from pulsefire.taskgroups import TaskGroup
 
 from goonbot import Goonbot
-from text_processing import make_plural, make_possessive, multiline_string, time_ago
+from text_processing import html_to_md, make_plural, make_possessive, multiline_string, time_ago
 
 from .league_utils import MultiKill, ParticipantStat, calc_kill_participation, calc_participant_stat
 
@@ -110,6 +110,16 @@ def create_queue_field(entry: RiotAPISchema.LolLeagueV4LeagueFullEntry):
             fstat("Win/Loss", f"{wins:,d}/{losses:,d} ({calc_winrate(wins, losses)})"),
         ]
     )
+
+
+def get_champion_id_by_name(
+    champion_name: str, champion_pool: list[CDragonSchema.LolV1ChampionInfo]
+) -> int | None:
+    champion_ids = {champion["name"]: champion["id"] for champion in champion_pool}
+    for champ in champion_ids.keys():
+        if champion_name.lower() in champ.lower():
+            return champion_ids[champ]
+    return None
 
 
 REGION_NA1 = "na1"
@@ -437,6 +447,48 @@ class League(commands.Cog):
         loading_time = round(end_time - start_time, 2)
         last_match_embed.set_footer(text=f"Elapsed loading time: {loading_time}ms")
         await interaction.followup.send(embed=last_match_embed)
+
+    @app_commands.command(name="champion")
+    async def champion_spells(self, interaction: discord.Interaction, champion_name: str):
+        async with CDragonClient(default_params={"patch": "latest", "locale": "default"}) as client:
+            champions = await client.get_lol_v1_champion_summary()
+            champion_id = get_champion_id_by_name(champion_name, champions)
+
+            # If champion not found, stop the show
+            if champion_id is None:
+                return await interaction.response.send_message(
+                    embed=discord.Embed(
+                        title=f"Champion '{champion_name}' was not found",
+                        description="Note: Common abbreviations like 'mf' are not yet support",
+                        color=discord.Color.greyple(),
+                    ),
+                    ephemeral=True,
+                )
+
+            champion = await client.get_lol_v1_champion(id=champion_id)
+
+        champion_embed = self.bot.embed(
+            title=champion["name"],
+            description=html_to_md(champion["shortBio"]),
+        )
+
+        champion_id_to_image_path = {champion["id"]: champion["squarePortraitPath"] for champion in champions}
+        champion_embed.set_thumbnail(url=get_cdragon_url(champion_id_to_image_path[champion["id"]]))
+
+        champion_embed.add_field(
+            name=f"(Passive) {champion['passive']['name']}",
+            value=html_to_md(champion["passive"]["description"]),
+            inline=False,
+        )
+
+        for spell in champion["spells"]:
+            champion_embed.add_field(
+                name=f"({spell['spellKey'].upper()}) {spell['name']}",
+                value=html_to_md(spell["description"]),
+                inline=False,
+            )
+
+        await interaction.response.send_message(embed=champion_embed)
 
 
 async def setup(bot):
