@@ -38,7 +38,7 @@ class Goonbot(commands.Bot):
         Example
             cogs/general.py -> cogs.general
         """
-        files = Path("cogs").rglob("*.py")
+        files = Path("cogs").glob("*.py")
         for file in files:
             if not any(x in file.name for x in ["__init__", "template_cog", "utils"]):
                 yield file.as_posix()[:-3].replace("/", ".")
