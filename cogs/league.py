@@ -2,20 +2,28 @@ import asyncio
 import operator
 import time
 from itertools import batched
-from typing import Optional
 
 import discord
 from aiohttp.client_exceptions import ClientResponseError
+
+# Futher discord imports
 from discord import app_commands
 from discord.ext import commands
+
+# League API wrapper
 from pulsefire.clients import CDragonClient, CDragonSchema, RiotAPIClient, RiotAPISchema
 from pulsefire.taskgroups import TaskGroup
 
 from goonbot import Goonbot
-from text_processing import html_to_md, make_plural, make_possessive, multiline_string, time_ago
+from text_processing import html_to_md, make_possessive, multiline_string, time_ago
 
-from .league_utils import MultiKill, ParticipantStat, calc_kill_participation, calc_participant_stat
+# Helpers to support
+from ._league.calculators import calc_winrate
+from ._league.cdragon_builders import get_cdragon_url, make_profile_url
+from ._league.formatting import format_big_number, fstat, timestamp_from_seconds
+from ._league.objects import MultiKill, ParticipantStat, calc_kill_participation, create_participant_stat
 
+# Used for both command fallbacks and autocomplete
 discord_to_summoner_name = {
     177131156028784640: "bexli",
     186642971972730881: "mltsimpleton",
@@ -26,64 +34,6 @@ discord_to_summoner_name = {
     196009306133495812: "poydok",
     164600098142158848: "cradmajone",
 }
-
-
-def get_cdragon_url(path: str) -> str:
-    """ "Maps" paths according to the provided link. Some responses from pulsefire are incomplete and need to be
-    mapped to its relative page on Community Dragon
-
-    https://github.com/CommunityDragon/Docs/blob/master/assets.md#mapping-paths-from-json-files
-    """
-    base_cdragon_url = "https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/"
-    trimmed_path = path[len("/lol-game-data/assets") :]
-    return base_cdragon_url + trimmed_path
-
-
-def timestamp_from_seconds(duration_seconds: int) -> str:
-    """Takes seconds and responds with a timestamp of the following format: 00:00
-
-    Examples
-        - 62 -> 01:02
-    """
-    minutes, remaining_seconds = divmod(duration_seconds, 60)
-    return f"{minutes:02d}:{remaining_seconds:02d}"
-
-
-def make_profile_url(profile_id: int) -> str:
-    return f"https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/profile-icons/{profile_id}.jpg"
-
-
-def fstat(
-    name: str,
-    value: str | int | float,
-    make_name_plural: bool = False,
-    extra_stat: Optional[str | int | float] = None,
-) -> str:
-    if make_name_plural:
-        name = make_plural(name)
-
-    if isinstance(value, int):
-        value = f"{value:,d}"
-
-    output = f"{name} **{value}**"
-    if extra_stat:
-        output += f" ({extra_stat})"
-
-    return output
-
-
-def format_number(num: int) -> str:
-    if num >= 1_000_000:
-        return str(round(num / 1_000_000, 1)) + "m"
-    elif num >= 1_000:
-        return str(round(num / 1_000, 1)) + "k"
-    else:
-        return str(round(num, 1))
-
-
-def calc_winrate(wins: int, losses: int) -> str:
-    total_games = wins + losses
-    return f"{round((wins / total_games) * 100)}%"
 
 
 rank_reaction_strs = {
@@ -115,10 +65,10 @@ def create_queue_field(entry: RiotAPISchema.LolLeagueV4LeagueFullEntry):
 def get_champion_id_by_name(
     champion_name: str, champion_pool: list[CDragonSchema.LolV1ChampionInfo]
 ) -> int | None:
-    champion_ids = {champion["name"]: champion["id"] for champion in champion_pool}
-    for champ in champion_ids.keys():
+    champ_name_to_id = {champion["name"]: champion["id"] for champion in champion_pool}
+    for champ in champ_name_to_id.keys():
         if champion_name.lower() in champ.lower():
-            return champion_ids[champ]
+            return champ_name_to_id[champ]
     return None
 
 
@@ -201,7 +151,7 @@ class League(commands.Cog):
             champions = await client.get_lol_v1_champion_summary()
         champion_id_to_name = {champion["id"]: champion["name"] for champion in champions}
         top_5_mp_champs = [
-            f"{champion_id_to_name[champ_mastery_stats['championId']]} {format_number(champ_mastery_stats['championPoints'])}"
+            f"{champion_id_to_name[champ_mastery_stats['championId']]} {format_big_number(champ_mastery_stats['championPoints'])}"
             for champ_mastery_stats in mastery_points[:5]
         ]
         summoner_embed.set_footer(text=" · ".join(top_5_mp_champs))
@@ -233,12 +183,14 @@ class League(commands.Cog):
                         title=f"Summoner '{summoner_name}' not found", color=discord.Color.brand_red()
                     )
                 )
+
             # Get ID of most recent match
             last_match_id = (
                 await client.get_lol_match_v5_match_ids_by_puuid(
                     region="americas", puuid=summoner["puuid"], queries={"start": 0, "count": 1}
                 )
             )[0]
+
             # Get match data
             last_match = await client.get_lol_match_v5_match(region="americas", id=last_match_id)
 
@@ -294,6 +246,9 @@ class League(commands.Cog):
                 team_100_kills += participant["kills"]
             else:
                 team_200_kills += participant["kills"]
+
+        # Arrange the scores so it's always in the following order
+        # target participant team kills | enemy team kills
         if team_id == 100:
             final_score = f"{team_100_kills} | {team_200_kills}"
         else:
@@ -304,6 +259,8 @@ class League(commands.Cog):
         deaths = target_summoner_stats["deaths"]
         assists = target_summoner_stats["assists"]
         kda = f"{kills}/{deaths}/{assists}"
+
+        # KDA ratio
         if deaths == 0:
             kda_ratio = "PERF!"
             kda += " 🥵"
@@ -311,6 +268,7 @@ class League(commands.Cog):
             kda_ratio = str(round((kills + assists) / deaths, 2)) + " ratio"
 
         # Determine queue type, replace with common name
+        # ref: https://static.developer.riotgames.com/docs/lol/queues.json
         match last_match["info"]["queueId"]:
             case 400:
                 game_mode = "Draft Pick"
@@ -322,7 +280,10 @@ class League(commands.Cog):
                 game_mode = "Ranked Flex"
             case 450:
                 game_mode = "ARAM"
+            case 1700:
+                game_mode = "Arena"
             case _ as unknown_game_mode:
+                # todo pull queue list from static url, return the cleaned up official name
                 game_mode = f"Unknown game mode: {unknown_game_mode} (ping jarsh)"
 
         # Gametime stats
@@ -371,17 +332,17 @@ class League(commands.Cog):
         # Stats field
         # Todo - move from tuples to dataclass
         popular_stats: list[tuple[str, ParticipantStat]] = [
-            ("💪 Champ damage", calc_participant_stat(teammates, summoner, "totalDamageDealtToChampions")),
-            ("🏰 Obj. damage", calc_participant_stat(teammates, summoner, "damageDealtToObjectives")),
-            ("🛡️ Damage Taken", calc_participant_stat(teammates, summoner, "totalDamageTaken")),
-            ("❤️‍🩹 Ally Healing", calc_participant_stat(teammates, summoner, "totalHealsOnTeammates")),
+            ("💪 Champ damage", create_participant_stat(teammates, summoner, "totalDamageDealtToChampions")),
+            ("🏰 Obj. damage", create_participant_stat(teammates, summoner, "damageDealtToObjectives")),
+            ("🛡️ Damage Taken", create_participant_stat(teammates, summoner, "totalDamageTaken")),
+            ("❤️‍🩹 Ally Healing", create_participant_stat(teammates, summoner, "totalHealsOnTeammates")),
             ("🩸 Kill participation", calc_kill_participation(teammates, summoner)),
-            ("💀 Feed participation", calc_participant_stat(teammates, summoner, "deaths")),
+            ("💀 Feed participation", create_participant_stat(teammates, summoner, "deaths")),
         ]
         formated_popular_stats = [
             fstat(
                 stat[0],
-                format_number(stat[1].participant_value),
+                format_big_number(stat[1].participant_value),
                 extra_stat=f"{stat[1].total_stat_percent}%",
             )
             for stat in popular_stats
@@ -401,16 +362,16 @@ class League(commands.Cog):
         total_gold = target_summoner_stats["goldEarned"]
         gold_per_min = round(total_gold / game_duration_minutes, 1)
         gold_vision_stats: list[tuple[str, ParticipantStat]] = [
-            ("Vision score", calc_participant_stat(teammates, summoner, "visionScore")),
-            ("Wards Placed", calc_participant_stat(teammates, summoner, "wardsPlaced")),
-            ("Wards Destroyed", calc_participant_stat(teammates, summoner, "wardsKilled")),
+            ("Vision score", create_participant_stat(teammates, summoner, "visionScore")),
+            ("Wards Placed", create_participant_stat(teammates, summoner, "wardsPlaced")),
+            ("Wards Destroyed", create_participant_stat(teammates, summoner, "wardsKilled")),
         ]
         last_match_embed.add_field(
             name="Farming & Vision 🧑‍🌾",
             value=multiline_string(
                 [
                     fstat("CS", creep_score, extra_stat=f"{cs_per_min} cs/min"),
-                    fstat("Gold", format_number(total_gold), extra_stat=f"{gold_per_min:,} gp/min"),
+                    fstat("Gold", format_big_number(total_gold), extra_stat=f"{gold_per_min:,} gp/min"),
                     *[
                         fstat(
                             stat[0],
@@ -447,6 +408,8 @@ class League(commands.Cog):
         loading_time = round(end_time - start_time, 2)
         last_match_embed.set_footer(text=f"Elapsed loading time: {loading_time}ms")
         await interaction.followup.send(embed=last_match_embed)
+
+    # todo aram command (pending caching update)
 
     @app_commands.command(name="champion")
     async def champion_spells(self, interaction: discord.Interaction, champion_name: str):

@@ -1,7 +1,8 @@
 from dataclasses import dataclass
-from typing import Literal
 
 from pulsefire.schemas import RiotAPISchema
+
+from .annotations import match_info_participant_stat_keys
 
 
 @dataclass
@@ -10,6 +11,8 @@ class MultiKill:
     count: int
 
 
+# todo turn this into a full class with a __str__ method, that uses the create_participant as a constructor
+# that is just the **value** (team%) format
 @dataclass
 class ParticipantStat:
     participant_value: int
@@ -17,68 +20,13 @@ class ParticipantStat:
     total_stat_percent: float
 
 
-match_info_participant_stat_keys = Literal[
-    "assists",
-    "damageDealtToBuildings",
-    "damageDealtToObjectives",
-    "damageDealtToTurrets",
-    "damageSelfMitigated",
-    "deaths",
-    "detectorWardsPlaced",
-    "doubleKills",
-    "dragonKills",
-    "goldEarned",
-    "goldSpent",
-    "inhibitorKills",
-    "inhibitorTakedowns",
-    "kills",
-    "magicDamageDealt",
-    "magicDamageDealtToChampions",
-    "magicDamageTaken",
-    "neutralMinionsKilled",
-    "pentaKills",
-    "physicalDamageDealt",
-    "physicalDamageDealtToChampions",
-    "physicalDamageTaken",
-    "quadraKills",
-    "sightWardsBoughtInGame",
-    "timeCCingOthers",
-    "totalAllyJungleMinionsKilled",
-    "totalDamageDealt",
-    "totalDamageDealtToChampions",
-    "totalDamageShieldedOnTeammates",
-    "totalDamageTaken",
-    "totalEnemyJungleMinionsKilled",
-    "totalHeal",
-    "totalHealsOnTeammates",
-    "totalMinionsKilled",
-    "totalTimeCCDealt",
-    "totalTimeSpentDead",
-    "totalUnitsHealed",
-    "tripleKills",
-    "trueDamageDealt",
-    "trueDamageDealtToChampions",
-    "trueDamageTaken",
-    "turretKills",
-    "turretTakedowns",
-    "turretsLost",
-    "unrealKills",
-    "visionClearedPings",
-    "visionScore",
-    "visionWardsBoughtInGame",
-    "wardsKilled",
-    "wardsPlaced",
-]
-
-
-def calc_participant_stat(
+def create_participant_stat(
     participants: list[RiotAPISchema.LolMatchV5MatchInfoParticipant],
     target_participant: RiotAPISchema.LolSummonerV4Summoner,
     stat_names: list[match_info_participant_stat_keys]
     | match_info_participant_stat_keys,  # JOSH STOP MOVING THE LITERALS HERE, YOU NEVER LIKE IT
 ) -> ParticipantStat:
     """"""
-    # Todo - refactor to take (and return) the stat name, similar to how MultiKills function
     participant_team_id = None
     participant_stat_value = 0
     team_stat_value = 0
@@ -114,7 +62,8 @@ def calc_participant_stat(
 def calc_kill_participation(
     participants: list[RiotAPISchema.LolMatchV5MatchInfoParticipant],
     target_participant: RiotAPISchema.LolSummonerV4Summoner,
-):
+) -> ParticipantStat:
+    """Similar to create_participant_stat(), but different enough to require a separate function"""
     participant_team_id = None
     participant_stat_value = 0
     team_stat_value = 0
