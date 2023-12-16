@@ -46,12 +46,8 @@ class Goonbot(commands.Bot):
     async def load_cogs(self) -> None:
         """Loads all of the files from cogs/ into the bot as extensions"""
         for cog in self.get_cogs():
-            try:
-                await self.load_extension(cog)
-                logging.info(f"Loaded cog: {cog}!")
-            except Exception as exc:
-                logging.warning(f"Could not load extension {cog} due to {exc.__class__.__name__}: {exc}")
-                print(f"{cog} failed to load: {exc.__class__.__name__}")
+            await self.load_extension(cog)
+            logging.info(f"Loaded cog: {cog}!")
 
     async def setup_hook(self):
         """
