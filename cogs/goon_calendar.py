@@ -11,6 +11,14 @@ from text_processing import comma_list, multiline_string
 
 
 class GoonCalendar(commands.Cog):
+    # Basic in-memory cache. Keeps the bot from needing to calculate and create lists
+    # for each command more than once a day, so long as the bot isn't restarted
+    today_last_called: dt.date | None = None
+    today_embed_cache: discord.Embed | None = None
+
+    calendar_last_called: dt.date | None = None
+    calendar_embed_cache: discord.Embed | None = None
+
     def __init__(self, bot: Goonbot):
         self.bot = bot
 
@@ -19,16 +27,30 @@ class GoonCalendar(commands.Cog):
     async def calendar(self, interaction: discord.Interaction, show_remaining_only: bool = True):
         """Take a peak at the Goon Calendar"""
         today = dt.date.today()
+
+        # See if cached embed is available
+        if today == self.calendar_last_called and self.calendar_embed_cache:
+            return await interaction.response.send_message(embed=self.calendar_embed_cache)
+
         # Create embed
         calendar_embed = self.bot.embed(title="Goon Calendar 📅")
         if show_remaining_only:
             calendar_embed.description = f"Events remaining for {today.year}!"
+        else:
+            calendar_embed.description = f"All events for {today.year}!"
+
         # Add events
         for event in get_events(today, show_remaining_only):
             calendar_embed.add_field(
                 name=event.name,
-                value=event.date.strftime("%B %d (%a)"),
+                value=multiline_string(
+                    [
+                        event.date.strftime("%A"),  # Day of the week. Format: Sunday, Monday, etc
+                        event.date.strftime("%B %d"),  # Date. Format: January 1, February 18, etc
+                    ]
+                ),
             )
+
         # Send it
         await interaction.response.send_message(embed=calendar_embed)
 
@@ -36,6 +58,10 @@ class GoonCalendar(commands.Cog):
     async def today(self, interaction: discord.Interaction):
         """Check if today has a special event!"""
         today = dt.date.today()
+
+        # See if cached embed is available
+        if today == self.today_last_called and self.today_embed_cache:
+            return await interaction.response.send_message(embed=self.today_embed_cache)
 
         # Gather and sort events
         events = get_events(today, remaining_only=True)
@@ -64,27 +90,23 @@ class GoonCalendar(commands.Cog):
         elif today_events and not tomorrow_events:
             today_embed.title = f"Today is {comma_list([e.name for e in today_events])}"
 
-        # I don't think this would ever display the the end user,
-        # but I'd rather cover all the edge cases
+        # Because New Year's Eve and New Year's Day are tracked, I don't think this case would ever be
+        # encountered. But if so, why not add a fun easter egg.
         else:
             logging.warning(f"Edge case encountered, is this a bug? Date: {today.isoformat}")
             today_embed.title = "There are no more events for this year."
             today_embed.description = f"Enjoy the rest of {today.year}."
-            # ! todo, figure out this typing
-            await interaction.channel.send(  # type: ignore
+            assert isinstance(interaction.channel, discord.TextChannel)
+            await interaction.channel.send(
                 embed=self.bot.embed(
                     title="Hey, look.",
-                    description=multiline_string(
-                        [
-                            "It's that weird edge case you thought would never be encountered.",
-                            "",
-                            "You kinda suck at, lol @jarsh",
-                        ]
-                    ),
-                )
+                    description=f"It's that weird edge case <@{self.bot.owner_id}> he thought would never be encountered.",
+                ),
             )
 
         # Send it
+        self.today_last_called = today
+        self.today_embed_cache = today_embed
         await interaction.response.send_message(embed=today_embed)
 
 
