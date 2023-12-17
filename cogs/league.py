@@ -445,7 +445,7 @@ class League(commands.Cog):
         # Send embed
         end_time = time.perf_counter()
         loading_time = round(end_time - start_time, 2)
-        last_match_embed.set_footer(text=f"Elapsed loading time: {loading_time}ms")
+        last_match_embed.set_footer(text=f"Elapsed loading time: {loading_time}s")
         await interaction.followup.send(embed=last_match_embed)
 
     @app_commands.command(name="champion")
