@@ -19,6 +19,12 @@ def fstat(
     make_name_plural: bool = False,
     extra_stat: Optional[str | int | float] = None,
 ) -> str:
+    """
+    Format a stat name, value, and extra details with markdown, which helps increase readability.
+
+    Examples:
+        fstat("Kills", 10, "15%") -> "Kills **10** (15%)"
+    """
     if make_name_plural:
         name = make_plural(name)
 
@@ -33,9 +39,15 @@ def fstat(
 
 
 def format_big_number(num: int) -> str:
+    """Abbreviates large numbers with suffixes (ie. k & m)
+
+    Examples
+        format_big_number(1_456_925) -> "1.5m"
+        format_big_number(8_324) -> "8.3k"
+    """
     if num >= 1_000_000:
-        return str(round(num / 1_000_000, 1)) + "m"
+        return f"{num / 1_000_000:,.1f}m"
     elif num >= 1_000:
-        return str(round(num / 1_000, 1)) + "k"
+        return f"{num / 1_000:,.1f}k"
     else:
         return str(round(num, 1))

@@ -18,48 +18,11 @@ from goonbot import Goonbot
 from text_processing import html_to_md, make_possessive, multiline_string, time_ago
 
 # Helpers to support
-from ._league.calculators import calc_winrate
 from ._league.cdragon_builders import get_cdragon_url, make_profile_url
+from ._league.commands.summoner import league_entry_stats
 from ._league.formatting import format_big_number, fstat, timestamp_from_seconds
+from ._league.lookups import discord_to_summoner_name, rank_reaction_strs
 from ._league.objects import MultiKill, ParticipantStat, calc_kill_participation, create_participant_stat
-
-# Used for both command fallbacks and autocomplete
-discord_to_summoner_name = {
-    177131156028784640: "bexli",
-    186642971972730881: "mltsimpleton",
-    104488848309895168: "ectoplax",
-    218567485308403712: "roninalex",
-    104488534936666112: "boxrog",
-    164598493933993984: "vynle",
-    196009306133495812: "poydok",
-    164600098142158848: "cradmajone",
-}
-
-
-rank_reaction_strs = {
-    "unranked": "<:unranked:1178350707427004527>",
-    "iron": "<:iron:1178350718676107324>",
-    "bronze": "<:bronze:1178350735881150594>",
-    "silver": "<:silver:1178350710564343878>",
-    "gold": "<:gold:1178350724615258133>",
-    "platinum": "<:platinum:1178350713563263027>",
-    "emerald": "<:emerald:1178350726909526036>",
-    "diamond": "<:diamond:1178350730126561290>",
-    "master": "<:master:1178350716985819208>",
-    "grandmaster": "<:grandmaster:1178350721847005224>",
-    "challenger": "<:challenger:1178350733855301643>",
-}
-
-
-def create_queue_field(entry: RiotAPISchema.LolLeagueV4LeagueFullEntry):
-    wins = entry["wins"]
-    losses = entry["losses"]
-    return multiline_string(
-        [
-            fstat("Rank", f"{entry['tier'].title()} {entry['rank']} ({entry['leaguePoints']} lp)"),
-            fstat("Win/Loss", f"{wins:,d}/{losses:,d} ({calc_winrate(wins, losses)})"),
-        ]
-    )
 
 
 def get_champion_id_by_name(
@@ -138,12 +101,12 @@ class League(commands.Cog):
                     summoner_embed.insert_field_at(
                         index=0,
                         name=f"Solo/Duo {rank_reaction_strs[league_entry['tier'].lower()]}",
-                        value=create_queue_field(league_entry),
+                        value=league_entry_stats(league_entry),
                     )
                 case "RANKED_FLEX_SR":
                     summoner_embed.add_field(
                         name=f"Flex {rank_reaction_strs[league_entry['tier'].lower()]}",
-                        value=create_queue_field(league_entry),
+                        value=league_entry_stats(league_entry),
                     )
 
         # Set mastries
