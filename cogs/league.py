@@ -379,6 +379,8 @@ class League(commands.Cog):
 
     # todo aram command (pending caching update)
 
+    # todo goon rank leaderboard
+
     @app_commands.command(name="champion")
     async def champion_spells(self, interaction: discord.Interaction, champion_name: str):
         async with CDragonClient(default_params={"patch": "latest", "locale": "default"}) as client:
