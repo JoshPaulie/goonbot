@@ -245,9 +245,14 @@ class League(commands.Cog):
                 game_mode = "ARAM"
             case 1700:
                 game_mode = "Arena"
-            case _ as unknown_game_mode:
-                # todo pull queue list from static url, return the cleaned up official name
-                game_mode = f"Unknown game mode: {unknown_game_mode} (ping jarsh)"
+            case _ as not_set_queue_id:
+                # Fallback that fetches the official game mode names
+                all_queue_ids = await get_all_queue_ids()
+                id_to_game_mode_name = {queue["queueId"]: queue["description"] for queue in all_queue_ids}
+                if game_mode_name := id_to_game_mode_name[not_set_queue_id]:
+                    game_mode = game_mode_name
+                else:
+                    game_mode = f"Unknown gamemode ({self.bot.ping_owner()})"
 
         # Gametime stats
         game_duration_minutes = last_match["info"]["gameDuration"] // 60
