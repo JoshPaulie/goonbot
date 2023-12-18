@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from functools import total_ordering
 
 from pulsefire.schemas import RiotAPISchema
 
@@ -92,3 +93,27 @@ def calc_kill_participation(
         percentage_amount = 0.0
 
     return ParticipantStat(participant_stat_value, team_stat_value, percentage_amount)
+
+
+@total_ordering
+class LeagueRank:
+    _tiers = ["Iron", "Bronze", "Silver", "Gold", "Platinum", "Emerald", "Diamond"]
+    _tier_values = dict(zip(_tiers, list(range(len(_tiers)))))
+
+    _divisions = ["VI", "III", "II", "I"]
+    _division_values = dict(zip(_divisions, list(range(len(_divisions)))))
+
+    def __init__(self, tier: str, division: str, lp: int):
+        self.tier = tier
+        self.division = division
+        self.lp = lp
+
+    @property
+    def value(self):
+        return self._tier_values[self.tier] + self._division_values[self.division] + self.lp
+
+    def __eq__(self, other):
+        return self.value == other.value
+
+    def __lt__(self, other):
+        return self.value < other.value
