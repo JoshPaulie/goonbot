@@ -30,6 +30,9 @@ class Goonbot(commands.Bot):
         )
         self.owner_id = 177131156028784640  # bexli boy
 
+    def ping_owner(self) -> str:
+        return f"<@{self.owner_id}>"
+
     @staticmethod
     def get_cogs() -> Iterator[str]:
         """
