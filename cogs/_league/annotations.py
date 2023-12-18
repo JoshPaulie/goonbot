@@ -1,4 +1,4 @@
-from typing import Literal
+from typing import Literal, TypedDict
 
 match_info_participant_stat_keys = Literal[
     "assists",
@@ -52,3 +52,13 @@ match_info_participant_stat_keys = Literal[
     "wardsKilled",
     "wardsPlaced",
 ]
+
+GameMode = TypedDict(
+    "GameMode",
+    {
+        "queueId": int,
+        "map": str,
+        "description": str | None,
+        "notes": str | None,
+    },
+)
