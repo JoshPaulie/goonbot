@@ -5,19 +5,14 @@ from itertools import batched
 
 import discord
 from aiohttp.client_exceptions import ClientResponseError
-
-# Futher discord imports
 from discord import app_commands
 from discord.ext import commands
-
-# League API wrapper
-from pulsefire.clients import CDragonClient, CDragonSchema, RiotAPIClient, RiotAPISchema
+from pulsefire.clients import CDragonClient, RiotAPIClient, RiotAPISchema
 from pulsefire.taskgroups import TaskGroup
 
 from goonbot import Goonbot
 from text_processing import html_to_md, make_possessive, multiline_string, time_ago
 
-# Helpers to support cog
 from ._league.cdragon_builders import get_cdragon_url, make_profile_url
 from ._league.cmd.champion import get_champion_id_by_name
 from ._league.cmd.last_game import get_all_queue_ids
