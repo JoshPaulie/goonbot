@@ -17,23 +17,14 @@ from pulsefire.taskgroups import TaskGroup
 from goonbot import Goonbot
 from text_processing import html_to_md, make_possessive, multiline_string, time_ago
 
-# Helpers to support
+# Helpers to support cog
 from ._league.cdragon_builders import get_cdragon_url, make_profile_url
-from ._league.commands.summoner import league_entry_stats
+from ._league.cmd.champion import get_champion_id_by_name
+from ._league.cmd.last_game import get_all_queue_ids
+from ._league.cmd.summoner import league_entry_stats
 from ._league.formatting import format_big_number, fstat, timestamp_from_seconds
 from ._league.lookups import discord_to_summoner_name, rank_reaction_strs
 from ._league.objects import MultiKill, ParticipantStat, calc_kill_participation, create_participant_stat
-
-
-def get_champion_id_by_name(
-    champion_name: str, champion_pool: list[CDragonSchema.LolV1ChampionInfo]
-) -> int | None:
-    champ_name_to_id = {champion["name"]: champion["id"] for champion in champion_pool}
-    for champ in champ_name_to_id.keys():
-        if champion_name.lower() in champ.lower():
-            return champ_name_to_id[champ]
-    return None
-
 
 REGION_NA1 = "na1"
 REGION_AMERICAS = "americas"
