@@ -32,3 +32,6 @@ config.py
 /.venv
 /bot.log
 keys.py
+
+# Riot cache
+cache/
