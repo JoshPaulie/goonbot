@@ -7,12 +7,21 @@ import discord
 from aiohttp.client_exceptions import ClientResponseError
 from discord import app_commands
 from discord.ext import commands
+from pulsefire.caches import DiskCache
 from pulsefire.clients import CDragonClient, RiotAPIClient, RiotAPISchema
+from pulsefire.middlewares import (
+    cache_middleware,
+    http_error_middleware,
+    json_response_middleware,
+    rate_limiter_middleware,
+)
+from pulsefire.ratelimiters import RiotAPIRateLimiter
 from pulsefire.taskgroups import TaskGroup
 
 from goonbot import Goonbot
 from text_processing import html_to_md, make_possessive, multiline_string, time_ago
 
+from ._league.calculators import duration
 from ._league.cdragon_builders import get_cdragon_url, make_profile_url
 from ._league.cmd.champion import get_champion_id_by_name
 from ._league.cmd.last_game import get_all_queue_ids
@@ -25,17 +34,40 @@ REGION_NA1 = "na1"
 REGION_AMERICAS = "americas"
 
 
+cache = DiskCache("cache")
+riot_cache_middleware = cache_middleware(
+    cache,
+    [
+        (lambda inv: inv.invoker.__name__ == "get_lol_summoner_v4_by_name", duration(days=1)),
+        (lambda inv: inv.invoker.__name__ == "get_lol_match_v5_match", float("inf")),
+        (lambda inv: inv.invoker.__name__ == "get_account_v1_by_puuid", duration(days=1)),
+        (lambda inv: inv.invoker.__name__ == "get_lol_champion_v4_masteries_by_puuid", duration(days=1)),
+    ],
+)
+
+
 class League(commands.Cog):
     def __init__(self, bot: Goonbot):
         self.bot = bot
+        self.lock = asyncio.Lock()
+        self.riot_client = RiotAPIClient(
+            default_headers={"X-Riot-Token": self.bot.keys.RIOT_API},
+            middlewares=[
+                riot_cache_middleware,
+                json_response_middleware(),
+                http_error_middleware(),
+                rate_limiter_middleware(RiotAPIRateLimiter()),
+            ],
+        )
 
     async def build_log_urls(self, puuids: list[str]):
-        async with RiotAPIClient(default_headers={"X-Riot-Token": self.bot.keys.RIOT_API}) as client:
-            async with TaskGroup(asyncio.Semaphore(100)) as tg:
-                for puuid in puuids:
-                    await tg.create_task(client.get_account_v1_by_puuid(region="americas", puuid=puuid))
+        async with self.lock:
+            async with self.riot_client as client:
+                async with TaskGroup(asyncio.Semaphore(100)) as tg:
+                    for puuid in puuids:
+                        await tg.create_task(client.get_account_v1_by_puuid(region="americas", puuid=puuid))
 
-            account_details: list[RiotAPISchema.AccountV1Account] = tg.results()
+                account_details: list[RiotAPISchema.AccountV1Account] = tg.results()
 
         base_log_url = "https://www.leagueofgraphs.com/summoner/na/"
         return [
@@ -58,23 +90,24 @@ class League(commands.Cog):
 
         await interaction.response.defer()
         # Get summoner data
-        async with RiotAPIClient(default_headers={"X-Riot-Token": self.bot.keys.RIOT_API}) as client:
-            try:
-                summoner = await client.get_lol_summoner_v4_by_name(region=REGION_NA1, name=summoner_name)
-            except ClientResponseError:
-                return await interaction.response.send_message(
-                    embed=self.bot.embed(
-                        title=f"Summoner '{summoner_name}' not found",
-                        color=discord.Color.brand_red(),
+        async with self.lock:
+            async with self.riot_client as client:
+                try:
+                    summoner = await client.get_lol_summoner_v4_by_name(region=REGION_NA1, name=summoner_name)
+                except ClientResponseError:
+                    return await interaction.response.send_message(
+                        embed=self.bot.embed(
+                            title=f"Summoner '{summoner_name}' not found",
+                            color=discord.Color.brand_red(),
+                        )
                     )
-                )
 
-            league_entries = await client.get_lol_league_v4_entries_by_summoner(
-                region=REGION_NA1, summoner_id=summoner["id"]
-            )
-            mastery_points = await client.get_lol_champion_v4_masteries_by_puuid(
-                region=REGION_NA1, puuid=summoner["puuid"]
-            )
+                league_entries = await client.get_lol_league_v4_entries_by_summoner(
+                    region=REGION_NA1, summoner_id=summoner["id"]
+                )
+                mastery_points = await client.get_lol_champion_v4_masteries_by_puuid(
+                    region=REGION_NA1, puuid=summoner["puuid"]
+                )
 
         # Build embed
         summoner_embed = self.bot.embed(title=summoner["name"])
@@ -121,27 +154,28 @@ class League(commands.Cog):
         # The remedy to this oddity is to "defer" the response, then "follow up" later
         await interaction.response.defer()
 
-        async with RiotAPIClient(default_headers={"X-Riot-Token": self.bot.keys.RIOT_API}) as client:
-            # Get summoner data
-            try:
-                summoner = await client.get_lol_summoner_v4_by_name(region=REGION_NA1, name=summoner_name)
-            # If this throws an exception, it's more than likely because the summoner doesn't exist
-            except ClientResponseError:
-                return await interaction.response.send_message(
-                    embed=self.bot.embed(
-                        title=f"Summoner '{summoner_name}' not found", color=discord.Color.brand_red()
+        async with self.lock:
+            async with self.riot_client as client:
+                # Get summoner data
+                try:
+                    summoner = await client.get_lol_summoner_v4_by_name(region=REGION_NA1, name=summoner_name)
+                # If this throws an exception, it's more than likely because the summoner doesn't exist
+                except ClientResponseError:
+                    return await interaction.response.send_message(
+                        embed=self.bot.embed(
+                            title=f"Summoner '{summoner_name}' not found", color=discord.Color.brand_red()
+                        )
                     )
-                )
 
-            # Get ID of most recent match
-            last_match_id = (
-                await client.get_lol_match_v5_match_ids_by_puuid(
-                    region="americas", puuid=summoner["puuid"], queries={"start": 0, "count": 1}
-                )
-            )[0]
+                # Get ID of most recent match
+                last_match_id = (
+                    await client.get_lol_match_v5_match_ids_by_puuid(
+                        region="americas", puuid=summoner["puuid"], queries={"start": 0, "count": 1}
+                    )
+                )[0]
 
-            # Get match data
-            last_match = await client.get_lol_match_v5_match(region="americas", id=last_match_id)
+                # Get match data
+                last_match = await client.get_lol_match_v5_match(region="americas", id=last_match_id)
 
         # Get champion data (for champion image)
         async with CDragonClient(default_params={"patch": "latest", "locale": "default"}) as client:
