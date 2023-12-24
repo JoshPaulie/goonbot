@@ -60,7 +60,8 @@ cdragon_cache_middleware = cache_middleware(
 class League(commands.Cog):
     def __init__(self, bot: Goonbot):
         self.bot = bot
-        self.lock = asyncio.Lock()
+        self.client_lock = asyncio.Lock()
+
         self.riot_client = RiotAPIClient(
             default_headers={"X-Riot-Token": self.bot.keys.RIOT_API},
             middlewares=[
@@ -81,7 +82,7 @@ class League(commands.Cog):
         )
 
     async def build_log_urls(self, puuids: list[str]):
-        async with self.lock:
+        async with self.client_lock:
             async with self.riot_client as client:
                 async with TaskGroup(asyncio.Semaphore(100)) as tg:
                     for puuid in puuids:
@@ -110,7 +111,7 @@ class League(commands.Cog):
 
         await interaction.response.defer()
         # Get summoner data
-        async with self.lock:
+        async with self.client_lock:
             async with self.riot_client as client:
                 try:
                     summoner = await client.get_lol_summoner_v4_by_name(region=REGION_NA1, name=summoner_name)
@@ -148,9 +149,10 @@ class League(commands.Cog):
                         value=league_entry_stats(league_entry),
                     )
 
-        # Set mastries
-        async with CDragonClient(default_params={"patch": "latest", "locale": "default"}) as client:
-            champions = await client.get_lol_v1_champion_summary()
+        # Get mastery data
+        async with self.client_lock:
+            async with self.cdragon_client as client:
+                champions = await client.get_lol_v1_champion_summary()
         champion_id_to_name = {champion["id"]: champion["name"] for champion in champions}
         top_5_mp_champs = [
             f"{champion_id_to_name[champ_mastery_stats['championId']]} {format_big_number(champ_mastery_stats['championPoints'])}"
@@ -174,7 +176,7 @@ class League(commands.Cog):
         # The remedy to this oddity is to "defer" the response, then "follow up" later
         await interaction.response.defer()
 
-        async with self.lock:
+        async with self.client_lock:
             async with self.riot_client as client:
                 # Get summoner data
                 try:
@@ -198,8 +200,9 @@ class League(commands.Cog):
                 last_match = await client.get_lol_match_v5_match(region="americas", id=last_match_id)
 
         # Get champion data (for champion image)
-        async with CDragonClient(default_params={"patch": "latest", "locale": "default"}) as client:
-            champions = await client.get_lol_v1_champion_summary()
+        async with self.client_lock:
+            async with self.cdragon_client as client:
+                champions = await client.get_lol_v1_champion_summary()
         # Dict to get champ image paths
         champion_id_to_image_path = {champion["id"]: champion["squarePortraitPath"] for champion in champions}
 
@@ -574,9 +577,10 @@ class League(commands.Cog):
 
     @app_commands.command(name="champion")
     async def champion_spells(self, interaction: discord.Interaction, champion_name: str):
-        async with CDragonClient(default_params={"patch": "latest", "locale": "default"}) as client:
-            champions = await client.get_lol_v1_champion_summary()
-            champion_id = get_champion_id_by_name(champion_name, champions)
+        async with self.client_lock:
+            async with self.cdragon_client as client:
+                champions = await client.get_lol_v1_champion_summary()
+                champion_id = get_champion_id_by_name(champion_name, champions)
 
             # If champion not found, stop the show
             if champion_id is None:
