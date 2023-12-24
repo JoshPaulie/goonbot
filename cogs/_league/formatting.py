@@ -13,6 +13,22 @@ def timestamp_from_seconds(duration_seconds: int) -> str:
     return f"{minutes:02d}:{remaining_seconds:02d}"
 
 
+def humanize_seconds(seconds: int) -> str:
+    """
+    Takes amount of seconds and returns a string in the following format
+
+    - humanize_seconds(3600) -> "1 hour"
+    - humanize_seconds(4530) -> "1 hour, 15 minutes"
+    """
+    hours, remainder = divmod(seconds, 60 * 60)
+    minutes, _ = divmod(remainder, 60)
+
+    time_units = [(hours, "hour"), (minutes, "minute")]
+    output = [f"{value} {unit}" if value == 1 else f"{value} {unit}s" for value, unit in time_units if value]
+
+    return ", ".join(output)
+
+
 def fstat(
     name: str,
     value: str | int | float,
