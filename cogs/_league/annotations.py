@@ -51,6 +51,7 @@ match_info_participant_stat_keys = Literal[
     "visionWardsBoughtInGame",
     "wardsKilled",
     "wardsPlaced",
+    "win",
 ]
 
 GameMode = TypedDict(
