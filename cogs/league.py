@@ -46,6 +46,16 @@ riot_cache_middleware = cache_middleware(
     ],
 )
 
+cdragon_cache_middleware = cache_middleware(
+    cache,
+    [
+        # Get champion pool
+        (lambda inv: inv.invoker.__name__ == "get_lol_v1_champion_summary", duration(hours=4)),
+        # Get specific champion details
+        (lambda inv: inv.invoker.__name__ == "get_lol_v1_champion", duration(weeks=1)),
+    ],
+)
+
 
 class League(commands.Cog):
     def __init__(self, bot: Goonbot):
@@ -58,6 +68,15 @@ class League(commands.Cog):
                 json_response_middleware(),
                 http_error_middleware(),
                 rate_limiter_middleware(RiotAPIRateLimiter()),
+            ],
+        )
+
+        self.cdragon_client = CDragonClient(
+            default_params={"patch": "latest", "locale": "default"},
+            middlewares=[
+                cdragon_cache_middleware,
+                json_response_middleware(),
+                http_error_middleware(),
             ],
         )
 
