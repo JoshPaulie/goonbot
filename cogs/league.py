@@ -23,10 +23,11 @@ from text_processing import html_to_md, make_possessive, multiline_string, time_
 
 from ._league.calculators import duration
 from ._league.cdragon_builders import get_cdragon_url, make_profile_url
+from ._league.cmd.aram import ARAMPerformanceParser
 from ._league.cmd.champion import get_champion_id_by_name
 from ._league.cmd.last_game import get_all_queue_ids
 from ._league.cmd.summoner import league_entry_stats
-from ._league.formatting import format_big_number, fstat, timestamp_from_seconds
+from ._league.formatting import format_big_number, fstat, humanize_seconds, timestamp_from_seconds
 from ._league.lookups import discord_to_summoner_name, rank_reaction_strs
 from ._league.objects import MultiKill, ParticipantStat, calc_kill_participation, create_participant_stat
 
@@ -397,7 +398,158 @@ class League(commands.Cog):
         last_match_embed.set_footer(text=f"Elapsed loading time: {loading_time}s")
         await interaction.followup.send(embed=last_match_embed)
 
-    # todo aram command (pending caching update)
+    @app_commands.command(name="aram", description="An analysis of your last 50 ARAM games")
+    @app_commands.autocomplete(summoner_name=summoner_name_autocomplete)
+    async def aram_analysis(self, interaction: discord.Interaction, summoner_name: str | None):
+        # todo get rid of magic number that determines how many matches to look at
+        if summoner_name is None:
+            summoner_name = discord_to_summoner_name[interaction.user.id]
+
+        # Start timer for response time
+        start_time = time.perf_counter()
+        await interaction.response.defer()
+
+        async with self.client_lock:
+            async with self.riot_client as client:
+                # Get summoner data
+                try:
+                    summoner = await client.get_lol_summoner_v4_by_name(region=REGION_NA1, name=summoner_name)
+                # If this throws an exception, it's more than likely because the summoner doesn't exist
+                except ClientResponseError:
+                    return await interaction.response.send_message(
+                        embed=self.bot.embed(
+                            title=f"Summoner '{summoner_name}' not found",
+                            color=discord.Color.brand_red(),
+                        )
+                    )
+
+                match_ids = await client.get_lol_match_v5_match_ids_by_puuid(
+                    region="americas",
+                    puuid=summoner["puuid"],
+                    queries={"queue": 450, "count": 50},
+                )
+                async with TaskGroup(asyncio.Semaphore(100)) as tg:
+                    for match_id in match_ids:
+                        await tg.create_task(client.get_lol_match_v5_match(region="americas", id=match_id))
+                aram_matches: list[RiotAPISchema.LolMatchV5Match] = tg.results()
+
+        if not aram_matches:
+            return await interaction.followup.send(
+                embed=self.bot.embed(
+                    title="This account doesn't have any ARAM games played",
+                    color=discord.Color.greyple(),
+                )
+            )
+
+        # Get champion data (for champion image)
+        async with self.client_lock:
+            async with self.cdragon_client as client:
+                champions = await client.get_lol_v1_champion_summary()
+
+        # Dict to get champ image paths
+        champion_id_to_image_path = {champion["id"]: champion["squarePortraitPath"] for champion in champions}
+        champion_id_to_name = {champion["id"]: champion["name"] for champion in champions}
+
+        aram_stats = ARAMPerformanceParser(summoner, aram_matches)
+
+        aram_embed = self.bot.embed(
+            title=f"{summoner['name']} ARAM stats",
+            description=f"Analysis of your last **{len(aram_matches)}** ARAM games!",
+        )
+
+        # Thumbnail of most played champ
+        # Confusingly enough, this is just the first entry in the counter
+        most_played_champ_id = aram_stats.most_played_champion_ids[0][0]
+        champion_image_path = champion_id_to_image_path[most_played_champ_id]
+        champion_image_path_full = get_cdragon_url(champion_image_path)
+        aram_embed.set_thumbnail(url=champion_image_path_full)
+
+        aram_embed.add_field(
+            name="Most played champions",
+            value=" • ".join(
+                [
+                    f"{champion_id_to_name[champ_id]} **{times_played}**"
+                    for champ_id, times_played in aram_stats.most_played_champion_ids
+                ]
+            ),
+            inline=False,
+        )
+
+        aram_embed.add_field(
+            name="Duration",
+            value=multiline_string(
+                [
+                    f"Total match duration **{humanize_seconds(aram_stats.total_game_duration)}**",
+                    f"Total time dead **{humanize_seconds(aram_stats.total_time_spent_dead)}**",
+                    f"Percentage spent dead **{aram_stats.total_time_dead_percentage}%** ",
+                ]
+            ),
+            inline=False,
+        )
+
+        damage_healing_stats: list[tuple[str, int]] = [
+            ("Damage dealt to champions", aram_stats.total_champion_damage),
+            ("Damage taken", aram_stats.total_damage_taken),
+            ("Damage dealt to objectives", aram_stats.total_objective_damage),
+            ("Teammate healing", aram_stats.total_teammate_healing),
+            ("Turret takedowns", aram_stats.total_turret_takedowns),
+        ]
+        aram_embed.add_field(
+            name="Damage & Healing",
+            value=multiline_string(
+                [
+                    f"**{format_big_number(stat_value)}** {stat_name}"
+                    for stat_name, stat_value in damage_healing_stats
+                ]
+            ),
+            inline=False,
+        )
+
+        aram_embed.add_field(
+            name="Win & Losses",
+            value=multiline_string(
+                [
+                    fstat("Wins", aram_stats.total_wins),
+                    fstat("Losses", aram_stats.total_losses),
+                    fstat("Win rate", f"{aram_stats.total_win_rate}%"),
+                ]
+            ),
+        )
+
+        aram_embed.add_field(
+            name="KDA",
+            value=multiline_string(
+                [
+                    fstat("Kill", aram_stats.total_kills, pluralize_name_auto=True),
+                    fstat("Death", aram_stats.total_deaths, pluralize_name_auto=True),
+                    fstat("Assist", aram_stats.total_assists, pluralize_name_auto=True),
+                    fstat("Ratio", aram_stats.total_kda_ratio),
+                ]
+            ),
+        )
+
+        multi_kills = [
+            ("Double Kill", aram_stats.total_double_kills),
+            ("Triple Kill", aram_stats.total_triple_kills),
+            ("Quadra Kill", aram_stats.total_quadra_kills),
+            ("Penta Kill", aram_stats.total_penta_kills),
+        ]
+        aram_embed.add_field(
+            name="Multi Kills",
+            value=multiline_string(
+                [
+                    fstat(name, kill_amount, pluralize_name_auto=True)
+                    for name, kill_amount in multi_kills
+                    if kill_amount
+                ]
+                or "You didn't get a single multi kill 🤣",
+            ),
+        )
+
+        end_time = time.perf_counter()
+        loading_time = round(end_time - start_time, 2)
+        aram_embed.set_footer(text=f"Elapsed loading time: {loading_time}s")
+        await interaction.followup.send(embed=aram_embed)
 
     # todo goon rank leaderboard
 
