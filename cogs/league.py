@@ -403,21 +403,21 @@ class League(commands.Cog):
 
         # Multi kill field
         if target_summoner_stats["largestMultiKill"] > 1:
-            multi_kills = [
-                MultiKill("Double Kill", target_summoner_stats["doubleKills"]),
-                MultiKill("Triple Kill", target_summoner_stats["tripleKills"]),
-                MultiKill("Quadra Kill", target_summoner_stats["quadraKills"]),
-                MultiKill("👑 Penta Kill", target_summoner_stats["pentaKills"]),
-            ]
-            # Format the multikills for output, and only include the stat if they had at least 1
-            multi_kills = [
-                fstat(mk.name, mk.count, make_name_plural=(mk.count > 0))
-                for mk in multi_kills
-                if mk.count > 0
+            multi_kills: list[tuple[str, int]] = [
+                ("Double Kill", target_summoner_stats["doubleKills"]),
+                ("Triple Kill", target_summoner_stats["tripleKills"]),
+                ("Quadra Kill", target_summoner_stats["quadraKills"]),
+                ("👑 Penta Kill", target_summoner_stats["pentaKills"]),
             ]
             last_match_embed.add_field(
                 name="Multi kills ⚔️",
-                value=multiline_string(multi_kills),
+                value=multiline_string(
+                    [
+                        fstat(stat_name, stat_value, pluralize_name_auto=True)
+                        for stat_name, stat_value in multi_kills
+                        if stat_value
+                    ]
+                ),
             )
 
         # Send embed
