@@ -3,7 +3,6 @@ from collections import Counter
 from pulsefire.clients import RiotAPISchema
 
 from ..annotations import match_info_participant_stat_keys
-from ..formatting import humanize_seconds
 
 
 class ARAMPerformanceParser:
@@ -30,15 +29,19 @@ class ARAMPerformanceParser:
         )
 
         # Resource gathering
-        self.total_gold = self.get_stat_from_matches("goldEarned")
-        self.total_minions = self.get_stat_from_matches("totalMinionsKilled")
+        self.total_gold_earned = self.get_stat_from_matches("goldEarned")
+        self.total_minions_killed = self.get_stat_from_matches("totalMinionsKilled")
+        self.total_turret_takedowns = self.get_stat_from_matches("turretTakedowns")
+        self.total_inhibitor_takedowns = self.get_stat_from_matches("inhibitorTakedowns")
 
         # Damage and healing
         self.total_champion_damage = self.get_stat_from_matches("totalDamageDealtToChampions")
         self.total_objective_damage = self.get_stat_from_matches("damageDealtToObjectives")
-        self.total_turret_takedowns = self.get_stat_from_matches("turretTakedowns")
         self.total_damage_taken = self.get_stat_from_matches("totalDamageTaken")
         self.total_teammate_healing = self.get_stat_from_matches("totalHealsOnTeammates")
+
+        # CC
+        self.total_cc_dealt = self.get_stat_from_matches("totalTimeCCDealt")
 
         # Game length
         self.total_game_duration = self.calc_total_match_durations()
