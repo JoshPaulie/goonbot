@@ -358,11 +358,11 @@ class League(commands.Cog):
         ]
         formated_popular_stats = [
             fstat(
-                stat[0],
-                format_big_number(stat[1].participant_value),
-                extra_stat=f"{stat[1].total_stat_percent}%",
+                stat_name,
+                format_big_number(stat_value.participant_value),
+                extra_stat=f"{stat_value.total_stat_percent}%",
             )
-            for stat in popular_stats
+            for stat_name, stat_value in popular_stats
         ]
         formated_popular_stats_batched = batched(formated_popular_stats, 2)
         last_match_embed.add_field(
@@ -391,11 +391,11 @@ class League(commands.Cog):
                     fstat("Gold", format_big_number(total_gold), extra_stat=f"{gold_per_min:,} gp/min"),
                     *[
                         fstat(
-                            stat[0],
-                            stat[1].participant_value,
-                            extra_stat=f"{stat[1].participant_team_value}%",
+                            stat_name,
+                            stat_value.participant_value,
+                            extra_stat=f"{stat_value.participant_team_value}%",
                         )
-                        for stat in gold_vision_stats
+                        for stat_name, stat_value in gold_vision_stats
                     ],
                 ]
             ),
