@@ -603,18 +603,18 @@ class League(commands.Cog):
                 champions = await client.get_lol_v1_champion_summary()
                 champion_id = get_champion_id_by_name(champion_name, champions)
 
-            # If champion not found, stop the show
-            if champion_id is None:
-                return await interaction.response.send_message(
-                    embed=discord.Embed(
-                        title=f"Champion '{champion_name}' was not found",
-                        description="Note: Common abbreviations like 'mf' are not yet support",
-                        color=discord.Color.greyple(),
-                    ),
-                    ephemeral=True,
-                )
+                # If champion not found, stop the show
+                if champion_id is None:
+                    return await interaction.response.send_message(
+                        embed=discord.Embed(
+                            title=f"Champion '{champion_name}' was not found",
+                            description="Note: Common abbreviations like 'mf' are not yet support",
+                            color=discord.Color.greyple(),
+                        ),
+                        ephemeral=True,
+                    )
 
-            champion = await client.get_lol_v1_champion(id=champion_id)
+                champion = await client.get_lol_v1_champion(id=champion_id)
 
         champion_embed = self.bot.embed(
             title=champion["name"],
