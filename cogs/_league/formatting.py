@@ -32,7 +32,8 @@ def humanize_seconds(seconds: int) -> str:
 def fstat(
     name: str,
     value: str | int | float,
-    make_name_plural: bool = False,
+    *,
+    pluralize_name_auto: bool = False,
     extra_stat: Optional[str | int | float] = None,
 ) -> str:
     """
@@ -41,8 +42,10 @@ def fstat(
     Examples:
         fstat("Kills", 10, "15%") -> "Kills **10** (15%)"
     """
-    if make_name_plural:
-        name = make_plural(name)
+    if pluralize_name_auto:
+        if isinstance(value, (int, float)):
+            if value > 1:
+                name = make_plural(name)
 
     if isinstance(value, int):
         value = f"{value:,d}"
