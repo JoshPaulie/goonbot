@@ -29,7 +29,7 @@ from ._league.cmd.last_game import get_all_queue_ids
 from ._league.cmd.summoner import league_entry_stats
 from ._league.formatting import format_big_number, fstat, humanize_seconds, timestamp_from_seconds
 from ._league.lookups import discord_to_summoner_name, rank_reaction_strs
-from ._league.objects import MultiKill, ParticipantStat, calc_kill_participation, create_participant_stat
+from ._league.objects import ParticipantStat, calc_kill_participation, create_participant_stat
 
 REGION_NA1 = "na1"
 REGION_AMERICAS = "americas"
