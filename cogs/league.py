@@ -288,6 +288,12 @@ class League(commands.Cog):
                 game_mode = "ARAM"
             case 1700:
                 game_mode = "Arena"
+                return await interaction.followup.send(
+                    embed=self.bot.embed(
+                        title="Arena matches not yet supported",
+                        color=discord.Color.greyple(),
+                    )
+                )
             case _ as not_set_queue_id:
                 # Fallback that fetches the official game mode names
                 all_queue_ids = await get_all_queue_ids()
