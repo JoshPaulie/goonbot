@@ -347,7 +347,6 @@ class League(commands.Cog):
             return await interaction.followup.send(embed=last_match_embed, ephemeral=True)
 
         # Stats field
-        # Todo - move from tuples to dataclass
         popular_stats: list[tuple[str, ParticipantStat]] = [
             ("💪 Champ damage", create_participant_stat(teammates, summoner, "totalDamageDealtToChampions")),
             ("🏰 Obj. damage", create_participant_stat(teammates, summoner, "damageDealtToObjectives")),
