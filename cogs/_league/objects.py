@@ -6,12 +6,6 @@ from pulsefire.schemas import RiotAPISchema
 from .annotations import match_info_participant_stat_keys
 
 
-@dataclass
-class MultiKill:
-    name: str
-    count: int
-
-
 # todo turn this into a full class with a __str__ method, that uses the create_participant as a constructor
 # that is just the **value** (team%) format
 @dataclass
