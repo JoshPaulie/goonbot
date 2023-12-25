@@ -510,6 +510,7 @@ class League(commands.Cog):
                     f"Total match duration **{humanize_seconds(aram_stats.total_game_duration)}**",
                     f"Total time dead **{humanize_seconds(aram_stats.total_time_spent_dead)}**",
                     f"Percentage spent dead **{aram_stats.total_time_dead_percentage}%** ",
+                    f"CC dealt **{humanize_seconds(aram_stats.total_cc_dealt)}**",
                 ]
             ),
             inline=False,
@@ -520,16 +521,30 @@ class League(commands.Cog):
             ("Damage taken", aram_stats.total_damage_taken),
             ("Damage dealt to objectives", aram_stats.total_objective_damage),
             ("Teammate healing", aram_stats.total_teammate_healing),
-            ("Turret takedowns", aram_stats.total_turret_takedowns),
         ]
+        damage_healing_stats_formatted = [
+            fstat(stat_name, format_big_number(stat_value)) for stat_name, stat_value in damage_healing_stats
+        ]
+        damage_healing_stats_formatted_batched = batched(damage_healing_stats_formatted, 2)
         aram_embed.add_field(
             name="Damage & Healing",
-            value=multiline_string(
-                [
-                    f"**{format_big_number(stat_value)}** {stat_name}"
-                    for stat_name, stat_value in damage_healing_stats
-                ]
-            ),
+            value=multiline_string([" · ".join(pair) for pair in damage_healing_stats_formatted_batched]),
+            inline=False,
+        )
+
+        resource_gathering_stats: list[tuple[str, int]] = [
+            ("Gold earned", aram_stats.total_gold_earned),
+            ("Minions Killed", aram_stats.total_minions_killed),
+            ("Turret takedowns", aram_stats.total_turret_takedowns),
+            ("Inhibitor takedowns", aram_stats.total_inhibitor_takedowns),
+        ]
+        resource_gathering_stats_formated: list[str] = [
+            fstat(stat_name, stat_value) for stat_name, stat_value in resource_gathering_stats
+        ]
+        resource_gathering_stats_batched = batched(resource_gathering_stats_formated, 2)
+        aram_embed.add_field(
+            name="Resource Gathering",
+            value=multiline_string([" · ".join(pair) for pair in resource_gathering_stats_batched]),
             inline=False,
         )
 
