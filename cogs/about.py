@@ -11,8 +11,12 @@ docs_dir = pathlib.Path("docs")
 docs_pages = sorted([p for p in docs_dir.glob("*.md") if "readme" not in p.name.lower()])
 
 
-def _clean_header(header: str):
-    header = header.replace("**", "")
+type SectionLines = list[str]
+type SectionList = list[SectionLines]
+type SectionDict = dict[str, SectionLines]
+
+
+def _clean_header(header: str) -> str:
     if header.startswith("# "):
         return header[2:]
     if header.startswith("## "):
@@ -20,7 +24,7 @@ def _clean_header(header: str):
     return header
 
 
-def make_sections(text: str) -> list[list[str]]:
+def make_sections(text: str) -> SectionList:
     lines = text.splitlines()
 
     sections = []
@@ -39,10 +43,7 @@ def make_sections(text: str) -> list[list[str]]:
     return sections
 
 
-type SectionDict = dict[str, list[str]]
-
-
-def create_section_dict(sections: list[list[str]]) -> SectionDict:
+def make_section_dict(sections: SectionList) -> SectionDict:
     """Takes list of sections, creates a dict with each key being the first line of section (cleaned up a bit) and the value being section lines"""
     return {_clean_header(section[0]): section for section in sections}
 
@@ -55,9 +56,10 @@ class SectionDropdownPicker(discord.ui.Select):
         super().__init__(placeholder="Pick a section", options=options)
 
     async def callback(self, interaction: discord.Interaction):
+        selected_section_header = self.values[0]
         await interaction.response.edit_message(
             embed=discord.Embed(
-                description=join_lines(self.sections[self.values[0]]),
+                description=join_lines(self.sections[selected_section_header]),
                 color=discord.Color.blurple(),
             ),
             # Remove view if broadcasted
