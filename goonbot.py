@@ -1,6 +1,10 @@
+import asyncio
 import logging
+import pathlib
 import random
+import time
 import traceback
+from collections import defaultdict
 from functools import partial
 from pathlib import Path
 from typing import Iterator
@@ -17,6 +21,8 @@ BOTTING_TOGETHER = discord.Object(510865274594131968)  # The development server
 
 class Goonbot(commands.Bot):
     keys = Keys
+    timer_lock = asyncio.Lock()
+    command_timer = defaultdict(time.perf_counter)
 
     # A default embed that will sprinkled around (so I don't have to manually set the color every time)
     embed = partial(discord.Embed, color=discord.Color.blurple())
@@ -116,6 +122,25 @@ async def on_app_command_error(interaction: discord.Interaction, error: discord.
 # all of the prefix commands by typing ".help"
 
 
+@goonbot.command(name="log")
+async def log(ctx: commands.Context, line_count: int = 10):
+    log_file = pathlib.Path("bot.log")
+    if not log_file.exists():
+        return
+    log_file_text = log_file.read_text().splitlines()
+    log_file_text_slice = log_file_text[-line_count:]
+    log_file_text_slice_no_timestamp = [line[22:] for line in log_file_text_slice]
+    await ctx.reply(
+        embed=goonbot.embed(
+            title="Log",
+            description=join_lines(
+                ["```", "\n".join(log_file_text_slice_no_timestamp), "```"],
+            ),
+        ),
+        ephemeral=True,
+    )
+
+
 @goonbot.command(name="sync", description="[Meta] Syncs commands to server")
 @commands.is_owner()
 async def sync(ctx: commands.Context):
@@ -173,6 +198,24 @@ async def on_command_error(ctx: commands.Context, error: commands.CommandError):
         # Without this line, prefixed commands throwing exceptions that will get gobbled
         # up by this event and make me real mad later when I break something
         logging.error(traceback.format_exc())
+
+
+@goonbot.event
+async def on_interaction(interaction: discord.Interaction):
+    async with goonbot.timer_lock:
+        if interaction.type == discord.InteractionType.application_command:
+            assert interaction.command
+            goonbot.command_timer[interaction.id] = time.perf_counter()
+
+
+@goonbot.event
+async def on_app_command_completion(interaction: discord.Interaction, command: discord.app_commands.Command):
+    async with goonbot.timer_lock:
+        if command_start_time := goonbot.command_timer.get(interaction.id):
+            del goonbot.command_timer[interaction.id]
+            command_end_time = time.perf_counter()
+            command_elapsed_time = command_end_time - command_start_time
+            logging.info(f"{command.name} execution time: {command_elapsed_time}")
 
 
 # Context menus
