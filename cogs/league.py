@@ -29,7 +29,7 @@ from ._league.cmd.last_game import get_all_queue_ids
 from ._league.cmd.summoner import league_entry_stats
 from ._league.formatting import format_big_number, fstat, humanize_seconds, timestamp_from_seconds
 from ._league.lookups import discord_to_summoner_name, rank_reaction_strs
-from ._league.objects import ParticipantStat, calc_kill_participation, create_participant_stat
+from ._league.objects import LeagueRank, ParticipantStat, calc_kill_participation, create_participant_stat
 
 REGION_NA1 = "na1"
 REGION_AMERICAS = "americas"
@@ -592,8 +592,6 @@ class League(commands.Cog):
         loading_time = round(end_time - start_time, 2)
         aram_embed.set_footer(text=f"Elapsed loading time: {loading_time}s")
         await interaction.followup.send(embed=aram_embed)
-
-    # todo goon rank leaderboard
 
     @app_commands.command(name="champion")
     async def champion_spells(self, interaction: discord.Interaction, champion_name: str):
