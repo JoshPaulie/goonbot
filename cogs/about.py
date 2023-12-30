@@ -48,8 +48,9 @@ def create_section_dict(sections: list[list[str]]) -> SectionDict:
 
 
 class SectionDropdownPicker(discord.ui.Select):
-    def __init__(self, sections: SectionDict):
+    def __init__(self, sections: SectionDict, broadcast: bool):
         self.sections = sections
+        self.broadcast = broadcast
         options = [discord.SelectOption(label=section) for section in self.sections.keys()]
         super().__init__(placeholder="Pick a section", options=options)
 
@@ -58,14 +59,16 @@ class SectionDropdownPicker(discord.ui.Select):
             embed=discord.Embed(
                 description=join_lines(self.sections[self.values[0]]),
                 color=discord.Color.blurple(),
-            )
+            ),
+            # Remove view if broadcasted
+            view=None if self.broadcast else self.view,
         )
 
 
 class PickSectionView(discord.ui.View):
-    def __init__(self, sections: SectionDict):
+    def __init__(self, sections: SectionDict, broadcast: bool):
         super().__init__()
-        self.add_item(SectionDropdownPicker(sections=sections))
+        self.add_item(SectionDropdownPicker(sections=sections, broadcast=broadcast))
 
 
 class About(commands.Cog):
@@ -106,16 +109,18 @@ class About(commands.Cog):
             )
 
         sections = make_sections(docs_page_text)
+        first_section = sections[0]
         if len(sections) > 1:
             section_dict = create_section_dict(sections)
-            dropdown_view = PickSectionView(sections=section_dict)
+            dropdown_view = PickSectionView(sections=section_dict, broadcast=broadcast)
             await interaction.response.send_message(
+                embed=self.bot.embed(description=join_lines(first_section)),
                 view=dropdown_view,
                 ephemeral=not broadcast,
             )
         else:
             await interaction.response.send_message(
-                embed=self.bot.embed(description=join_lines(sections[0])),
+                embed=self.bot.embed(description=join_lines(first_section)),
                 ephemeral=not broadcast,
             )
 
