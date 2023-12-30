@@ -96,7 +96,7 @@ async def on_app_command_error(interaction: discord.Interaction, error: discord.
     await interaction.followup.send(
         embed=goonbot.embed(
             title="An unknown error occurred.",
-            description=multiline_string(
+            description=join_lines(
                 (
                     "Try again. The interaction has been logged.",
                     "If this happens many times, ping jarsh",
