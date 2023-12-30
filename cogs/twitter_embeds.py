@@ -33,7 +33,7 @@ class TwitterEmbeds(commands.Cog):
             )
         ):
             return
-        await message.reply(fix_link(message.content), silent=True)
+        await message.reply(fix_link(message.content), silent=True, mention_author=False)
 
 
 async def setup(bot):
