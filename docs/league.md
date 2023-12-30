@@ -2,14 +2,14 @@
 Goonbot has a couple of analytic commands for League.
 ---
 ## No name needed
-All league commands have the ability to call the command with no summoner passed. If no summoner name is provided, the bot will fallback to your personal summoner name.
+You can use any league-related commands without specifying a summoner name, the bot knows everyone's summoner name and will automatically use it as a default.
 
 This means that if Josh wanted to get his last game, he'd just type `/lastgame` and not `/lastgame bexli`
 ---
 ## League commands are semi-synchronous
-All of Goonbot commands are asynchronous, meaning that many people can call the same command in the same instant, and they'll all get their response in the same instant. This is not the case for League commands.
+Goonbot commands work asynchronously, allowing multiple people to use the same command simultaneously and receive their responses at the same time. However, League commands don't operate in the same way.
 
-As a limitation of using `discord.py` with `pulsefire`, league commands are processed in a queue. So if 2 people call league commands around the same time, the first caller's command must finish before the following is started
+As a limitation of using `discord.py` with `pulsefire`, league commands are (effectively) processed in a queue. So if 2 people use a league commands around the same time, the first caller's command must finish before the following is started
 ---
 ## Responses are cached
 A lot of the data that supports League commands are cached, resulting in much faster command execution times.
