@@ -1,9 +1,9 @@
 # General
 General commands are generic commands that don't require specialized cogs
----
++++
 ## Wow, no invite?
 Sends a tongue-in-cheek message conveying you wish you were invited to *whatever you've been left out from*. It randomly picks from a list of snarky comments.
----
++++
 ## Where is everybody?
 Used to "nudge" chat, broadcasting a user is free for games or VC. The response is influenced by the day of week and time of day.
 

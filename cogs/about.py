@@ -30,7 +30,7 @@ def make_sections(text: str) -> SectionList:
     sections = []
     current_section = []
     for line in lines:
-        page_break = "---"
+        page_break = "+++"
         if line != page_break:
             current_section.append(line)
             continue
