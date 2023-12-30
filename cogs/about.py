@@ -111,7 +111,7 @@ class About(commands.Cog):
         sections = make_sections(docs_page_text)
         first_section = sections[0]
         if len(sections) > 1:
-            section_dict = create_section_dict(sections)
+            section_dict = make_section_dict(sections[1:])
             dropdown_view = PickSectionView(sections=section_dict, broadcast=broadcast)
             await interaction.response.send_message(
                 embed=self.bot.embed(description=join_lines(first_section)),
