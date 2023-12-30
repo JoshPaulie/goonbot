@@ -9,7 +9,7 @@ import discord
 from discord.ext import commands
 
 from keys import Keys
-from text_processing import multiline_string
+from text_processing import join_lines
 
 GOON_HQ = discord.Object(177125557954281472)  # The main ("production") server
 BOTTING_TOGETHER = discord.Object(510865274594131968)  # The development server
