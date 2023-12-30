@@ -19,7 +19,7 @@ from pulsefire.ratelimiters import RiotAPIRateLimiter
 from pulsefire.taskgroups import TaskGroup
 
 from goonbot import Goonbot
-from text_processing import html_to_md, make_possessive, multiline_string, time_ago
+from text_processing import html_to_md, join_lines, make_possessive, time_ago
 
 from ._league.calculators import duration
 from ._league.cdragon_builders import get_cdragon_url, make_profile_url
@@ -318,7 +318,7 @@ class League(commands.Cog):
         last_match_embed.color = discord.Color.brand_green() if won_game else discord.Color.brand_red()
 
         # Game meta, final score, kda
-        last_match_embed.description = multiline_string(
+        last_match_embed.description = join_lines(
             [
                 fstat("Game mode", game_mode, extra_stat="Victory!" if won_game else "Defeat."),
                 fstat("Duration", game_duration, extra_stat=ended_ago),
@@ -366,7 +366,7 @@ class League(commands.Cog):
         formated_popular_stats_batched = batched(formated_popular_stats, 2)
         last_match_embed.add_field(
             name="Stats 📊",
-            value=multiline_string([" · ".join(pair) for pair in formated_popular_stats_batched]),
+            value=join_lines([" · ".join(pair) for pair in formated_popular_stats_batched]),
             inline=False,
         )
 
@@ -384,7 +384,7 @@ class League(commands.Cog):
         ]
         last_match_embed.add_field(
             name="Farming & Vision 🧑‍🌾",
-            value=multiline_string(
+            value=join_lines(
                 [
                     fstat("CS", creep_score, extra_stat=f"{cs_per_min} cs/min"),
                     fstat("Gold", format_big_number(total_gold), extra_stat=f"{gold_per_min:,} gp/min"),
@@ -410,7 +410,7 @@ class League(commands.Cog):
             ]
             last_match_embed.add_field(
                 name="Multi kills ⚔️",
-                value=multiline_string(
+                value=join_lines(
                     [
                         fstat(stat_name, stat_value, pluralize_name_auto=True)
                         for stat_name, stat_value in multi_kills
@@ -504,7 +504,7 @@ class League(commands.Cog):
 
         aram_embed.add_field(
             name="Duration",
-            value=multiline_string(
+            value=join_lines(
                 [
                     f"Total match duration **{humanize_seconds(aram_stats.total_game_duration)}**",
                     f"Total time dead **{humanize_seconds(aram_stats.total_time_spent_dead)}**",
@@ -527,7 +527,7 @@ class League(commands.Cog):
         damage_healing_stats_formatted_batched = batched(damage_healing_stats_formatted, 2)
         aram_embed.add_field(
             name="Damage & Healing",
-            value=multiline_string([" · ".join(pair) for pair in damage_healing_stats_formatted_batched]),
+            value=join_lines([" · ".join(pair) for pair in damage_healing_stats_formatted_batched]),
             inline=False,
         )
 
@@ -543,13 +543,13 @@ class League(commands.Cog):
         resource_gathering_stats_batched = batched(resource_gathering_stats_formated, 2)
         aram_embed.add_field(
             name="Resource Gathering",
-            value=multiline_string([" · ".join(pair) for pair in resource_gathering_stats_batched]),
+            value=join_lines([" · ".join(pair) for pair in resource_gathering_stats_batched]),
             inline=False,
         )
 
         aram_embed.add_field(
             name="Win & Losses",
-            value=multiline_string(
+            value=join_lines(
                 [
                     fstat("Wins", aram_stats.total_wins),
                     fstat("Losses", aram_stats.total_losses),
@@ -560,7 +560,7 @@ class League(commands.Cog):
 
         aram_embed.add_field(
             name="KDA",
-            value=multiline_string(
+            value=join_lines(
                 [
                     fstat("Kill", aram_stats.total_kills, pluralize_name_auto=True),
                     fstat("Death", aram_stats.total_deaths, pluralize_name_auto=True),
@@ -578,7 +578,7 @@ class League(commands.Cog):
         ]
         aram_embed.add_field(
             name="Multi Kills",
-            value=multiline_string(
+            value=join_lines(
                 [
                     fstat(name, kill_amount, pluralize_name_auto=True)
                     for name, kill_amount in multi_kills

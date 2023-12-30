@@ -7,7 +7,7 @@ from discord.ext import commands
 
 from calendar_events import get_events
 from goonbot import Goonbot
-from text_processing import comma_list, multiline_string
+from text_processing import comma_list, join_lines
 
 
 class GoonCalendar(commands.Cog):
@@ -43,7 +43,7 @@ class GoonCalendar(commands.Cog):
         for event in get_events(today, show_remaining_only):
             calendar_embed.add_field(
                 name=event.name,
-                value=multiline_string(
+                value=join_lines(
                     [
                         event.date.strftime("%A"),  # Day of the week. Format: Sunday, Monday, etc
                         event.date.strftime("%B %d"),  # Date. Format: January 1, February 18, etc

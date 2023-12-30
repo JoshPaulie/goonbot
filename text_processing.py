@@ -33,8 +33,10 @@ def bullet_points(lst: Sequence[Any]) -> str:
     return "\n".join([f"- {item}" for item in lst])
 
 
-def multiline_string(lst: Sequence[str]) -> str:
-    """Helper for writing multiline embed descriptions, field values, etc. easier to hardcode"""
+def join_lines(lst: Sequence[str]) -> str:
+    """Helper for writing multiline embed descriptions, field values, etc. easier to hardcode
+
+    Functionally the inverse of str.splitlines()"""
     return "\n".join(lst)
 
 
