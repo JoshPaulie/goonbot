@@ -11,8 +11,8 @@ Goonbot commands work asynchronously, allowing multiple people to use the same c
 
 As a limitation of using `discord.py` with `pulsefire`, league commands are (effectively) processed in a queue. So if 2 people use a league commands around the same time, the first caller's command must finish before the following is started
 +++
-## Responses are cached
-A lot of the data that supports League commands are cached, resulting in much faster command execution times.
+## Cached data
+A lot of the data that supports League commands is cached, resulting in much faster command execution times.
 
 Because data for a match doesn't change after it's been finished, match data is held indefinitely. This means if the match being queried (ie. your last game played) hasn't yet been cached, you can expect longer loading times.
 +++
