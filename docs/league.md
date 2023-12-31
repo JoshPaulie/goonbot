@@ -2,19 +2,24 @@
 Goonbot has a couple of analytic commands for League.
 +++
 ## No name needed
-You can use any league-related commands without specifying a summoner name, the bot knows everyone's summoner name and will automatically use it as a default.
+You can use any league-related commands without specifying a summoner name. The bot knows everyone's summoner name and will automatically use it as a default.
 
 This means that if Josh wanted to get his last game, he'd just type `/lastgame` and not `/lastgame bexli`
 +++
 ## League commands are semi-synchronous
-Goonbot commands work asynchronously, allowing multiple people to use the same command simultaneously and receive their responses at the same time. However, League commands don't operate in the same way.
+Goonbot commands work asynchronously, allowing multiple people to use many commands simultaneously and receive their responses as the finish processing. However, League commands don't operate in the same way.
 
-As a limitation of using `discord.py` with `pulsefire`, league commands are (effectively) processed in a queue. So if 2 people use a league commands around the same time, the first caller's command must finish before the following is started
+As a limitation of using `discord.py` with `pulsefire`, league commands are (effectively) processed in a queue. So if 2 people use a league commands around the same time, the first caller's command must finish processing before the following is started
 +++
 ## Cached data
 A lot of the data that supports League commands is cached, resulting in much faster command execution times.
 
-Because data for a match doesn't change after it's been finished, match data is held indefinitely. This means if the match being queried (ie. your last game played) hasn't yet been cached, you can expect longer loading times.
+- Some data doesn't change after it's been created, like match data, and can be cached indefinitely.
+  - This is great for commands that process many matches at a time, because we're not asking Riot for the same match's data twice.
+- Some data can be cached for a bit, like a summoner's mastery points. 
+- Some data has be fetched every time, like a summoner's match list.
+
+It's worth noting if you're querying a match not yet cached (ie. your last game played), you can expect longer loading times, because that data needs to be fetched from Riot.
 +++
 ## 'Summoner' Command
 Provides a few details like rank in each queue type (if any), current in-game profile picture, and top champion masteries.

@@ -1,5 +1,5 @@
 # General
-General commands are generic commands that don't require specialized cogs
+Discord bot commands are grouped into cogs. General commands are generic in nature, and don't fit into other cogs.
 +++
 ## Wow, no invite?
 Sends a tongue-in-cheek message conveying you wish you were invited to *whatever you've been left out from*. It randomly picks from a list of snarky comments.
