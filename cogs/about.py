@@ -112,19 +112,20 @@ class About(commands.Cog):
 
         sections = make_sections(docs_page_text)
         first_section = sections[0]
-        if len(sections) > 1:
-            section_dict = make_section_dict(sections[1:])
-            dropdown_view = PickSectionView(sections=section_dict, broadcast=broadcast)
-            await interaction.response.send_message(
-                embed=self.bot.embed(description=join_lines(first_section)),
-                view=dropdown_view,
-                ephemeral=not broadcast,
-            )
-        else:
-            await interaction.response.send_message(
+        # Some pages aren't broken into sections. If they're not, just send the whole page
+        if len(sections) == 1:
+            return await interaction.response.send_message(
                 embed=self.bot.embed(description=join_lines(first_section)),
                 ephemeral=not broadcast,
             )
+
+        section_dict = make_section_dict(sections[1:])
+        dropdown_view = PickSectionView(sections=section_dict, broadcast=broadcast)
+        await interaction.response.send_message(
+            embed=self.bot.embed(description=join_lines(first_section)),
+            view=dropdown_view,
+            ephemeral=not broadcast,
+        )
 
 
 async def setup(bot):
