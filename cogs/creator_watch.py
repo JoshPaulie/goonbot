@@ -13,6 +13,7 @@ from twitchAPI.helper import first
 from twitchAPI.twitch import Stream, Twitch, TwitchUser
 
 from goonbot import Goonbot
+from keys import Keys
 
 
 class CreatorView(discord.ui.View):
@@ -50,9 +51,7 @@ class CreatorView(discord.ui.View):
         timeout: float | None = 30,
         youtube_channel_id: Optional[str] = None,
         twitch_username: Optional[str] = None,
-        bot: Goonbot,
     ):
-        self.bot = bot
         self.youtube_channel_id = youtube_channel_id
         self.twitch_user = twitch_username
         super().__init__(timeout=timeout)
@@ -108,7 +107,7 @@ class CreatorView(discord.ui.View):
 
     async def get_streamer(self, login: str) -> tuple[TwitchUser, Stream | None]:
         """Returns a twitch user and (if they're live) their stream info"""
-        twitch = await Twitch(self.bot.keys.TWITCH_CLIENT_ID, self.bot.keys.TWITCH_CLIENT_SECRET)
+        twitch = await Twitch(Keys.TWITCH_CLIENT_ID, Keys.TWITCH_CLIENT_SECRET)
         # Gets the streamer data
         # Used for profile pic, offline profile pic, official username
         streamer = await first(twitch.get_users(logins=[login]))
@@ -122,7 +121,7 @@ class CreatorView(discord.ui.View):
         # This is pretty much lifted straight for the docs
         # Sadly, the google api client a glorified wrapper that returns untyped dicts
         # Build YouTube interface
-        youtube = build("youtube", "v3", developerKey=self.bot.keys.GOOGLE_API)
+        youtube = build("youtube", "v3", developerKey=Keys.GOOGLE_API)
         # Get channel info
         channel_info = youtube.channels().list(id=channel_id, part="contentDetails").execute()
         # Blindly hack and slash until we get the ID for their uploads playlist
@@ -151,7 +150,6 @@ class CreatorWatch(commands.Cog):
         """Template command description"""
         await interaction.response.send_message(
             view=CreatorView(
-                bot=self.bot,
                 youtube_channel_id=None,
                 twitch_username="Gnomonkey",
             ),
