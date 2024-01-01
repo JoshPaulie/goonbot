@@ -272,11 +272,7 @@ async def send_love(interaction: discord.Interaction, user: discord.User):
         "I like hanging out with you",
     ]
     # Temporary affirmations/affirmations I think will get old eventually
-    trendy_affirmations = [
-        "Stick out that gyatt",
-        "You're so skibidi",
-        "You're so fanum tax",
-    ]
+    trendy_affirmations = []
     affirmations = permenant_affirmations + trendy_affirmations
     affirmation = random.choice(affirmations)
     assert user
