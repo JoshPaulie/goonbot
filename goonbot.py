@@ -159,11 +159,7 @@ async def sync(ctx: commands.Context):
     assert ctx.guild
     await goonbot.tree.sync(guild=ctx.guild)
     assert goonbot.user
-    await ctx.send(
-        embed=goonbot.embed(title=f"{goonbot.user.name} commands synced to {ctx.guild.name}"),
-        ephemeral=True,
-    )
-    await ctx.message.add_reaction("✅")
+    await ctx.send(embed=goonbot.embed(title=f"{goonbot.user.name} commands synced to {ctx.guild.name}"))
 
 
 @goonbot.command(name="img")
@@ -227,6 +223,26 @@ async def on_app_command_completion(interaction: discord.Interaction, command: d
 # They're commands that you can bind to particular "contexts," namley messages or users.
 # This enables you to right click either a message or a user, go to Apps,
 # and a list will display with the available commands for that particular "context"
+
+
+@goonbot.tree.context_menu(name="Delete")
+async def delete_bot_message(interaction: discord.Interaction, message: discord.Message):
+    """Allows community to clean up (delete) Goonbot messages"""
+    # Make sure it's a goonbot message
+    assert goonbot.user
+    if not message.author == goonbot.user:
+        return await interaction.response.send_message(
+            embed=goonbot.embed(
+                description=f"This command is meant to be used to delete {goonbot.user.mention} messages only 😡",
+                color=discord.Color.greyple(),
+            ),
+            ephemeral=True,
+        )
+
+    # Send response to satisfy the discord interaction (without this the user gets "Interaction failed")
+    await interaction.response.send_message(embed=goonbot.embed(title="🚮"), ephemeral=True)
+    # Delete selected message
+    await message.delete()
 
 
 @goonbot.tree.context_menu(name="Profile pic")
