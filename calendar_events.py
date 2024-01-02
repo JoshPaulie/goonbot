@@ -41,7 +41,7 @@ def get_events_dict(today: dt.date) -> dict[str, dt.date]:
         "Valentine's Day 💕": dt.date(current_year, 2, 14),
         "Freedom Day 🎇": dt.date(current_year, 7, 4),
         "Halloween 🎃": dt.date(current_year, 10, 31),
-        "Thanksgiving 🦃": dt.date(2023, 11, 23),  # Must be hard coded once a year :')
+        "Thanksgiving 🦃": dt.date(2024, 11, 28),  # Must be hard coded once a year :')
         "Christmas 🎄": dt.date(current_year, 12, 25),
         "New Year's Eve 🥳": dt.date(current_year, 12, 31),
     }
