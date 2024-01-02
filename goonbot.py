@@ -162,22 +162,6 @@ async def sync(ctx: commands.Context):
     await ctx.send(embed=goonbot.embed(title=f"{goonbot.user.name} commands synced to {ctx.guild.name}"))
 
 
-@goonbot.command(name="img")
-@commands.is_owner()
-async def test_image(ctx: commands.Context, image_url: str):
-    """Test how images are displayed in an embed, mostly used for checking broken rats"""
-    try:
-        await ctx.send(embed=goonbot.embed(title="Test image").set_image(url=image_url))
-    except Exception as e:
-        await ctx.send(
-            embed=goonbot.embed(
-                title="Something catastrophic happened",
-                description=e.with_traceback,
-                color=discord.Color.red(),
-            )
-        )
-
-
 # This catches and processes ext (or "prefixed") commands
 @goonbot.event
 async def on_command_error(ctx: commands.Context, error: commands.CommandError):
