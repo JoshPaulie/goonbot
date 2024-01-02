@@ -101,16 +101,10 @@ class CreatorView(discord.ui.View):
     Simple view that is used if a creator makes content both Twitch and YouTube. Provides a button for either platform.
     """
 
-    def __init__(
-        self,
-        *,
-        timeout: float | None = 30,
-        youtube_channel_id: str,
-        twitch_username: str,
-    ):
+    def __init__(self, *, youtube_channel_id: str, twitch_username: str):
         self.youtube_channel_id = youtube_channel_id
         self.twitch_user = twitch_username
-        super().__init__(timeout=timeout)
+        super().__init__(timeout=12)
 
     async def on_timeout(self) -> None:
         self.clear_items()
