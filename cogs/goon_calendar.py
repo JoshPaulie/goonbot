@@ -100,7 +100,7 @@ class GoonCalendar(commands.Cog):
             await interaction.channel.send(
                 embed=self.bot.embed(
                     title="Hey, look.",
-                    description=f"It's that weird edge case <@{self.bot.owner_id}> he thought would never be encountered.",
+                    description=f"It's that weird edge case <@{self.bot.owner_id}> thought he'd never be encountered.",
                 ),
             )
 
