@@ -28,15 +28,23 @@ Swapped from the (questionably typed) **youtube-python** for the official **Goog
 #### Twitch
 Swapped the synchronous **python-twitch** with the asynchronous **pytwitchapi**
 #### Riot games
-Previous generations of goonbot relied on **cassiopeia**, a synchronous library, lovely library with beautiful caching. It was wonderful, other than it sucked. We're now using **pulsefire**
+Previous generations of goonbot relied on **cassiopeia**, a synchronous library, lovely library with beautiful caching. It was wonderful, other than it sucked. We're now using **pulsefire**, which is ✨ asynchronous ✨ and provides beautiful caching
+
+### League commands are BACK!
+Yes! Reliably working league intergration that doesn't hate the name RoninAlex is back, and with a few new goodies. Read more [here](docs/league.md)
 
 ### Added
 - `/about <docs page>`
   - command that relays a doc page for certain features, explaining how they work
+- `/cat`
+  - similar to rat but cat, you get it
+- Auto* twitter embedding
+  - Goonbot listens for twitter links and when they are posted, will offer to "replace" the normal link with a fxtwitter link. Fxtwitter creates a rich embed that twitter no longer provides. Read more [here](docs/twitter-embed.md)
+
 
 ### Fixed
 - `/wie`
-  - now follows the social convetion of considering early morning hours to be part of the previous day's "nighttime"
+  - now follows the social convetion of considering early morning hours to be part of the previous day's "nighttime". Night owls, rejoice!
 - `/today` & `/calendar`
   - previous interations of these commands required the bot to be restarted each new year. commands now continue working, despite the change of year
   - covered every edgecase imaginable, as previous iterations of this command were prone to breakage
@@ -47,9 +55,9 @@ Previous generations of goonbot relied on **cassiopeia**, a synchronous library,
 - all commands that utilize randomness (rats, wow no invite responses) won't repeat content until all available options have been served
 - `/today` & `/calendar`
   - refactored to handle many events on the same day
-- `/rats`
-  - broken rats are now reportable, allowing broken images to be tested, then fixed or removed
-  - links are manually "fixed" by reuploading gifs to discord and using the discord URL, which links to their CDN instead of Tenor (for whatever reason Tenor gifs don't work in discord embeds)
+- `/rat`, `/real`
+  - Images are now served by just posting the image link. Discord and Tenor are besties and discord will auto embed it more reliably than before, remove the chance of blank rat being sent.
+  - `/real` now adds to reactions to the image, allowing the community to "vote"
 - `/wni`
   - new responses
 
