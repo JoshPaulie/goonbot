@@ -101,13 +101,8 @@ command_tree = goonbot.tree
 async def on_app_command_error(interaction: discord.Interaction, error: discord.app_commands.AppCommandError):
     await interaction.followup.send(
         embed=goonbot.embed(
-            title="An unknown error occurred.",
-            description=join_lines(
-                (
-                    "Try again. The interaction has been logged.",
-                    "If this happens many times, ping jarsh",
-                )
-            ),
+            title="An unknown error occurred. 😢",
+            description=("Try again. If this happens many times, ping jarsh"),
         ),
         ephemeral=True,
     )
