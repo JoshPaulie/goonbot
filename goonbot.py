@@ -13,7 +13,7 @@ import discord
 from discord.ext import commands
 
 from keys import Keys
-from text_processing import join_lines
+from text_processing import acronymize, join_lines
 
 GOON_HQ = discord.Object(177125557954281472)  # The main ("production") server
 BOTTING_TOGETHER = discord.Object(510865274594131968)  # The development server
@@ -227,6 +227,15 @@ async def delete_bot_message(interaction: discord.Interaction, message: discord.
     await interaction.response.send_message(embed=goonbot.embed(title="🚮"), ephemeral=True)
     # Delete selected message
     await message.delete()
+
+
+@goonbot.tree.context_menu(name="MA (Make Acronym)")
+async def make_acronym(interaction: discord.Interaction, message: discord.Message):
+    message_content = message.content
+    if message.embeds:
+        if message.embeds[0].title:
+            message_content = message.embeds[0].title
+    await interaction.response.send_message(embed=goonbot.embed(title=acronymize(message_content)))
 
 
 @goonbot.tree.context_menu(name="Profile pic")

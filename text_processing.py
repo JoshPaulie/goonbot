@@ -107,3 +107,7 @@ def html_to_md(text: str) -> str:
     for html_token, md_token in mappings.items():
         text = text.replace(html_token, md_token)
     return text
+
+
+def acronymize(input: str) -> str:
+    return "".join([chars[0].upper() for chars in input.split()])
