@@ -55,9 +55,9 @@ Yes! Reliably working league intergration that doesn't hate the name RoninAlex i
 - all commands that utilize randomness (rats, wow no invite responses) won't repeat content until all available options have been served
 - `/today` & `/calendar`
   - refactored to handle many events on the same day
-- `/rat`, `/real`
-  - Images are now served by just posting the image link. Discord and Tenor are besties and discord will auto embed it more reliably than before, remove the chance of blank rat being sent.
-  - `/real` now adds to reactions to the image, allowing the community to "vote"
+- `/rat`, `/real`, all other commands that serve images or gifs
+  - Images are now served by just posting the image link. Discord and Tenor are besties and discord will hide the url, leaving a clean looking image
+- `/real` now adds to reactions to the image, allowing the community to "vote"
 - `/wni`
   - new responses
 
