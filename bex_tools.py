@@ -8,7 +8,7 @@ from typing import Any, Sequence
 class CycleRandom:
     used_items = []
 
-    def __init__(self, items: Sequence[Any]) -> None:
+    def __init__(self, items: list[Any]) -> None:
         self.items = items
 
     def __next__(self):
