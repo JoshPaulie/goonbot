@@ -19,7 +19,40 @@ class Pics(commands.Cog):
     def __init__(self, bot: Goonbot):
         self.bot = bot
 
-    # todo command that allows players to add images to the 3 categories
+    @app_commands.command(name="addpic", description="Add a new image link to car, rat, or real")
+    @app_commands.describe(link="Add the image/gif link here")
+    @app_commands.describe(categories="Specify which category your link should be added to")
+    @app_commands.choices(
+        categories=[
+            app_commands.Choice(name="Rat", value="rats"),
+            app_commands.Choice(name="Cat", value="cats"),
+            app_commands.Choice(name="Real", value="real"),
+        ]
+    )
+    async def add_pic(
+        self, interaction: discord.Interaction, link: str, categories: app_commands.Choice[str]
+    ):
+        file_path = "image_links/"
+        match categories.value:
+            case "rats":
+                file_path += f"{categories.value}.txt"
+                self.rat_links.items.append(link)
+            case "cats":
+                file_path += f"{categories.value}.txt"
+                self.cat_links.items.append(link)
+            case "real":
+                file_path += f"{categories.value}.txt"
+                self.paranormal_links.items.append(link)
+
+        with open(file_path, mode="a") as file:
+            file.write(f"\n{link}")
+
+        await interaction.response.send_message(
+            embed=self.bot.embed(
+                title="Thanks for your addition!",
+                description=f"Your link has been added to **{categories.value}**",
+            )
+        )
 
     @app_commands.command(name="rat", description="Roll a rat 🐀")
     async def rat(self, interaction: discord.Interaction):
