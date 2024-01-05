@@ -19,6 +19,8 @@ class Pics(commands.Cog):
     def __init__(self, bot: Goonbot):
         self.bot = bot
 
+    # todo command that allows players to add images to the 3 categories
+
     @app_commands.command(name="rat", description="Roll a rat 🐀")
     async def rat(self, interaction: discord.Interaction):
         """A goonbot classic, the /rat command sends a random image of a rat from a list, hand curated by community member Ectoplax"""
