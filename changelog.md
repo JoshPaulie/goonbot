@@ -35,11 +35,12 @@ Yes! Reliably working league intergration that doesn't hate the name RoninAlex i
 
 ### Added
 - `/about <docs page>`
-  - command that relays a doc page for certain features, explaining how they work
+  - Allows you to explore goonbot features in detail, without having to leave Discord
 - `/cat`
   - similar to rat but cat, you get it
-- Auto* twitter embedding
+- **Auto* twitter embedding**
   - Goonbot listens for twitter links and when they are posted, will offer to "replace" the normal link with a fxtwitter link. Fxtwitter creates a rich embed that twitter no longer provides. Read more [here](docs/twitter-embed.md)
+- `/diceroll` emulates dice rolling and accepts "dnd notation" (ie. 4d6, 2d20)
 
 
 ### Fixed
@@ -60,6 +61,9 @@ Yes! Reliably working league intergration that doesn't hate the name RoninAlex i
 - `/real` now adds to reactions to the image, allowing the community to "vote"
 - `/wni`
   - new responses
+- `/creator <name>` is the new way to quickly link our favorite personalities, like NL or Baus. Although it's not as convenient calling the personality name directly, this is a cleaner implementation. Read more [here](docs/creator-watch.md)
+- `/teams` provides an easy way to divide users in a voice channel into teams
+- `/pickforme` (previously chooseforme) has been reworked to use a modal, allowing users to provide choices in a textbox
 
 ### Removed
 - Hobo's `/username`
