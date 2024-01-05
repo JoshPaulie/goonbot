@@ -6,12 +6,12 @@ import discord
 from discord import app_commands
 from discord.ext import commands
 
-from bex_tools import cycle_random
+from bex_tools import CycleRandom
 from goonbot import Goonbot
 
 
 class General(commands.Cog):
-    wow_no_invite_responses = cycle_random(
+    wow_no_invite_responses = CycleRandom(
         [
             "and good thing, I hate doing that with my friend.",
             "dang and I really like doing that..",
