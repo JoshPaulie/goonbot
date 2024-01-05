@@ -32,7 +32,7 @@ class Pics(commands.Cog):
 
     @app_commands.command(name="real", description="Sends a random paranormal video. Is it real?")
     async def real(self, interaction: discord.Interaction):
-        next_paranormal_photo = next(self.rat_links)
+        next_paranormal_photo = next(self.paranormal_links)
         await interaction.response.send_message(next_paranormal_photo)
         message = await interaction.original_response()
         await message.add_reaction("✅")
