@@ -4,14 +4,17 @@ import discord
 from discord import app_commands
 from discord.ext import commands
 
-from bex_tools import cycle_random
+from bex_tools import CycleRandom
 from goonbot import Goonbot
 
 
 class Pics(commands.Cog):
-    rat_links = cycle_random(pathlib.Path("image_links/rats.txt").read_text().splitlines())
-    cat_links = cycle_random(pathlib.Path("image_links/cats.txt").read_text().splitlines())
-    paranormal_links = cycle_random(pathlib.Path("image_links/real.txt").read_text().splitlines())
+    # > Why not have a generator here? it'd be much more memory efficient
+    # Because users can add new images on the fly, I want them to be able to add images directly into the live queue of images
+    # without disrupting the cycle by starting over
+    rat_links = CycleRandom(pathlib.Path("image_links/rats.txt").read_text().splitlines())
+    cat_links = CycleRandom(pathlib.Path("image_links/cats.txt").read_text().splitlines())
+    paranormal_links = CycleRandom(pathlib.Path("image_links/real.txt").read_text().splitlines())
 
     def __init__(self, bot: Goonbot):
         self.bot = bot
