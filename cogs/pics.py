@@ -38,6 +38,16 @@ class Pics(commands.Cog):
         await message.add_reaction("✅")
         await message.add_reaction("❌")
 
+    @app_commands.command(name="huh", description="?")
+    async def huh(self, interaction: discord.Interaction):
+        stoner_cat_gif = "https://media.tenor.com/YYw8_Cvr-wQAAAAd/stoned-cat.gif"
+        await interaction.response.send_message(stoner_cat_gif)
+
+    @app_commands.command(name="chatting", description=":O")
+    async def chatting(self, interaction: discord.Interaction):
+        chatting = "https://cdn.discordapp.com/attachments/787711120026501152/1021097375588159658/peepo-talk-peepo_transparent.gif"
+        await interaction.response.send_message(chatting)
+
 
 async def setup(bot):
     await bot.add_cog(Pics(bot))
