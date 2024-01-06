@@ -20,16 +20,6 @@ Goonbot 6.0 is considerably more thought out than previous versions. Most comman
 
 The code is, dare I say, much more Pythonic and is no longer littered with `type: ignore`
 
-### Dependency changes
-#### Discord
-As previously mentioned, we are now using **discord.py**, and no longer using **pycord**
-#### Youtube
-Swapped from the (questionably typed) **youtube-python** for the official **Google API Client**
-#### Twitch
-Swapped the synchronous **python-twitch** with the asynchronous **pytwitchapi**
-#### Riot games
-Previous generations of goonbot relied on **cassiopeia**, a synchronous library, lovely library with beautiful caching. It was wonderful, other than it sucked. We're now using **pulsefire**, which is ✨ asynchronous ✨ and provides beautiful caching
-
 ### League commands are BACK!
 Yes! Reliably working league intergration that doesn't hate the name RoninAlex is back, and with a few new goodies. Read more [here](docs/league.md)
 
@@ -38,6 +28,8 @@ Yes! Reliably working league intergration that doesn't hate the name RoninAlex i
   - Allows you to explore goonbot features in detail, without having to leave Discord
 - `/cat`
   - similar to rat but cat, you get it
+- `/addpic`
+  - Anyone can add images/gifs to cat, rat, and real.
 - **Auto* twitter embedding**
   - Goonbot listens for twitter links and when they are posted, will offer to "replace" the normal link with a fxtwitter link. Fxtwitter creates a rich embed that twitter no longer provides. Read more [here](docs/twitter-embed.md)
 - `/diceroll` emulates dice rolling and accepts "dnd notation" (ie. 4d6, 2d20)
@@ -71,3 +63,13 @@ Yes! Reliably working league intergration that doesn't hate the name RoninAlex i
 - Gambling games
   - little interest from dev
   - annoying to maintain and balance related games
+
+### Dependency changes
+#### Discord
+As previously mentioned, we are now using **discord.py**, and no longer using **pycord**
+#### Youtube
+Swapped from the (questionably typed) **youtube-python** for the official **Google API Client**
+#### Twitch
+Swapped the synchronous **python-twitch** with the asynchronous **pytwitchapi**
+#### Riot games
+Previous generations of goonbot relied on **cassiopeia**, a synchronous library, lovely library with beautiful caching. It was wonderful, other than it sucked. We're now using **pulsefire**, which is ✨ asynchronous ✨ and provides beautiful caching
