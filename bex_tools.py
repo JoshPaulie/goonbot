@@ -2,10 +2,24 @@
 
 
 import random
-from typing import Any, Sequence
+from typing import Any
 
 
 class CycleRandom:
+    """
+    Functionally similar to itertools.Cycle(), but it shuffles the order each time it starts over.
+    Oh, and without the memory benefits.
+
+    > "Why does this exist?"
+    This pseudo-generator is serves all of the random content behind many commands and features.
+    As of now, all but one of these in use need to ability to add new items into the cycle with disrupting it
+
+    Example
+    ```
+    CycleRandom([1, 2, 3]) -> 3 1 2 2 3 1 ...
+    ```
+    """
+
     used_items = []
 
     def __init__(self, items: list[Any]) -> None:
