@@ -78,9 +78,9 @@ class Pics(commands.Cog):
         stoner_cat_gif = "https://media.tenor.com/YYw8_Cvr-wQAAAAd/stoned-cat.gif"
         await interaction.response.send_message(stoner_cat_gif)
 
-    @app_commands.command(name="chatting", description=":O")
+    @app_commands.command(name="peepotlak", description=":O")
     async def chatting(self, interaction: discord.Interaction):
-        chatting = "https://cdn.discordapp.com/attachments/787711120026501152/1021097375588159658/peepo-talk-peepo_transparent.gif"
+        chatting = "https://c.tenor.com/pVgjcy0GDoAAAAAC/tenor.gif"
         await interaction.response.send_message(chatting)
 
 
