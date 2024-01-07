@@ -25,7 +25,7 @@ from ._league.calculators import duration
 from ._league.cdragon_builders import get_cdragon_url, make_profile_url
 from ._league.cmd.aram import ARAMPerformanceParser
 from ._league.cmd.champion import get_champion_id_by_name
-from ._league.cmd.last_game import ArenaParser, get_all_queue_ids
+from ._league.cmd.last_game import ArenaMatchParser, StandardMatchParser, get_all_queue_ids
 from ._league.cmd.summoner import league_entry_stats
 from ._league.formatting import format_big_number, fstat, humanize_seconds, timestamp_from_seconds
 from ._league.lookups import discord_to_summoner_name, rank_reaction_strs
@@ -202,7 +202,9 @@ class League(commands.Cog):
                 # Get ID of most recent match
                 last_match_id = (
                     await client.get_lol_match_v5_match_ids_by_puuid(
-                        region="americas", puuid=summoner["puuid"], queries={"start": 0, "count": 1}
+                        region="americas",
+                        puuid=summoner["puuid"],
+                        queries={"start": 0, "count": 1},
                     )
                 )[0]
 
@@ -216,91 +218,27 @@ class League(commands.Cog):
         # Dict to get champ image paths
         champion_id_to_image_path = {champion["id"]: champion["squarePortraitPath"] for champion in champions}
 
-        # Pull stats for description
-        # Specify the participant
-        target_summoner_stats = None
-        for participant in last_match["info"]["participants"]:
-            if participant["puuid"] == summoner["puuid"]:
-                target_summoner_stats = participant
-                break
-        assert target_summoner_stats
-
-        # Game outcome
-        won_game = target_summoner_stats["win"]
-
-        # champion meta
-        champion_id = target_summoner_stats["championId"]
-        champion_image_path = champion_id_to_image_path[champion_id]
-        champion_image_path_full = get_cdragon_url(champion_image_path)
-
-        # team meta
-        team_id = target_summoner_stats["teamId"]
-        teammates: list[RiotAPISchema.LolMatchV5MatchInfoParticipant] = sorted(
-            [
-                participant
-                for participant in last_match["info"]["participants"]
-                if participant["teamId"] == team_id
-            ],
-            key=operator.itemgetter("summonerName"),
-        )
-
-        # Determine role
-        lane = target_summoner_stats["lane"]
-        role = target_summoner_stats["role"]
-
-        if role == "NONE":
-            role = None
-
-        if lane == "NONE":
-            lane = "N/A"
-
-        # Final score
-        team_100_kills = 0
-        team_200_kills = 0
-        for participant in last_match["info"]["participants"]:
-            if participant["teamId"] == 100:
-                team_100_kills += participant["kills"]
-            else:
-                team_200_kills += participant["kills"]
-
-        # Arrange the scores so it's always in the following order
-        # target participant team kills | enemy team kills
-        if team_id == 100:
-            final_score = f"{team_100_kills} | {team_200_kills}"
-        else:
-            final_score = f"{team_200_kills} | {team_100_kills}"
-
-        # KDA
-        kills = target_summoner_stats["kills"]
-        deaths = target_summoner_stats["deaths"]
-        assists = target_summoner_stats["assists"]
-        kda = f"{kills}/{deaths}/{assists}"
-
-        # KDA ratio
-        if deaths == 0:
-            kda_ratio = "PERF!"
-            kda += " 🥵"
-        else:
-            kda_ratio = str(round((kills + assists) / deaths, 2)) + " ratio"
-
         # Determine queue type, replace with common name
         # ref: https://static.developer.riotgames.com/docs/lol/queues.json
         match last_match["info"]["queueId"]:
             case 400:
                 game_mode = "Draft Pick"
+                parser = StandardMatchParser(summoner, last_match, champion_id_to_image_path, game_mode)
             case 420:
                 game_mode = "Ranked Solo"
+                parser = StandardMatchParser(summoner, last_match, champion_id_to_image_path, game_mode)
             case 430:
                 game_mode = "Blind Pick"
+                parser = StandardMatchParser(summoner, last_match, champion_id_to_image_path, game_mode)
             case 440:
                 game_mode = "Ranked Flex"
+                parser = StandardMatchParser(summoner, last_match, champion_id_to_image_path, game_mode)
             case 450:
                 game_mode = "ARAM"
+                parser = StandardMatchParser(summoner, last_match, champion_id_to_image_path, game_mode)
             case 1700:
                 # Send a completely different embed if game mode is Arena
-                return await interaction.followup.send(
-                    embed=await ArenaParser(summoner, last_match).make_embed()
-                )
+                parser = ArenaMatchParser(summoner, last_match)
             case _ as not_set_queue_id:
                 # Fallback that fetches the official game mode names
                 all_queue_ids = await get_all_queue_ids()
@@ -309,126 +247,16 @@ class League(commands.Cog):
                     game_mode = game_mode_name
                 else:
                     game_mode = f"Unknown gamemode ({self.bot.ping_owner()})"
+                parser = StandardMatchParser(summoner, last_match, champion_id_to_image_path, game_mode)
 
-        # Gametime stats
-        game_duration_minutes = last_match["info"]["gameDuration"] // 60
-        game_duration = timestamp_from_seconds(last_match["info"]["gameDuration"])
-        if game_duration_minutes < 20 and won_game:
-            game_duration += " 🔥"
-        if game_duration_minutes > 40:
-            game_duration += " 🐢"
-        ended_ago = time_ago(last_match["info"]["gameStartTimestamp"] // 1000)
-
-        # Build embed
-        last_match_embed = discord.Embed(title=f"{make_possessive(summoner['name'])} last game analysis")
-        last_match_embed.set_thumbnail(url=champion_image_path_full)
-        last_match_embed.color = discord.Color.brand_green() if won_game else discord.Color.brand_red()
-
-        # Game meta, final score, kda
-        last_match_embed.description = join_lines(
-            [
-                fstat("Game mode", game_mode, extra_stat="Victory!" if won_game else "Defeat."),
-                fstat("Duration", game_duration, extra_stat=ended_ago),
-                fstat("Final score", final_score),
-                fstat("KDA", kda, extra_stat=kda_ratio),
-                fstat("Position", lane.title())
-                if not role
-                else fstat("Position", lane.title(), extra_stat=role.title()),
-            ]
-        )
-
-        # Teammates field
-        teammate_puuids_no_target = [
-            tm["puuid"] for tm in teammates if tm["puuid"] != target_summoner_stats["puuid"]
-        ]
-        last_match_embed.add_field(
-            name="Teammates",
-            value=", ".join([link for link in await self.build_log_urls(teammate_puuids_no_target)]),
-            inline=False,
-        )
-
-        # Stop the show if it was less than 5 minutes
-        if game_duration_minutes < 5:
-            last_match_embed.description += "\n\nGame was remade."
-            last_match_embed.color = discord.Color.greyple()
-            return await interaction.followup.send(embed=last_match_embed, ephemeral=True)
-
-        # Stats field
-        popular_stats: list[tuple[str, ParticipantStat]] = [
-            ("💪 Champ damage", create_participant_stat(teammates, summoner, "totalDamageDealtToChampions")),
-            ("🏰 Obj. damage", create_participant_stat(teammates, summoner, "damageDealtToObjectives")),
-            ("🛡️ Damage Taken", create_participant_stat(teammates, summoner, "totalDamageTaken")),
-            ("❤️‍🩹 Ally Healing", create_participant_stat(teammates, summoner, "totalHealsOnTeammates")),
-            ("🩸 Kill participation", calc_kill_participation(teammates, summoner)),
-            ("💀 Feed participation", create_participant_stat(teammates, summoner, "deaths")),
-        ]
-        formated_popular_stats = [
-            fstat(
-                stat_name,
-                format_big_number(stat_value.participant_value),
-                extra_stat=f"{stat_value.total_stat_percent}%",
-            )
-            for stat_name, stat_value in popular_stats
-        ]
-        formated_popular_stats_batched = batched(formated_popular_stats, 2)
-        last_match_embed.add_field(
-            name="Stats 📊",
-            value=join_lines([" · ".join(pair) for pair in formated_popular_stats_batched]),
-            inline=False,
-        )
-
-        # Farming and Vision stats field
-        creep_score = (
-            target_summoner_stats["totalMinionsKilled"] + target_summoner_stats["neutralMinionsKilled"]
-        )
-        cs_per_min = round(creep_score / game_duration_minutes, 1)
-        total_gold = target_summoner_stats["goldEarned"]
-        gold_per_min = round(total_gold / game_duration_minutes, 1)
-        gold_vision_stats: list[tuple[str, ParticipantStat]] = [
-            ("Vision score", create_participant_stat(teammates, summoner, "visionScore")),
-            ("Wards Placed", create_participant_stat(teammates, summoner, "wardsPlaced")),
-            ("Wards Destroyed", create_participant_stat(teammates, summoner, "wardsKilled")),
-        ]
-        last_match_embed.add_field(
-            name="Farming & Vision 🧑‍🌾",
-            value=join_lines(
-                [
-                    fstat("CS", creep_score, extra_stat=f"{cs_per_min} cs/min"),
-                    fstat("Gold", format_big_number(total_gold), extra_stat=f"{gold_per_min:,} gp/min"),
-                    *[
-                        fstat(
-                            stat_name,
-                            stat_value.participant_value,
-                            extra_stat=f"{stat_value.participant_team_value}%",
-                        )
-                        for stat_name, stat_value in gold_vision_stats
-                    ],
-                ]
-            ),
-        )
-
-        # Multi kill field
-        if target_summoner_stats["largestMultiKill"] > 1:
-            multi_kills: list[tuple[str, int]] = [
-                ("Double Kill", target_summoner_stats["doubleKills"]),
-                ("Triple Kill", target_summoner_stats["tripleKills"]),
-                ("Quadra Kill", target_summoner_stats["quadraKills"]),
-                ("👑 Penta Kill", target_summoner_stats["pentaKills"]),
-            ]
-            last_match_embed.add_field(
-                name="Multi kills ⚔️",
-                value=join_lines(
-                    [
-                        fstat(stat_name, stat_value, pluralize_name_auto=True)
-                        for stat_name, stat_value in multi_kills
-                        if stat_value
-                    ]
-                ),
-            )
-
-        # Send embed
         end_time = time.perf_counter()
-        loading_time = round(end_time - start_time, 2)
+        loading_time = end_time - start_time
+        if isinstance(parser, ArenaMatchParser):
+            last_match_embed = await parser.make_embed()
+        else:  # if it doesn't user a special parser, we can assume it's the standard
+            teammate_names = [name["summonerName"] for name in parser.teammates]
+            last_match_embed = parser.make_embed(await self.build_log_urls(teammate_names))
+
         last_match_embed.set_footer(text=f"Elapsed loading time: {loading_time}s")
         await interaction.followup.send(embed=last_match_embed)
 

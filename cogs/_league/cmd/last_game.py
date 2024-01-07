@@ -37,7 +37,7 @@ def augment_id_to_name(augments: list[Augment], _id: int) -> Augment | None:
             return augment
 
 
-class ArenaParser:
+class ArenaMatchParser:
     ordinal_numbers = ["1st 👑", "2nd", "3rd", "4th", "5th", "6th", "7th", "8th"]
     int_to_ordinal = dict(zip(range(1, len(ordinal_numbers) + 1), ordinal_numbers))
 
@@ -139,18 +139,35 @@ def riot_md_to_md(text: str) -> str:
     return text
 
 
-class NormalARAMParser:
+class StandardMatchParser:
     def __init__(
         self,
         summoner: RiotAPISchema.LolSummonerV4Summoner,
         match: RiotAPISchema.LolMatchV5Match,
-        champion_id_to_image_path: str,
+        champion_id_to_image_path: dict[int, str],
         gamemode: str,
     ) -> None:
         self.target_summoner = summoner
         self.match = match
         self.champion_id_to_image_path = champion_id_to_image_path
         self.game_mode = gamemode
+        # team meta
+
+    @property
+    def team_id(self):
+        return self.target_summoner_stats["teamId"]
+
+    @property
+    def teammates(self):
+        teammates: list[RiotAPISchema.LolMatchV5MatchInfoParticipant] = sorted(
+            [
+                participant
+                for participant in self.match["info"]["participants"]
+                if participant["teamId"] == self.team_id
+            ],
+            key=operator.itemgetter("summonerName"),
+        )
+        return teammates
 
     @property
     def target_summoner_stats(self) -> RiotAPISchema.LolMatchV5MatchInfoParticipant:
@@ -159,7 +176,7 @@ class NormalARAMParser:
                 return participant
         raise
 
-    def make_embed(self):
+    def make_embed(self, teammate_links: list[str]):
         # Game outcome
         won_game = self.target_summoner_stats["win"]
 
@@ -167,17 +184,6 @@ class NormalARAMParser:
         champion_id = self.target_summoner_stats["championId"]
         champion_image_path = self.champion_id_to_image_path[champion_id]
         champion_image_path_full = get_cdragon_url(champion_image_path)
-
-        # team meta
-        team_id = self.target_summoner_stats["teamId"]
-        teammates: list[RiotAPISchema.LolMatchV5MatchInfoParticipant] = sorted(
-            [
-                participant
-                for participant in self.match["info"]["participants"]
-                if participant["teamId"] == team_id
-            ],
-            key=operator.itemgetter("summonerName"),
-        )
 
         # Determine role
         lane = self.target_summoner_stats["lane"]
@@ -200,7 +206,7 @@ class NormalARAMParser:
 
         # Arrange the scores so it's always in the following order
         # target participant team kills | enemy team kills
-        if team_id == 100:
+        if self.team_id == 100:
             final_score = f"{team_100_kills} | {team_200_kills}"
         else:
             final_score = f"{team_200_kills} | {team_100_kills}"
@@ -249,11 +255,11 @@ class NormalARAMParser:
 
         # Teammates field
         teammate_puuids_no_target = [
-            tm["puuid"] for tm in teammates if tm["puuid"] != self.target_summoner_stats["puuid"]
+            tm["puuid"] for tm in self.teammates if tm["puuid"] != self.target_summoner_stats["puuid"]
         ]
         last_match_embed.add_field(
             name="Teammates",
-            value=", ".join([link for link in await self.build_log_urls(teammate_puuids_no_target)]),
+            value=", ".join(teammate_links),
             inline=False,
         )
 
@@ -268,7 +274,7 @@ class NormalARAMParser:
             (
                 "💪 Champ damage",
                 create_participant_stat(
-                    teammates,
+                    self.teammates,
                     self.target_summoner,
                     "totalDamageDealtToChampions",
                 ),
@@ -276,18 +282,25 @@ class NormalARAMParser:
             (
                 "🏰 Obj. damage",
                 create_participant_stat(
-                    teammates,
+                    self.teammates,
                     self.target_summoner,
                     "damageDealtToObjectives",
                 ),
             ),
-            ("🛡️ Damage Taken", create_participant_stat(teammates, self.target_summoner, "totalDamageTaken")),
+            (
+                "🛡️ Damage Taken",
+                create_participant_stat(
+                    self.teammates,
+                    self.target_summoner,
+                    "totalDamageTaken",
+                ),
+            ),
             (
                 "❤️‍🩹 Ally Healing",
-                create_participant_stat(teammates, self.target_summoner, "totalHealsOnTeammates"),
+                create_participant_stat(self.teammates, self.target_summoner, "totalHealsOnTeammates"),
             ),
-            ("🩸 Kill participation", calc_kill_participation(teammates, self.target_summoner)),
-            ("💀 Feed participation", create_participant_stat(teammates, self.target_summoner, "deaths")),
+            ("🩸 Kill participation", calc_kill_participation(self.teammates, self.target_summoner)),
+            ("💀 Feed participation", create_participant_stat(self.teammates, self.target_summoner, "deaths")),
         ]
         formated_popular_stats = [
             fstat(
@@ -313,9 +326,9 @@ class NormalARAMParser:
         total_gold = self.target_summoner_stats["goldEarned"]
         gold_per_min = round(total_gold / game_duration_minutes, 1)
         gold_vision_stats: list[tuple[str, ParticipantStat]] = [
-            ("Vision score", create_participant_stat(teammates, self.target_summoner, "visionScore")),
-            ("Wards Placed", create_participant_stat(teammates, self.target_summoner, "wardsPlaced")),
-            ("Wards Destroyed", create_participant_stat(teammates, self.target_summoner, "wardsKilled")),
+            ("Vision score", create_participant_stat(self.teammates, self.target_summoner, "visionScore")),
+            ("Wards Placed", create_participant_stat(self.teammates, self.target_summoner, "wardsPlaced")),
+            ("Wards Destroyed", create_participant_stat(self.teammates, self.target_summoner, "wardsKilled")),
         ]
         last_match_embed.add_field(
             name="Farming & Vision 🧑‍🌾",
