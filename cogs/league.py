@@ -25,11 +25,11 @@ from ._league.calculators import duration
 from ._league.cdragon_builders import get_cdragon_url, make_profile_url
 from ._league.cmd.aram import ARAMPerformanceParser
 from ._league.cmd.champion import get_champion_id_by_name
-from ._league.cmd.last_game import ArenaParser, arena_last_game_embed, get_all_queue_ids
+from ._league.cmd.last_game import ArenaParser, get_all_queue_ids
 from ._league.cmd.summoner import league_entry_stats
 from ._league.formatting import format_big_number, fstat, humanize_seconds, timestamp_from_seconds
 from ._league.lookups import discord_to_summoner_name, rank_reaction_strs
-from ._league.objects import LeagueRank, ParticipantStat, calc_kill_participation, create_participant_stat
+from ._league.objects import ParticipantStat, calc_kill_participation, create_participant_stat
 
 REGION_NA1 = "na1"
 REGION_AMERICAS = "americas"
@@ -81,6 +81,14 @@ class League(commands.Cog):
             ],
         )
 
+    async def get_summoner(self, summoner_name: str) -> RiotAPISchema.LolSummonerV4Summoner | None:
+        async with self.client_lock:
+            async with self.riot_client as client:
+                try:
+                    return await client.get_lol_summoner_v4_by_name(region=REGION_NA1, name=summoner_name)
+                except ClientResponseError:
+                    return None
+
     async def build_log_urls(self, puuids: list[str]):
         async with self.client_lock:
             async with self.riot_client as client:
@@ -109,20 +117,22 @@ class League(commands.Cog):
         if summoner_name is None:
             summoner_name = discord_to_summoner_name[interaction.user.id]
 
+        # Incase it takes longer than 3 seconds to respond, we defer the response and followup later
         await interaction.response.defer()
+
         # Get summoner data
+        summoner = await self.get_summoner(summoner_name)
+        if not summoner:
+            return await interaction.response.send_message(
+                embed=self.bot.embed(
+                    title=f"Summoner '{summoner_name}' not found",
+                    color=discord.Color.brand_red(),
+                )
+            )
+
+        # Get data relevant to this command
         async with self.client_lock:
             async with self.riot_client as client:
-                try:
-                    summoner = await client.get_lol_summoner_v4_by_name(region=REGION_NA1, name=summoner_name)
-                except ClientResponseError:
-                    return await interaction.response.send_message(
-                        embed=self.bot.embed(
-                            title=f"Summoner '{summoner_name}' not found",
-                            color=discord.Color.brand_red(),
-                        )
-                    )
-
                 league_entries = await client.get_lol_league_v4_entries_by_summoner(
                     region=REGION_NA1, summoner_id=summoner["id"]
                 )
@@ -170,25 +180,25 @@ class League(commands.Cog):
         if summoner_name is None:
             summoner_name = discord_to_summoner_name[interaction.user.id]
 
-        # Start timer for response time
-        start_time = time.perf_counter()
-        # If an interaction takes more than 3 seconds, discord considers it failed.
-        # The remedy to this oddity is to "defer" the response, then "follow up" later
+        # Incase it takes longer than 3 seconds to respond, we defer the response and followup later
         await interaction.response.defer()
 
+        # Get summoner data
+        summoner = await self.get_summoner(summoner_name)
+        if not summoner:
+            return await interaction.response.send_message(
+                embed=self.bot.embed(
+                    title=f"Summoner '{summoner_name}' not found",
+                    color=discord.Color.brand_red(),
+                )
+            )
+
+        # Start timer for response time
+        start_time = time.perf_counter()
+
+        # Get summoner, their match ids, and their last match
         async with self.client_lock:
             async with self.riot_client as client:
-                # Get summoner data
-                try:
-                    summoner = await client.get_lol_summoner_v4_by_name(region=REGION_NA1, name=summoner_name)
-                # If this throws an exception, it's more than likely because the summoner doesn't exist
-                except ClientResponseError:
-                    return await interaction.response.send_message(
-                        embed=self.bot.embed(
-                            title=f"Summoner '{summoner_name}' not found", color=discord.Color.brand_red()
-                        )
-                    )
-
                 # Get ID of most recent match
                 last_match_id = (
                     await client.get_lol_match_v5_match_ids_by_puuid(
@@ -289,7 +299,7 @@ class League(commands.Cog):
             case 1700:
                 # Send a completely different embed if game mode is Arena
                 return await interaction.followup.send(
-                    embed=await arena_last_game_embed(ArenaParser(summoner, last_match))
+                    embed=await ArenaParser(summoner, last_match).make_embed()
                 )
             case _ as not_set_queue_id:
                 # Fallback that fetches the official game mode names
@@ -431,22 +441,23 @@ class League(commands.Cog):
 
         # Start timer for response time
         start_time = time.perf_counter()
+
+        # Incase it takes longer than 3 seconds to respond, we defer the response and followup later
         await interaction.response.defer()
+
+        # Get summoner data
+        summoner = await self.get_summoner(summoner_name)
+        if not summoner:
+            return await interaction.response.send_message(
+                embed=self.bot.embed(
+                    title=f"Summoner '{summoner_name}' not found",
+                    color=discord.Color.brand_red(),
+                )
+            )
 
         async with self.client_lock:
             async with self.riot_client as client:
-                # Get summoner data
-                try:
-                    summoner = await client.get_lol_summoner_v4_by_name(region=REGION_NA1, name=summoner_name)
-                # If this throws an exception, it's more than likely because the summoner doesn't exist
-                except ClientResponseError:
-                    return await interaction.response.send_message(
-                        embed=self.bot.embed(
-                            title=f"Summoner '{summoner_name}' not found",
-                            color=discord.Color.brand_red(),
-                        )
-                    )
-
+                # Get last 50 ARAM games (queue id 450)
                 match_ids = await client.get_lol_match_v5_match_ids_by_puuid(
                     region="americas",
                     puuid=summoner["puuid"],
