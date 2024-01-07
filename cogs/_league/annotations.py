@@ -1,4 +1,4 @@
-from typing import Literal, TypedDict
+from typing import Any, Literal, TypedDict
 
 match_info_participant_stat_keys = Literal[
     "assists",
@@ -61,5 +61,21 @@ GameMode = TypedDict(
         "map": str,
         "description": str | None,
         "notes": str | None,
+    },
+)
+
+Augment = TypedDict(
+    "Augment",
+    {
+        "apiName": str,
+        "calculations": Any,
+        "dataValues": Any,
+        "desc": str,
+        "iconLarge": str,
+        "iconSmall": str,
+        "id": int,
+        "name": str,
+        "rarity": int,
+        "tooltip": str,
     },
 )

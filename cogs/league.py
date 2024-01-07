@@ -25,7 +25,7 @@ from ._league.calculators import duration
 from ._league.cdragon_builders import get_cdragon_url, make_profile_url
 from ._league.cmd.aram import ARAMPerformanceParser
 from ._league.cmd.champion import get_champion_id_by_name
-from ._league.cmd.last_game import get_all_queue_ids
+from ._league.cmd.last_game import ArenaParser, arena_last_game_embed, get_all_queue_ids
 from ._league.cmd.summoner import league_entry_stats
 from ._league.formatting import format_big_number, fstat, humanize_seconds, timestamp_from_seconds
 from ._league.lookups import discord_to_summoner_name, rank_reaction_strs
@@ -287,12 +287,9 @@ class League(commands.Cog):
             case 450:
                 game_mode = "ARAM"
             case 1700:
-                game_mode = "Arena"
+                # Send a completely different embed if game mode is Arena
                 return await interaction.followup.send(
-                    embed=self.bot.embed(
-                        title="Arena matches not yet supported",
-                        color=discord.Color.greyple(),
-                    )
+                    embed=await arena_last_game_embed(ArenaParser(summoner, last_match))
                 )
             case _ as not_set_queue_id:
                 # Fallback that fetches the official game mode names
