@@ -8,14 +8,11 @@ import discord
 from pulsefire.clients import RiotAPISchema
 
 from cogs._league.cdragon_builders import get_cdragon_url
-from cogs._league.objects import (ParticipantStat, calc_kill_participation,
-                                  create_participant_stat)
-from text_processing import (bullet_points, join_lines, make_possessive,
-                             time_ago)
+from cogs._league.objects import ParticipantStat, calc_kill_participation, create_participant_stat
+from text_processing import bullet_points, join_lines, make_possessive, time_ago
 
 from ..annotations import Augment, GameMode
-from ..formatting import (format_big_number, fstat, humanize_seconds,
-                          timestamp_from_seconds)
+from ..formatting import format_big_number, fstat, humanize_seconds, timestamp_from_seconds
 
 
 # Fetchers
@@ -98,6 +95,9 @@ class ArenaMatchParser:
         )
 
         for participant in [self.target_summoner_stats, self.teammate_stats]:
+            # Name
+            name = participant["summonerName"]
+
             # KDA
             kda = f"{participant['kills']}/{participant['deaths']}/{participant['assists']}"
 
@@ -110,17 +110,12 @@ class ArenaMatchParser:
             ]
             # Filter out stats that are 0
             combat_stats_filtered = [(name, amount) for name, amount in combat_stats if amount]
+            champion_name = self.champion_id_to_name[participant["championId"]]
 
             # Add the field
             embed.add_field(
-                name=participant["summonerName"],
-                value=join_lines(
-                    [
-                        f"**{self.champion_id_to_name[participant["championId"]]}**",
-                        kda,
-                        *[fstat(name, amount) for name, amount in combat_stats_filtered],
-                    ]
-                ),
+                name=f"{name}\n{champion_name}",
+                value=join_lines([kda, *[fstat(name, amount) for name, amount in combat_stats_filtered]]),
             )
 
         for participant in [self.target_summoner_stats, self.teammate_stats]:
@@ -296,27 +291,15 @@ class StandardMatchParser:
         popular_stats: list[tuple[str, ParticipantStat]] = [
             (
                 "💪 Champ damage",
-                create_participant_stat(
-                    self.teammates,
-                    self.target_summoner,
-                    "totalDamageDealtToChampions",
-                ),
+                create_participant_stat(self.teammates, self.target_summoner, "totalDamageDealtToChampions"),
             ),
             (
                 "🏰 Obj. damage",
-                create_participant_stat(
-                    self.teammates,
-                    self.target_summoner,
-                    "damageDealtToObjectives",
-                ),
+                create_participant_stat(self.teammates, self.target_summoner, "damageDealtToObjectives"),
             ),
             (
                 "🛡️ Damage Taken",
-                create_participant_stat(
-                    self.teammates,
-                    self.target_summoner,
-                    "totalDamageTaken",
-                ),
+                create_participant_stat(self.teammates, self.target_summoner, "totalDamageTaken"),
             ),
             (
                 "❤️‍🩹 Ally Healing",
@@ -349,16 +332,29 @@ class StandardMatchParser:
         total_gold = self.target_summoner_stats["goldEarned"]
         gold_per_min = round(total_gold / game_duration_minutes, 1)
         gold_vision_stats: list[tuple[str, ParticipantStat]] = [
-            ("Vision score", create_participant_stat(self.teammates, self.target_summoner, "visionScore")),
-            ("Wards Placed", create_participant_stat(self.teammates, self.target_summoner, "wardsPlaced")),
-            ("Wards Destroyed", create_participant_stat(self.teammates, self.target_summoner, "wardsKilled")),
+            (
+                "Vision score",
+                create_participant_stat(self.teammates, self.target_summoner, "visionScore"),
+            ),
+            (
+                "Wards Placed",
+                create_participant_stat(self.teammates, self.target_summoner, "wardsPlaced"),
+            ),
+            (
+                "Wards Destroyed",
+                create_participant_stat(self.teammates, self.target_summoner, "wardsKilled"),
+            ),
         ]
         last_match_embed.add_field(
             name="Farming & Vision 🧑‍🌾",
             value=join_lines(
                 [
                     fstat("CS", creep_score, extra_stat=f"{cs_per_min} cs/min"),
-                    fstat("Gold", format_big_number(total_gold), extra_stat=f"{gold_per_min:,} gp/min"),
+                    fstat(
+                        "Gold",
+                        format_big_number(total_gold),
+                        extra_stat=f"{gold_per_min:,} gp/min",
+                    ),
                     *[
                         fstat(
                             stat_name,
