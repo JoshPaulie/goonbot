@@ -217,6 +217,7 @@ class League(commands.Cog):
                 champions = await client.get_lol_v1_champion_summary()
         # Dict to get champ image paths
         champion_id_to_image_path = {champion["id"]: champion["squarePortraitPath"] for champion in champions}
+        champion_id_to_name = {champion["id"]: champion["name"] for champion in champions}
 
         # Determine queue type, replace with common name
         # ref: https://static.developer.riotgames.com/docs/lol/queues.json
@@ -238,7 +239,12 @@ class League(commands.Cog):
                 parser = StandardMatchParser(summoner, last_match, champion_id_to_image_path, game_mode)
             case 1700:
                 # Send a completely different embed if game mode is Arena
-                parser = ArenaMatchParser(summoner, last_match)
+                parser = ArenaMatchParser(
+                    summoner,
+                    last_match,
+                    champion_id_to_image_path,
+                    champion_id_to_name,
+                )
             case _ as not_set_queue_id:
                 # Fallback that fetches the official game mode names
                 all_queue_ids = await get_all_queue_ids()
@@ -249,14 +255,14 @@ class League(commands.Cog):
                     game_mode = f"Unknown gamemode ({self.bot.ping_owner()})"
                 parser = StandardMatchParser(summoner, last_match, champion_id_to_image_path, game_mode)
 
-        end_time = time.perf_counter()
-        loading_time = end_time - start_time
         if isinstance(parser, ArenaMatchParser):
             last_match_embed = await parser.make_embed()
         else:  # if it doesn't user a special parser, we can assume it's the standard
             teammate_names = [name["summonerName"] for name in parser.teammates]
             last_match_embed = parser.make_embed(await self.build_log_urls(teammate_names))
 
+        end_time = time.perf_counter()
+        loading_time = round(end_time - start_time, 2)
         last_match_embed.set_footer(text=f"Elapsed loading time: {loading_time}s")
         await interaction.followup.send(embed=last_match_embed)
 

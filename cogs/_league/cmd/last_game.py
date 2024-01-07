@@ -8,13 +8,17 @@ import discord
 from pulsefire.clients import RiotAPISchema
 
 from cogs._league.cdragon_builders import get_cdragon_url
-from cogs._league.objects import ParticipantStat, calc_kill_participation, create_participant_stat
-from text_processing import bullet_points, join_lines, make_possessive, time_ago
+from cogs._league.objects import (ParticipantStat, calc_kill_participation,
+                                  create_participant_stat)
+from text_processing import (bullet_points, join_lines, make_possessive,
+                             time_ago)
 
 from ..annotations import Augment, GameMode
-from ..formatting import format_big_number, fstat, humanize_seconds, timestamp_from_seconds
+from ..formatting import (format_big_number, fstat, humanize_seconds,
+                          timestamp_from_seconds)
 
 
+# Fetchers
 async def get_all_queue_ids() -> list[GameMode]:
     async with aiohttp.ClientSession() as session:
         async with session.get("https://static.developer.riotgames.com/docs/lol/queues.json") as response:
@@ -37,6 +41,7 @@ def augment_id_to_name(augments: list[Augment], _id: int) -> Augment | None:
             return augment
 
 
+# Parsers
 class ArenaMatchParser:
     ordinal_numbers = ["1st 👑", "2nd", "3rd", "4th", "5th", "6th", "7th", "8th"]
     int_to_ordinal = dict(zip(range(1, len(ordinal_numbers) + 1), ordinal_numbers))
@@ -45,11 +50,15 @@ class ArenaMatchParser:
         self,
         target_summoner: RiotAPISchema.LolSummonerV4Summoner,
         match: RiotAPISchema.LolMatchV5Match,
+        champion_id_to_image_path: dict[int, str],
+        champion_id_to_name: dict[int, str],
     ) -> None:
         self.target_summoner = target_summoner
         self.match = match
         self.target_summoner_stats = self.get_target_summoner_stats()
         self._target_summoner_team_id = self.target_summoner_stats["teamId"]
+        self.champion_id_to_image_path = champion_id_to_image_path
+        self.champion_id_to_name = champion_id_to_name
 
     @property
     def final_placement(self) -> int:
@@ -74,7 +83,13 @@ class ArenaMatchParser:
     async def make_embed(self) -> discord.Embed:
         augments = await get_augments()
 
+        # champion meta
+        champion_id = self.target_summoner_stats["championId"]
+        champion_image_path = self.champion_id_to_image_path[champion_id]
+        champion_image_path_full = get_cdragon_url(champion_image_path)
+
         embed = discord.Embed(title="Arena Game Analysis", color=discord.Color.blurple())
+        embed.set_thumbnail(url=champion_image_path_full)
         embed.description = join_lines(
             [
                 fstat("Final placement", self.int_to_ordinal[self.final_placement]),
@@ -99,7 +114,13 @@ class ArenaMatchParser:
             # Add the field
             embed.add_field(
                 name=participant["summonerName"],
-                value=join_lines([kda, *[fstat(name, amount) for name, amount in combat_stats_filtered]]),
+                value=join_lines(
+                    [
+                        f"**{self.champion_id_to_name[participant["championId"]]}**",
+                        kda,
+                        *[fstat(name, amount) for name, amount in combat_stats_filtered],
+                    ]
+                ),
             )
 
         for participant in [self.target_summoner_stats, self.teammate_stats]:
@@ -128,10 +149,12 @@ def riot_md_to_md(text: str) -> str:
     Slap Around: Each time you <status>Immobilize</status> an enemy, gain @AdaptiveForce@ Adaptive Force for the round, stacking infinitely.
     It's Killing Time: After casting your Ultimate, mark all enemy champions for death. The mark stores @DamageStorePercentage*100@% of damage dealt to them, then detonates for the stored damage after @MarkDuration@ seconds. (@Cooldown@ second Cooldown).
     """
-    mappings = {
-        "<status>": "**",
-        "</status>": "**",
-    }
+    riot_keywords = ["keywordMajor", "status", "abilityName", "scaleAD", "scaleAP"]
+    mappings = {"<br>": " ", "<br><br>": " "}
+    for keyword in riot_keywords:
+        mappings.update({f"<{keyword}>": "**"})
+        mappings.update({f"</{keyword}>": "**"})
+
     for pre, post in mappings.items():
         text = text.replace(pre, post)
 
