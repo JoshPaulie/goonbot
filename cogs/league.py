@@ -258,8 +258,8 @@ class League(commands.Cog):
         if isinstance(parser, ArenaMatchParser):
             last_match_embed = await parser.make_embed()
         else:  # if it doesn't user a special parser, we can assume it's the standard
-            teammate_names = [name["summonerName"] for name in parser.teammates]
-            last_match_embed = parser.make_embed(await self.build_log_urls(teammate_names))
+            teammate_puuids = [name["puuid"] for name in parser.teammates]
+            last_match_embed = parser.make_embed(await self.build_log_urls(teammate_puuids))
 
         end_time = time.perf_counter()
         loading_time = round(end_time - start_time, 2)
