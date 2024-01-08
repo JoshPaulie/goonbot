@@ -140,11 +140,14 @@ class ArenaMatchParser:
 
 def riot_md_to_md(text: str) -> str:
     """
+    Reformats Riot's in-game md to regular markdown. In-game it's super rich, but it looks quite odd outside of the client
+
+    Below is an example
     Bread And Butter: Your Q gains @QAbilityHaste@ Ability Haste.
     Slap Around: Each time you <status>Immobilize</status> an enemy, gain @AdaptiveForce@ Adaptive Force for the round, stacking infinitely.
     It's Killing Time: After casting your Ultimate, mark all enemy champions for death. The mark stores @DamageStorePercentage*100@% of damage dealt to them, then detonates for the stored damage after @MarkDuration@ seconds. (@Cooldown@ second Cooldown).
     """
-    riot_keywords = ["keywordMajor", "status", "abilityName", "scaleAD", "scaleAP"]
+    riot_keywords = ["keywordMajor", "status", "abilityName", "scaleAD", "scaleAP", "moveSpeed"]
     mappings = {"<br>": " ", "<br><br>": " "}
     for keyword in riot_keywords:
         mappings.update({f"<{keyword}>": "**"})
@@ -153,7 +156,7 @@ def riot_md_to_md(text: str) -> str:
     for pre, post in mappings.items():
         text = text.replace(pre, post)
 
-    text = re.sub(r"@[^@]+@", "**N**", text)
+    text = re.sub(r"@[^@]+@", "*some*", text)
     return text
 
 
