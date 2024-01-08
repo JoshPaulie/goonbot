@@ -224,27 +224,22 @@ class League(commands.Cog):
         match last_match["info"]["queueId"]:
             case 400:
                 game_mode = "Draft Pick"
-                parser = StandardMatchParser(summoner, last_match, champion_id_to_image_path, game_mode)
+                parser_type = StandardMatchParser
             case 420:
                 game_mode = "Ranked Solo"
-                parser = StandardMatchParser(summoner, last_match, champion_id_to_image_path, game_mode)
+                parser_type = StandardMatchParser
             case 430:
                 game_mode = "Blind Pick"
-                parser = StandardMatchParser(summoner, last_match, champion_id_to_image_path, game_mode)
+                parser_type = StandardMatchParser
             case 440:
                 game_mode = "Ranked Flex"
-                parser = StandardMatchParser(summoner, last_match, champion_id_to_image_path, game_mode)
+                parser_type = StandardMatchParser
             case 450:
                 game_mode = "ARAM"
-                parser = StandardMatchParser(summoner, last_match, champion_id_to_image_path, game_mode)
+                parser_type = StandardMatchParser
             case 1700:
-                # Send a completely different embed if game mode is Arena
-                parser = ArenaMatchParser(
-                    summoner,
-                    last_match,
-                    champion_id_to_image_path,
-                    champion_id_to_name,
-                )
+                game_mode = "Arena"
+                parser_type = ArenaMatchParser
             case _ as not_set_queue_id:
                 # Fallback that fetches the official game mode names
                 all_queue_ids = await get_all_queue_ids()
@@ -253,11 +248,18 @@ class League(commands.Cog):
                     game_mode = game_mode_name
                 else:
                     game_mode = f"Unknown gamemode ({self.bot.ping_owner()})"
-                parser = StandardMatchParser(summoner, last_match, champion_id_to_image_path, game_mode)
+                parser_type = StandardMatchParser
 
-        if isinstance(parser, ArenaMatchParser):
+        if parser_type == ArenaMatchParser:
+            parser = ArenaMatchParser(
+                summoner,
+                last_match,
+                champion_id_to_image_path,
+                champion_id_to_name,
+            )
             last_match_embed = await parser.make_embed()
         else:  # if it doesn't user a special parser, we can assume it's the standard
+            parser = StandardMatchParser(summoner, last_match, champion_id_to_image_path, game_mode)
             teammate_puuids = [name["puuid"] for name in parser.teammates]
             last_match_embed = parser.make_embed(await self.build_log_urls(teammate_puuids))
 
