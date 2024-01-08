@@ -194,4 +194,6 @@ class ARAMPerformanceParser:
                 or "You didn't get a single multi kill 🤣",
             ),
         )
+
+        aram_embed.color = discord.Color.blurple()
         return aram_embed
