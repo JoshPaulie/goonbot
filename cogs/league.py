@@ -1,7 +1,5 @@
 import asyncio
-import operator
 import time
-from itertools import batched
 
 import discord
 from aiohttp.client_exceptions import ClientResponseError
@@ -19,7 +17,7 @@ from pulsefire.ratelimiters import RiotAPIRateLimiter
 from pulsefire.taskgroups import TaskGroup
 
 from goonbot import Goonbot
-from text_processing import html_to_md, join_lines, make_possessive, time_ago
+from text_processing import html_to_md
 
 from ._league.calculators import duration
 from ._league.cdragon_builders import get_cdragon_url, make_profile_url
@@ -27,9 +25,8 @@ from ._league.cmd.aram import ARAMPerformanceParser
 from ._league.cmd.champion import get_champion_id_by_name
 from ._league.cmd.last_game import ArenaMatchParser, StandardMatchParser, get_all_queue_ids
 from ._league.cmd.summoner import league_entry_stats
-from ._league.formatting import format_big_number, fstat, humanize_seconds, timestamp_from_seconds
+from ._league.formatting import format_big_number
 from ._league.lookups import discord_to_summoner_name, rank_reaction_strs
-from ._league.objects import ParticipantStat, calc_kill_participation, create_participant_stat
 
 REGION_NA1 = "na1"
 REGION_AMERICAS = "americas"
