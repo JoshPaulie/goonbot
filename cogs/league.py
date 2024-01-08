@@ -288,6 +288,7 @@ class League(commands.Cog):
                 )
             )
 
+        # Use Riot client to get a ton of matches
         async with self.client_lock:
             async with self.riot_client as client:
                 # Get last 50 ARAM games (queue id 450)
@@ -301,6 +302,7 @@ class League(commands.Cog):
                         await tg.create_task(client.get_lol_match_v5_match(region="americas", id=match_id))
                 aram_matches: list[RiotAPISchema.LolMatchV5Match] = tg.results()
 
+        # If user hasn't played any, stop the show
         if not aram_matches:
             return await interaction.followup.send(
                 embed=self.bot.embed(
@@ -309,7 +311,7 @@ class League(commands.Cog):
                 )
             )
 
-        # Get champion data (for champion image)
+        # User CDragon client to champion data (for champion image, champ names)
         async with self.client_lock:
             async with self.cdragon_client as client:
                 champions = await client.get_lol_v1_champion_summary()
@@ -319,115 +321,7 @@ class League(commands.Cog):
         champion_id_to_name = {champion["id"]: champion["name"] for champion in champions}
 
         aram_stats = ARAMPerformanceParser(summoner, aram_matches)
-
-        aram_embed = self.bot.embed(
-            title=f"{summoner['name']} ARAM stats",
-            description=f"Analysis of your last **{len(aram_matches)}** ARAM games!",
-        )
-
-        # Thumbnail of most played champ
-        # Confusingly enough, this is just the first entry in the counter
-        most_played_champ_id = aram_stats.most_played_champion_ids[0][0]
-        champion_image_path = champion_id_to_image_path[most_played_champ_id]
-        champion_image_path_full = get_cdragon_url(champion_image_path)
-        aram_embed.set_thumbnail(url=champion_image_path_full)
-
-        aram_embed.add_field(
-            name="Most played champions",
-            value=" • ".join(
-                [
-                    f"{champion_id_to_name[champ_id]} **{times_played}**"
-                    for champ_id, times_played in aram_stats.most_played_champion_ids
-                ]
-            ),
-            inline=False,
-        )
-
-        aram_embed.add_field(
-            name="Duration",
-            value=join_lines(
-                [
-                    f"Total match duration **{humanize_seconds(aram_stats.total_game_duration)}**",
-                    f"Total time dead **{humanize_seconds(aram_stats.total_time_spent_dead)}**",
-                    f"Percentage spent dead **{aram_stats.total_time_dead_percentage}%** ",
-                    f"CC dealt **{humanize_seconds(aram_stats.total_cc_dealt)}**",
-                ]
-            ),
-            inline=False,
-        )
-
-        damage_healing_stats: list[tuple[str, int]] = [
-            ("Damage dealt to champions", aram_stats.total_champion_damage),
-            ("Damage taken", aram_stats.total_damage_taken),
-            ("Damage dealt to objectives", aram_stats.total_objective_damage),
-            ("Teammate healing", aram_stats.total_teammate_healing),
-        ]
-        damage_healing_stats_formatted = [
-            fstat(stat_name, format_big_number(stat_value)) for stat_name, stat_value in damage_healing_stats
-        ]
-        damage_healing_stats_formatted_batched = batched(damage_healing_stats_formatted, 2)
-        aram_embed.add_field(
-            name="Damage & Healing",
-            value=join_lines([" · ".join(pair) for pair in damage_healing_stats_formatted_batched]),
-            inline=False,
-        )
-
-        resource_gathering_stats: list[tuple[str, int]] = [
-            ("Gold earned", aram_stats.total_gold_earned),
-            ("Minions Killed", aram_stats.total_minions_killed),
-            ("Turret takedowns", aram_stats.total_turret_takedowns),
-            ("Inhibitor takedowns", aram_stats.total_inhibitor_takedowns),
-        ]
-        resource_gathering_stats_formated: list[str] = [
-            fstat(stat_name, stat_value) for stat_name, stat_value in resource_gathering_stats
-        ]
-        resource_gathering_stats_batched = batched(resource_gathering_stats_formated, 2)
-        aram_embed.add_field(
-            name="Resource Gathering",
-            value=join_lines([" · ".join(pair) for pair in resource_gathering_stats_batched]),
-            inline=False,
-        )
-
-        aram_embed.add_field(
-            name="Win & Losses",
-            value=join_lines(
-                [
-                    fstat("Wins", aram_stats.total_wins),
-                    fstat("Losses", aram_stats.total_losses),
-                    fstat("Win rate", f"{aram_stats.total_win_rate}%"),
-                ]
-            ),
-        )
-
-        aram_embed.add_field(
-            name="KDA",
-            value=join_lines(
-                [
-                    fstat("Kill", aram_stats.total_kills, pluralize_name_auto=True),
-                    fstat("Death", aram_stats.total_deaths, pluralize_name_auto=True),
-                    fstat("Assist", aram_stats.total_assists, pluralize_name_auto=True),
-                    fstat("Ratio", aram_stats.total_kda_ratio),
-                ]
-            ),
-        )
-
-        multi_kills = [
-            ("Double Kill", aram_stats.total_double_kills),
-            ("Triple Kill", aram_stats.total_triple_kills),
-            ("Quadra Kill", aram_stats.total_quadra_kills),
-            ("Penta Kill", aram_stats.total_penta_kills),
-        ]
-        aram_embed.add_field(
-            name="Multi Kills",
-            value=join_lines(
-                [
-                    fstat(name, kill_amount, pluralize_name_auto=True)
-                    for name, kill_amount in multi_kills
-                    if kill_amount
-                ]
-                or "You didn't get a single multi kill 🤣",
-            ),
-        )
+        aram_embed = aram_stats.make_embed(champion_id_to_image_path, champion_id_to_name)
 
         end_time = time.perf_counter()
         loading_time = round(end_time - start_time, 2)
