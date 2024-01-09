@@ -15,4 +15,6 @@ Community implementation of the Twitch Helix API
 Creates rich Tweets embeds that allows your to view its content from within discord. This will be used until the next time rocket man decides to reenable embedding
 
 # Why another rewrite?
-I started learning the `discord.py` library as a means of learning Python back in 2019. For the first few years I rewrote the bot frequently to better reflect my Python ability. There was a bit of a schism in the python discord botting community, which lead me to rewrite it with `Pycord` instead. This most recent rewrite (for this "last generation") is me returning home to `discord.py`
+I started learning the `discord.py` library as a means of learning Python back in 2019. For the first few years I rewrote the bot frequently to better reflect my Python ability. Because I was so new, it was easiest for me to create separate codebasses for each generation rather than extend/refactor my existing code. In addition, I was really misunderstanding the role of git, and didn't know how to commit major code changes.
+
+Not only that, but `discord.py` was unmaintained for a short stint. A forked version of the wrapper was started, had substantial differences between it and its upstream project. Once `discord.py` was officially being maintained by Danny again, I wanted to return. This explains this latest (and "final" rewrite)
