@@ -35,3 +35,4 @@ keys.py
 
 # Riot cache
 cache/
+commands-processed.txt
