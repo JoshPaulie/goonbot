@@ -119,25 +119,6 @@ async def on_app_command_error(interaction: discord.Interaction, error: discord.
 # all of the prefix commands by typing ".help"
 
 
-@goonbot.command(name="log")
-async def log(ctx: commands.Context, line_count: int = 10):
-    log_file = pathlib.Path("bot.log")
-    if not log_file.exists():
-        return
-    log_file_text = log_file.read_text().splitlines()
-    log_file_text_slice = log_file_text[-line_count:]
-    log_file_text_slice_no_timestamp = [line[22:] for line in log_file_text_slice]
-    await ctx.reply(
-        embed=goonbot.embed(
-            title="Log",
-            description=join_lines(
-                ["```", "\n".join(log_file_text_slice_no_timestamp), "```"],
-            ),
-        ),
-        ephemeral=True,
-    )
-
-
 @goonbot.command(name="sync", description="[Meta] Syncs commands to server")
 @commands.is_owner()
 async def sync(ctx: commands.Context):
