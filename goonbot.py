@@ -20,7 +20,7 @@ BOTTING_TOGETHER = discord.Object(510865274594131968)  # The development server
 
 
 class Goonbot(commands.Bot):
-    VERSION = "6.0.0"
+    VERSION = (6, 0, 0)
 
     keys = Keys
     timer_lock = asyncio.Lock()
