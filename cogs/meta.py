@@ -2,6 +2,7 @@ import asyncio
 import logging
 import pathlib
 import platform
+import sqlite3
 import time
 
 import discord
@@ -12,6 +13,34 @@ from goonbot import Goonbot
 from text_processing import join_lines
 
 COMMANDS_PROCESSED_FILE_NAME = "commands-processed.txt"
+
+
+def get_cache_file_count() -> int | None:
+    cache_dir_path = pathlib.Path("cache")
+    if not cache_dir_path.exists():
+        return None
+    cache_files = [file for file in cache_dir_path.glob("*") if file.is_dir()]
+    return len(cache_files)
+
+
+def matches_cached(path: str) -> list[str]:
+    conn = sqlite3.connect(path)
+    cur = conn.cursor()
+    cur.execute("SELECT key FROM Cache")
+    keys = cur.fetchall()
+    keys = [key for key in keys if "match/v5/matches" in key[0]]
+    conn.close()
+    return keys
+
+
+def total_matches_cached(cache_file_count: int) -> int:
+    all_links = []
+    for n in range(cache_file_count):
+        all_links.extend(matches_cached(f"cache/00{n}/cache.db"))
+    # At time of writing, the cache doesn't store duplicate entries.
+    # In the event the pulsefire author implements some sort of redundancy, let's make sure
+    # we're only counting unique matches
+    return len(set(all_links))
 
 
 def timestamp(seconds: int) -> str:
@@ -105,6 +134,10 @@ class Meta(commands.Cog):
 
         # Latency
         meta_embed.add_field(name="Latency", value=f"{round(self.bot.latency * 1000, 2)}ms")
+
+        # League matches cached
+        if cache_file_count := get_cache_file_count():
+            meta_embed.add_field(name="League Games\nCached", value=total_matches_cached(cache_file_count))
 
         # Host info
         meta_embed.add_field(
