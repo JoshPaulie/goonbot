@@ -133,21 +133,26 @@ class CreatorWatch(commands.Cog):
 
     creators = {
         # "name": (youtube, twitch)
-        "thebausffs": ("UCu7ODDeIZ4x1rJwM1LCVL8w", "thebausffs"),
-        "happy_hob": ("UC0E1n0GRgBW5gR7y7H9TjZQ", "the_happy_hob"),
-        "campbell": ("UCF9IOB2TExg3QIBupFtBDxg", None),
-        "dangheesling": ("UCVHtlynIkgJxxXrisVUZlYQ", "dangheesling"),
-        "northernlion": ("UC3tNpTOHsTnkmbwztCs30sA", "northernlion"),
-        "squeex": ("UCSnd_UHkXW7uBpjHz4qIq5Q", "squeex"),
-        "fascinating_horror": ("UCFXad0mx4WxY1fXdbvtg0CQ", None),
-        "settledrs": ("UCs-w7E2HZWwXmjt9RTvBB_A", None),
+        "Baus": ("UCu7ODDeIZ4x1rJwM1LCVL8w", "thebausffs"),
+        "Happy Hob": ("UC0E1n0GRgBW5gR7y7H9TjZQ", "the_happy_hob"),
+        "Dr. Campbell": ("UCF9IOB2TExg3QIBupFtBDxg", None),
+        "Dan Gheesling": ("UCVHtlynIkgJxxXrisVUZlYQ", "dangheesling"),
+        "Northern Lion": ("UC3tNpTOHsTnkmbwztCs30sA", "northernlion"),
+        "Nexpo": ("UCpFFItkfZz1qz5PpHpqzYBw", None),
+        "Library of Letourneau": ("UC_O58Rr2DOskJvs9bArpLkQ", None),
+        "Squeex": ("UCSnd_UHkXW7uBpjHz4qIq5Q", "squeex"),
+        "Fascinating Horror": ("UCFXad0mx4WxY1fXdbvtg0CQ", None),
+        "Settled": ("UCs-w7E2HZWwXmjt9RTvBB_A", None),
+        "Review Brah": ("UCeR0n8d3ShTn_yrMhpwyE1Q", None),
     }
 
     def __init__(self, bot: Goonbot):
         self.bot = bot
 
     @app_commands.command(name="creator")
-    @app_commands.choices(creator_name=[app_commands.Choice(name=c, value=c) for c in creators.keys()])
+    @app_commands.choices(
+        creator_name=[app_commands.Choice(name=c, value=c) for c in sorted(creators.keys())]
+    )
     async def creator(self, interaction: discord.Interaction, creator_name: app_commands.Choice[str]):
         youtube_id, twitch_username = self.creators[creator_name.value]
         if youtube_id and twitch_username:
