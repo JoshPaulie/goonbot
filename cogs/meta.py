@@ -36,7 +36,7 @@ def matches_cached(path: str) -> list[str]:
 def total_matches_cached(cache_file_count: int) -> int:
     all_links = []
     for n in range(cache_file_count):
-        all_links.extend(matches_cached(f"cache/00{n}/cache.db"))
+        all_links.extend(matches_cached(f"cache/{n:03}/cache.db"))
     # At time of writing, the cache doesn't store duplicate entries.
     # In the event the pulsefire author implements some sort of redundancy, let's make sure
     # we're only counting unique matches
@@ -99,6 +99,11 @@ class Meta(commands.Cog):
 
     @commands.Cog.listener("on_app_command_completion")
     async def counter_ticker(self, interaction: discord.Interaction, command: app_commands.Command):
+        # Don't add another tally if in dev channel
+        dev_guild_id = 510865274594131968
+        assert interaction.guild
+        if interaction.guild.id == dev_guild_id:
+            return
         async with self.counter_file_lock:
             inc_processed_file()
 
