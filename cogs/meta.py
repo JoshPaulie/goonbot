@@ -97,6 +97,7 @@ class Meta(commands.Cog):
         self.counter_file_lock = asyncio.Lock()
 
     def count_app_commands(self) -> int:
+        """Returns how many app (or "slash") commands are registered in all of the cogs"""
         command_count = 0
         for _, cog in self.bot.cogs.items():
             command_count += len(cog.get_app_commands())
@@ -104,6 +105,7 @@ class Meta(commands.Cog):
 
     @commands.Cog.listener("on_app_command_completion")
     async def counter_ticker(self, interaction: discord.Interaction, command: app_commands.Command):
+        """Increments the processed commands tally each time a command is used"""
         # Don't add another tally if in dev channel
         dev_guild_id = 510865274594131968
         assert interaction.guild
