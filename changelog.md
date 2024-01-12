@@ -4,12 +4,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-Check out the changes between **goonbot5** and **goonbot 6.0** [here](#600)
+> [!Note]
+> Check out the changes between **goonbot5** and **goonbot 6.0** [here](#600)
 
 ## [Unreleased]
 Changes made, but not associated with a particular version yet
 
 ## [6.0.0]
+> [!Tip]
 > The "goonbot" project no longer has a separate codebases to distinguish between major version changes. This is the true "final" goonbot. The reason for separating projects is explained a bit more [here](README.md#why-another-rewrite).
 
 Goonbot 6.0 is considerably more thought out than previous versions. Most commands were rewritten with the following in mind
@@ -49,7 +51,7 @@ Yes! Reliably working league intergration that doesn't hate the name RoninAlex i
 - `/today` & `/calendar`
   - refactored to handle many events on the same day
 - `/rat`, `/real`, all other commands that serve images or gifs
-  - Images are now served by just posting the image link. Discord and Tenor are besties and discord will hide the url, leaving a clean looking image
+  - Images are now served by just posting the image link. Discord embeds and tenor gifs didnt always play nice, and nowadays discord hides the url of media content.
 - `/real` now adds to reactions to the image, allowing the community to "vote"
 - `/wni`
   - new responses
