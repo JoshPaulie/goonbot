@@ -43,10 +43,15 @@ def total_matches_cached(cache_file_count: int) -> int:
     return len(set(all_links))
 
 
-def timestamp(seconds: int) -> str:
-    hours, minutes = divmod(seconds, 3600)
-    minutes, remaining_seconds = divmod(minutes, 60)
-    return f"{hours:02}:{minutes:02}:{remaining_seconds:02}"
+def timestamp(input_seconds: int) -> str:
+    seconds_in_day = 60 * 60 * 24
+    days, remaining_seconds = divmod(input_seconds, seconds_in_day)
+    hours, minutes = divmod(remaining_seconds, 3600)
+    minutes, seconds = divmod(minutes, 60)
+    output = f"{hours:02}:{minutes:02}:{seconds:02}"
+    if not days:
+        return output
+    return f"{days} {'day' if days == 1 else 'days'},\n" + output
 
 
 def get_host_info() -> dict[str, str]:
