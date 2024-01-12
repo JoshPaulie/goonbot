@@ -55,6 +55,11 @@ Yes! Reliably working league intergration that doesn't hate the name RoninAlex i
 - `/creator <name>`
   - the new way to quickly link our favorite personalities, like NL or Baus
   - although it's not as convenient calling the personality name directly, this is a cleaner implementation. Read more [here](docs/creator-watch.md)
+  - New personalities
+    - Library of Letourneau
+    - Dr. Todd Grande
+    - Nexpo
+    - ReportOfTheWeek/Review Brah
 - `/teams`
   - easy way to divide users in a voice channel into teams
 - `/pickforme` (previously chooseforme)
