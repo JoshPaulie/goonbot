@@ -26,14 +26,10 @@ The code is, dare I say, much more Pythonic and is no longer littered with `type
 Yes! Reliably working league intergration that doesn't hate the name RoninAlex is back, and with a few new goodies. Read more [here](docs/league.md)
 
 ### Added
-- `/about <docs page>`
-  - Allows you to explore goonbot features in detail, without having to leave Discord
-- `/cat`
-  - similar to rat but cat, you get it
-- `/addpic`
-  - Anyone can add images/gifs to cat, rat, and real.
-- **Auto* twitter embedding**
-  - Goonbot listens for twitter links and when they are posted, will offer to "replace" the normal link with a fxtwitter link. Fxtwitter creates a rich embed that twitter no longer provides. Read more [here](docs/twitter-embed.md)
+- `/about <docs page>` explore goonbot features in detail, without having to leave Discord
+- `/cat` similar to rat but cat, you get it
+- `/addpic` anyone can add images/gifs to cat, rat, and real
+- **Auto\* twitter embedding** Goonbot listens for twitter links and when they are posted, will offer to "replace" the normal link with a fxtwitter link. Fxtwitter creates a rich embed that twitter no longer provides. Read more [here](docs/twitter-embed.md)
 - `/diceroll` emulates dice rolling and accepts "dnd notation" (ie. 4d6, 2d20)
 
 
@@ -49,15 +45,20 @@ Yes! Reliably working league intergration that doesn't hate the name RoninAlex i
 ### Changed
 - all commands that utilize randomness (rats, wow no invite responses) won't repeat content until all available options have been served
 - `/today` & `/calendar`
-  - refactored to handle many events on the same day
+  - refactored to handle many events on the same day, or the day after
 - `/rat`, `/real`, all other commands that serve images or gifs
-  - Images are now served by just posting the image link. Discord embeds and tenor gifs didnt always play nice, and nowadays discord hides the url of media content.
-- `/real` now adds to reactions to the image, allowing the community to "vote"
+  - images are now served by just posting the image link. Discord embeds and tenor gifs didn't always play nice, and nowadays discord hides the url of media content
+- `/real`
+  - adds to reactions to the image, allowing the community to "vote"
 - `/wni`
   - new responses
-- `/creator <name>` is the new way to quickly link our favorite personalities, like NL or Baus. Although it's not as convenient calling the personality name directly, this is a cleaner implementation. Read more [here](docs/creator-watch.md)
-- `/teams` provides an easy way to divide users in a voice channel into teams
-- `/pickforme` (previously chooseforme) has been reworked to use a modal, allowing users to provide choices in a textbox
+- `/creator <name>`
+  - the new way to quickly link our favorite personalities, like NL or Baus
+  - although it's not as convenient calling the personality name directly, this is a cleaner implementation. Read more [here](docs/creator-watch.md)
+- `/teams`
+  - easy way to divide users in a voice channel into teams
+- `/pickforme` (previously chooseforme)
+  - has been reworked to use a modal, allowing users to provide choices in a textbox
 
 ### Removed
 - Hobo's `/username`
@@ -68,7 +69,7 @@ Yes! Reliably working league intergration that doesn't hate the name RoninAlex i
 
 ### Dependency changes
 #### Discord
-As previously mentioned, we are now using **discord.py**, and no longer using **pycord**
+Switch back to **discord.py**, and no longer using **pycord**
 #### Youtube
 Swapped from the (questionably typed) **youtube-python** for the official **Google API Client**
 #### Twitch
