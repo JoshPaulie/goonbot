@@ -144,6 +144,7 @@ class CreatorWatch(commands.Cog):
         "Fascinating Horror": ("UCFXad0mx4WxY1fXdbvtg0CQ", None),
         "Settled": ("UCs-w7E2HZWwXmjt9RTvBB_A", None),
         "Review Brah": ("UCeR0n8d3ShTn_yrMhpwyE1Q", None),
+        "Dr. Grande": ("UCC_0vyFTKk1Nlodo4QsiQkw", None),
     }
 
     def __init__(self, bot: Goonbot):
