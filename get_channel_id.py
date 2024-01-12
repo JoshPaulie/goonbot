@@ -1,7 +1,7 @@
 """
 Simple tool that takes a url to a youtube channel and returns the channel ID.
-Youtube is kind of a mess right now, with a few different account types. The channel id for a channel
-isn't always obvious, especially with the new username system. Regardless of the username, this tool
+Youtube is kind of a mess right now, with a few different channel url schemas. The channel id for a channel
+isn't always obvious, especially with the new username system. Regardless of the url, this tool
 can pluck the channel id
 
 Example inputs:
@@ -16,9 +16,13 @@ import sys
 import requests
 
 
+class ChannelIDNotFound(Exception):
+    pass
+
+
 def get_channel_id(youtube_channel_url: str) -> str | None:
     # Requests lib requires a protocol be specified
-    if not all(youtube_channel_url.startswith(protocol) for protocol in ["http", "https"]):
+    if not youtube_channel_url.startswith("http"):
         raise ValueError("URL must start with 'https://' or 'http://'")
 
     # Older (or "legacy") channels who have not migrated to one of the two channel naming convetions have the ID
@@ -33,7 +37,9 @@ def get_channel_id(youtube_channel_url: str) -> str | None:
     match = re.search(pattern, source.content.decode())
     if match:
         return match.group(1)
-    return None
+    raise ChannelIDNotFound(
+        "Uh oh. Either the URL provided is incorrect, or YouTube changed the source for channel pages."
+    )
 
 
 def main():
@@ -43,7 +49,12 @@ def main():
     else:
         url = input("Channel url: ")
 
-    id = get_channel_id(url)
+    try:
+        id = get_channel_id(url)
+    except ValueError as e:
+        return print(e)
+    except ChannelIDNotFound as e:
+        return print(e)
     print(id)
 
 
