@@ -1,6 +1,4 @@
 import datetime as dt
-import logging
-import random
 
 import discord
 from discord import app_commands
@@ -29,10 +27,7 @@ class General(commands.Cog):
     def __init__(self, bot: Goonbot):
         self.bot = bot
 
-    @app_commands.command(
-        name="wni",
-        description="Wow, no invite?",
-    )
+    @app_commands.command(name="wni", description="Wow, no invite?")
     async def wow_no_invite(self, interaction: discord.Interaction):
         """Make it known you would have loved whatever it is they're doing (without you)"""
         await interaction.response.send_message(
@@ -42,10 +37,7 @@ class General(commands.Cog):
             )
         )
 
-    @app_commands.command(
-        name="wie",
-        description="Where is everybody?",
-    )
+    @app_commands.command(name="wie", description="Where is everybody?")
     async def where_is_everybody(self, interaction: discord.Interaction):
         """
         Used to broadcast you're board and want to hang out/play games in VC.
@@ -53,11 +45,11 @@ class General(commands.Cog):
         Sends a message indicating the general time of day (morning, afternoon, night) based on the current hour.
             The time of day is determined as follows:
             - 12AM to 4AM is considered as the previous day's night.
+                - This is based on the social convention that early hours are often considered part of the previous day's night.
+                - If you hear someone say "I was up until 2AM Saturday night," you understand they mean "I stayed up until 2AM Sunday morning"
             - 6AM to 11AM is considered morning.
             - 12PM to 5PM is considered afternoon.
             - Any other time is considered night.
-                - This is based on the social convention that early hours are often considered part of the previous day's night.
-                - If you hear someone say "I was up until 2AM Saturday night," you understand they mean "I stayed up until 2AM Sunday morning"
         """
         today = dt.datetime.today()
         current_hour = dt.datetime.now().hour
