@@ -1,3 +1,5 @@
+import random
+
 from discord import Activity, ActivityType
 from discord.ext import commands, tasks
 
@@ -62,11 +64,17 @@ class Activities(commands.Cog):
 
     @tasks.loop(minutes=15)
     async def change_activity(self):
-        await self.bot.change_presence(activity=next(all_activities))
+        """50% chance to change the activity every 15 minutes"""
+        if random.randint(0, 1):
+            await self.bot.change_presence(activity=next(all_activities))
 
     @change_activity.before_loop
     async def before_printer(self):
+        # The bot must be ready to set its status, and its not ready when the cog is intialized
         await self.bot.wait_until_ready()
+        # If the loop had just set the status, this line wouldn't be needed.
+        # but because it (effectively) only fires half the times its called, we need to set an initial status
+        await self.bot.change_presence(activity=next(all_activities))
 
 
 async def setup(bot):
