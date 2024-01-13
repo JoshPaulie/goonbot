@@ -31,6 +31,11 @@ Yes! Reliably working league intergration that doesn't hate the name RoninAlex i
 - `/addpic` anyone can add images/gifs to cat, rat, and real
 - **Auto\* twitter embedding** Goonbot listens for twitter links and when they are posted, will offer to "replace" the normal link with a fxtwitter link. Fxtwitter creates a rich embed that twitter no longer provides. Read more [here](docs/twitter-embed.md)
 - `/diceroll` emulates dice rolling and accepts "dnd notation" (ie. 4d6, 2d20)
+- `/summoner` summoner stats including ranked stats and mastery points
+- `/lastgame` analysis of your last game
+  - With special parser for Arena games
+- `/aram` analysis of your last 50 (or all) ARAM games
+- `/champion` summary of a champion's kits
 
 
 ### Fixed
