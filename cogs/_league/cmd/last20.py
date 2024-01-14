@@ -1,14 +1,26 @@
-from collections import Counter
-from itertools import batched
+from collections import Counter, defaultdict
+from dataclasses import dataclass
 
 import discord
 from pulsefire.clients import RiotAPISchema
 
 from cogs._league.cdragon_builders import get_cdragon_url
-from cogs._league.formatting import format_big_number, fstat, humanize_seconds
+from cogs._league.formatting import fstat, humanize_seconds
 from text_processing import join_lines
 
 from ..annotations import match_info_participant_stat_keys
+
+
+@dataclass
+class ChampionPerformance:
+    champion_id: int
+    played: int
+    wins: int
+
+    @property
+    def win_rate(self):
+        wr = round((self.wins / self.played) * 100)
+        return f"{wr}%"
 
 
 # todo
@@ -89,9 +101,23 @@ class Last20Parser:
     def get_played_champion_ids(self) -> list[int]:
         return [int(match["championId"]) for match in self.target_summoner_stats]
 
-    def get_champion_winrate(self):
-        for stat in self.target_summoner_stats:
-            pass
+    def get_champion_performance(self) -> list[ChampionPerformance]:
+        # schema: {champion_id: {"played": int, "wins": int}}
+        champion_performance: dict[int, dict[str, int]] = defaultdict(lambda: defaultdict(int))
+        for summoner_match_stats in self.target_summoner_stats:
+            champion_id = summoner_match_stats["championId"]
+            outcome = summoner_match_stats["win"]
+            champion_performance[champion_id]["played"] += 1
+            if outcome:
+                champion_performance[champion_id]["wins"] += 1
+
+        performance = []
+        for champion_name, stats in champion_performance.items():
+            played = stats["played"]
+            wins = stats.get("wins", 0)
+            performance.append(ChampionPerformance(champion_name, played, wins))
+
+        return performance
 
     def make_embed(self, champion_id_to_image_path: dict[int, str], champion_id_to_name: dict[int, str]):
         aram_embed = discord.Embed(
@@ -107,11 +133,11 @@ class Last20Parser:
         aram_embed.set_thumbnail(url=champion_image_path_full)
 
         aram_embed.add_field(
-            name="Most played champions",
-            value=" • ".join(
+            name="Champion Performance",
+            value=join_lines(
                 [
-                    f"{champion_id_to_name[champ_id]} **{times_played}**"
-                    for champ_id, times_played in self.most_played_champion_ids
+                    f"**{champion_id_to_name[champ_perf.champion_id]}** | Games **{champ_perf.played}** | Wins **{champ_perf.wins}** ({champ_perf.win_rate})"
+                    for champ_perf in self.get_champion_performance()
                 ]
             ),
             inline=False,
