@@ -122,7 +122,7 @@ class League(commands.Cog):
         # Get summoner data
         summoner = await self.get_summoner(summoner_name)
         if not summoner:
-            return await interaction.response.send_message(
+            return await interaction.followup.send(
                 embed=self.bot.embed(
                     title=f"Summoner '{summoner_name}' not found",
                     color=discord.Color.brand_red(),
@@ -186,7 +186,7 @@ class League(commands.Cog):
         # Get summoner data
         summoner = await self.get_summoner(summoner_name)
         if not summoner:
-            return await interaction.response.send_message(
+            return await interaction.followup.send(
                 embed=self.bot.embed(
                     title=f"Summoner '{summoner_name}' not found",
                     color=discord.Color.brand_red(),
@@ -279,7 +279,7 @@ class League(commands.Cog):
         # Get summoner data
         summoner = await self.get_summoner(summoner_name)
         if not summoner:
-            return await interaction.response.send_message(
+            return await interaction.followup.send(
                 embed=self.bot.embed(
                     title=f"Summoner '{summoner_name}' not found",
                     color=discord.Color.brand_red(),
@@ -360,7 +360,7 @@ class League(commands.Cog):
         # Get summoner data
         summoner = await self.get_summoner(summoner_name)
         if not summoner:
-            return await interaction.response.send_message(
+            return await interaction.followup.send(
                 embed=self.bot.embed(
                     title=f"Summoner '{summoner_name}' not found",
                     color=discord.Color.brand_red(),
