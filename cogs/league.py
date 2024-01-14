@@ -23,6 +23,7 @@ from ._league.calculators import duration
 from ._league.cdragon_builders import get_cdragon_url, make_profile_url
 from ._league.cmd.aram import ARAMPerformanceParser
 from ._league.cmd.champion import get_champion_id_by_name
+from ._league.cmd.last20 import Last20Parser
 from ._league.cmd.last_game import ArenaMatchParser, StandardMatchParser, get_all_queue_ids
 from ._league.cmd.summoner import league_entry_stats
 from ._league.formatting import format_big_number
@@ -327,6 +328,80 @@ class League(commands.Cog):
         loading_time = round(end_time - start_time, 2)
         aram_embed.set_footer(text=f"Elapsed loading time: {loading_time}s")
         await interaction.followup.send(embed=aram_embed)
+
+    @app_commands.command(name="last20", description="An analysis of your last 20 games")
+    @app_commands.autocomplete(summoner_name=summoner_name_autocomplete)
+    @app_commands.choices(
+        gamemode=[
+            app_commands.Choice(name="Draft Pick", value=400),
+            app_commands.Choice(name="Ranked Solo/Duo", value=420),
+            app_commands.Choice(name="Ranked Flex", value=470),
+        ]
+    )
+    async def recent_games_analysis(
+        self,
+        interaction: discord.Interaction,
+        summoner_name: str | None,
+        gamemode: app_commands.Choice[int],
+    ):
+        # todo get rid of magic number that determines how many matches to look at
+        if summoner_name is None:
+            summoner_name = discord_to_summoner_name[interaction.user.id]
+
+        # Start timer for response time
+        start_time = time.perf_counter()
+
+        # Incase it takes longer than 3 seconds to respond, we defer the response and followup later
+        await interaction.response.defer()
+
+        # Get summoner data
+        summoner = await self.get_summoner(summoner_name)
+        if not summoner:
+            return await interaction.response.send_message(
+                embed=self.bot.embed(
+                    title=f"Summoner '{summoner_name}' not found",
+                    color=discord.Color.brand_red(),
+                )
+            )
+
+        # Use Riot client to get a ton of matches
+        async with self.client_lock:
+            async with self.riot_client as client:
+                match_ids = await client.get_lol_match_v5_match_ids_by_puuid(
+                    region="americas",
+                    puuid=summoner["puuid"],
+                    queries={"queue": gamemode.value, "count": 20},
+                )
+                async with TaskGroup(asyncio.Semaphore(100)) as tg:
+                    for match_id in match_ids:
+                        await tg.create_task(client.get_lol_match_v5_match(region="americas", id=match_id))
+                matches: list[RiotAPISchema.LolMatchV5Match] = tg.results()
+
+        # If user hasn't played any, stop the show
+        if not matches:
+            return await interaction.followup.send(
+                embed=self.bot.embed(
+                    title=f"{summoner_name} doesn't have any {gamemode.name} games played",
+                    color=discord.Color.greyple(),
+                )
+            )
+
+        # User CDragon client to champion data (for champion image, champ names)
+        async with self.client_lock:
+            async with self.cdragon_client as client:
+                champions = await client.get_lol_v1_champion_summary()
+
+        # Dict to get champ image paths
+        champion_id_to_image_path = {champion["id"]: champion["squarePortraitPath"] for champion in champions}
+        champion_id_to_name = {champion["id"]: champion["name"] for champion in champions}
+
+        last20_stats = Last20Parser(summoner, matches, gamemode.name)
+        last20_embed = last20_stats.make_embed(champion_id_to_image_path, champion_id_to_name)
+
+        end_time = time.perf_counter()
+        loading_time = round(end_time - start_time, 2)
+        last20_embed.set_footer(text=f"Elapsed loading time: {loading_time}s")
+        await interaction.followup.send(embed=last20_embed)
 
     @app_commands.command(name="champion")
     async def champion_spells(self, interaction: discord.Interaction, champion_name: str):
