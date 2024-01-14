@@ -18,24 +18,25 @@ class ChampionPerformance:
     wins: int
 
     @property
-    def win_rate(self):
-        wr = round((self.wins / self.played) * 100)
-        return f"{wr}%"
+    def win_rate(self) -> float:
+        return round((self.wins / self.played) * 100)
+
+    @property
+    def win_rate_pretty(self) -> str:
+        return f"{self.win_rate}%"
 
 
-# todo
-# [ ] Focus on Champion Winrate first
-class Last20Parser:
+class RecentGamesParser:
     def __init__(
         self,
         target_summoner: RiotAPISchema.LolSummonerV4Summoner,
-        aram_match_history: list[RiotAPISchema.LolMatchV5Match],
+        matches: list[RiotAPISchema.LolMatchV5Match],
         gamemode_name: str,
     ) -> None:
         """The main function of this"""
         self.summoner = target_summoner
-        self.matches = aram_match_history
-        self.match_count = len(aram_match_history)
+        self.matches = matches
+        self.match_count = len(matches)
         self.gamemode_name = gamemode_name
 
         # Stats
@@ -48,20 +49,11 @@ class Last20Parser:
             else "Perfect KDA!"
         )
 
-        # Resource gathering
-        self.total_gold_earned = self.get_stat_from_matches("goldEarned")
-        self.total_minions_killed = self.get_stat_from_matches("totalMinionsKilled")
-        self.total_turret_takedowns = self.get_stat_from_matches("turretTakedowns")
-        self.total_inhibitor_takedowns = self.get_stat_from_matches("inhibitorTakedowns")
-
         # Damage and healing
         self.total_champion_damage = self.get_stat_from_matches("totalDamageDealtToChampions")
         self.total_objective_damage = self.get_stat_from_matches("damageDealtToObjectives")
         self.total_damage_taken = self.get_stat_from_matches("totalDamageTaken")
         self.total_teammate_healing = self.get_stat_from_matches("totalHealsOnTeammates")
-
-        # CC
-        self.total_cc_dealt = self.get_stat_from_matches("totalTimeCCDealt")
 
         # Game length
         self.total_game_duration = self.calc_total_match_durations()
@@ -69,7 +61,7 @@ class Last20Parser:
         self.total_time_dead_percentage = round(self.total_time_spent_dead / self.total_game_duration * 100)
 
         # Champs played
-        self.most_played_champion_ids = Counter(self.get_played_champion_ids()).most_common(20)
+        self.most_played_champion_ids = Counter(self.get_played_champion_ids()).most_common(5)
 
         # Win/loss
         self.total_wins = self.get_stat_from_matches("win")
@@ -117,10 +109,10 @@ class Last20Parser:
             wins = stats.get("wins", 0)
             performance.append(ChampionPerformance(champion_name, played, wins))
 
-        return performance
+        return sorted(performance, key=lambda x: x.played, reverse=True)
 
     def make_embed(self, champion_id_to_image_path: dict[int, str], champion_id_to_name: dict[int, str]):
-        aram_embed = discord.Embed(
+        recent_embed = discord.Embed(
             title=f"{self.summoner['name']} {self.gamemode_name} stats",
             description=f"Analysis of your last **{len(self.matches)}** {self.gamemode_name} games!",
         )
@@ -130,33 +122,31 @@ class Last20Parser:
         most_played_champ_id = self.most_played_champion_ids[0][0]
         champion_image_path = champion_id_to_image_path[most_played_champ_id]
         champion_image_path_full = get_cdragon_url(champion_image_path)
-        aram_embed.set_thumbnail(url=champion_image_path_full)
+        recent_embed.set_thumbnail(url=champion_image_path_full)
 
-        aram_embed.add_field(
+        recent_embed.add_field(
             name="Champion Performance",
             value=join_lines(
                 [
-                    f"**{champion_id_to_name[champ_perf.champion_id]}** | Games **{champ_perf.played}** | Wins **{champ_perf.wins}** ({champ_perf.win_rate})"
+                    f"**{champion_id_to_name[champ_perf.champion_id]}** Games **{champ_perf.played}** // Wins **{champ_perf.wins}** ({champ_perf.win_rate_pretty})"
                     for champ_perf in self.get_champion_performance()
                 ]
             ),
             inline=False,
         )
 
-        aram_embed.add_field(
+        recent_embed.add_field(
             name="Duration",
             value=join_lines(
                 [
                     f"Total match duration **{humanize_seconds(self.total_game_duration)}**",
-                    f"Total time dead **{humanize_seconds(self.total_time_spent_dead)}**",
-                    f"Percentage spent dead **{self.total_time_dead_percentage}%** ",
-                    f"CC dealt **{humanize_seconds(self.total_cc_dealt)}**",
+                    f"Total time dead **{humanize_seconds(self.total_time_spent_dead)}** ({self.total_time_dead_percentage}%)",
                 ]
             ),
             inline=False,
         )
 
-        aram_embed.add_field(
+        recent_embed.add_field(
             name="Win & Losses",
             value=join_lines(
                 [
@@ -167,7 +157,7 @@ class Last20Parser:
             ),
         )
 
-        aram_embed.add_field(
+        recent_embed.add_field(
             name="KDA",
             value=join_lines(
                 [
@@ -185,7 +175,7 @@ class Last20Parser:
             ("Quadra Kill", self.total_quadra_kills),
             ("Penta Kill", self.total_penta_kills),
         ]
-        aram_embed.add_field(
+        recent_embed.add_field(
             name="Multi Kills",
             value=join_lines(
                 [
@@ -197,5 +187,5 @@ class Last20Parser:
             ),
         )
 
-        aram_embed.color = discord.Color.blurple()
-        return aram_embed
+        recent_embed.color = discord.Color.blurple()
+        return recent_embed

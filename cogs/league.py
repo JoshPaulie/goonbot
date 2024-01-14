@@ -23,8 +23,8 @@ from ._league.calculators import duration
 from ._league.cdragon_builders import get_cdragon_url, make_profile_url
 from ._league.cmd.aram import ARAMPerformanceParser
 from ._league.cmd.champion import get_champion_id_by_name
-from ._league.cmd.last20 import Last20Parser
 from ._league.cmd.last_game import ArenaMatchParser, StandardMatchParser, get_all_queue_ids
+from ._league.cmd.recent import RecentGamesParser
 from ._league.cmd.summoner import league_entry_stats
 from ._league.formatting import format_big_number
 from ._league.lookups import discord_to_summoner_name, rank_reaction_strs
@@ -264,7 +264,6 @@ class League(commands.Cog):
     @app_commands.command(name="aram", description="An analysis of your last 50 ARAM games")
     @app_commands.autocomplete(summoner_name=summoner_name_autocomplete)
     async def aram_analysis(self, interaction: discord.Interaction, summoner_name: str | None):
-        # todo get rid of magic number that determines how many matches to look at
         if summoner_name is None:
             summoner_name = discord_to_summoner_name[interaction.user.id]
 
@@ -324,7 +323,9 @@ class League(commands.Cog):
         aram_embed.set_footer(text=f"Elapsed loading time: {loading_time}s")
         await interaction.followup.send(embed=aram_embed)
 
-    @app_commands.command(name="last20", description="An analysis of your last 20 games")
+    @app_commands.command(
+        name="recent", description="An analysis of your recent games in a specific game mode"
+    )
     @app_commands.autocomplete(summoner_name=summoner_name_autocomplete)
     @app_commands.choices(
         gamemode=[
@@ -339,8 +340,8 @@ class League(commands.Cog):
         interaction: discord.Interaction,
         summoner_name: str | None,
         gamemode: app_commands.Choice[int],
+        match_count: app_commands.Range[int, 0, 50] = 20,
     ):
-        # todo get rid of magic number that determines how many matches to look at
         if summoner_name is None:
             summoner_name = discord_to_summoner_name[interaction.user.id]
 
@@ -366,7 +367,7 @@ class League(commands.Cog):
                 match_ids = await client.get_lol_match_v5_match_ids_by_puuid(
                     region="americas",
                     puuid=summoner["puuid"],
-                    queries={"queue": gamemode.value, "count": 20},
+                    queries={"queue": gamemode.value, "count": match_count},
                 )
                 async with TaskGroup(asyncio.Semaphore(100)) as tg:
                     for match_id in match_ids:
@@ -391,7 +392,7 @@ class League(commands.Cog):
         champion_id_to_image_path = {champion["id"]: champion["squarePortraitPath"] for champion in champions}
         champion_id_to_name = {champion["id"]: champion["name"] for champion in champions}
 
-        last20_stats = Last20Parser(summoner, matches, gamemode.name)
+        last20_stats = RecentGamesParser(summoner, matches, gamemode.name)
         last20_embed = last20_stats.make_embed(champion_id_to_image_path, champion_id_to_name)
 
         end_time = time.perf_counter()
