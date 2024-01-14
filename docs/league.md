@@ -21,6 +21,14 @@ A lot of the data that supports League commands is cached, resulting in much fas
 
 It's worth noting if you're querying a match not yet cached (ie. your last game played), you can expect longer loading times, because that data needs to be fetched from Riot.
 +++
+## Rate limiting
+Riot is rate limiting is very ..modest. This doesn't pair well with a few our commands, like `/aram` which makes 51 calls, one for each match it's going to analyze, and one for the summoner's match history. For those keeping score, that's half of our 2 minute cap; not good. This is partially alleviated by saving already-queried matches, but this can only help later. We can anticipate long, long execution times when the bot is first started
+
+**20** requests every **1** seconds
+**100** requests every **2** minutes
+
+> Read more about rate limiting with **rate limiting** doc page
++++
 ## 'Summoner' Command
 Provides a few details like rank in each queue type (if any), current in-game profile picture, and top champion masteries.
 +++

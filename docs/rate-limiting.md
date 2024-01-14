@@ -1,0 +1,2 @@
+# Rate limiting
+Nearly every service, website, API, used on the internet is shielded by a rate limit. This is how many times you can ask a server for information in a specified duration of time. Discord has a generous rate limit, and we'll hardly see bot reaction times slow downs due to rate limiting.
