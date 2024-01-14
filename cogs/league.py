@@ -219,22 +219,18 @@ class League(commands.Cog):
 
         # Determine queue type, replace with common name
         # ref: https://static.developer.riotgames.com/docs/lol/queues.json
+        parser_type = StandardMatchParser
         match last_match["info"]["queueId"]:
             case 400:
                 game_mode = "Draft Pick"
-                parser_type = StandardMatchParser
             case 420:
                 game_mode = "Ranked Solo"
-                parser_type = StandardMatchParser
-            case 430:
-                game_mode = "Blind Pick"
-                parser_type = StandardMatchParser
+            case 490:
+                game_mode = "Quickplay"
             case 440:
                 game_mode = "Ranked Flex"
-                parser_type = StandardMatchParser
             case 450:
                 game_mode = "ARAM"
-                parser_type = StandardMatchParser
             case 1700:
                 game_mode = "Arena"
                 parser_type = ArenaMatchParser
@@ -246,7 +242,6 @@ class League(commands.Cog):
                     game_mode = game_mode_name
                 else:
                     game_mode = f"Unknown gamemode ({self.bot.ping_owner()})"
-                parser_type = StandardMatchParser
 
         if parser_type == ArenaMatchParser:
             parser = ArenaMatchParser(
@@ -256,7 +251,7 @@ class League(commands.Cog):
                 champion_id_to_name,
             )
             last_match_embed = await parser.make_embed()
-        else:  # if it doesn't user a special parser, we can assume it's the standard
+        else:  # if it doesn't use a special parser, we can assume it's the standard
             parser = StandardMatchParser(summoner, last_match, champion_id_to_image_path, game_mode)
             teammate_puuids = [name["puuid"] for name in parser.teammates]
             last_match_embed = parser.make_embed(await self.build_log_urls(teammate_puuids))
@@ -334,6 +329,7 @@ class League(commands.Cog):
     @app_commands.choices(
         gamemode=[
             app_commands.Choice(name="Draft Pick", value=400),
+            app_commands.Choice(name="Quickplay", value=490),
             app_commands.Choice(name="Ranked Solo/Duo", value=420),
             app_commands.Choice(name="Ranked Flex", value=470),
         ]
