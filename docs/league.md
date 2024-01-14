@@ -22,7 +22,7 @@ A lot of the data that supports League commands is cached, resulting in much fas
 It's worth noting if you're querying a match not yet cached (ie. your last game played), you can expect longer loading times, because that data needs to be fetched from Riot.
 +++
 ## Rate limiting
-Riot's rate limiting is ..modest. This doesn't pair well with a our commands, some of which make 20+ API calls, one for each match it's fetching. If the rate limit is met, you can expect longer execution times. Because API calls are cached, it will be nearly instant the next time you call the command. 
+Riot's rate limiting is ..modest. This doesn't pair well with a few of our commands, some of which make 20+ API calls, one for each match it's fetching. If the rate limit is met, you can expect longer execution times. Because API calls are cached, it will be nearly instant the next time you call the command. 
 
 At time of writing, we have the following limit for Goonbot
 - **20** requests every **1** seconds
