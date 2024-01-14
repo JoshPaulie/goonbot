@@ -340,7 +340,7 @@ class League(commands.Cog):
         interaction: discord.Interaction,
         summoner_name: str | None,
         gamemode: app_commands.Choice[int],
-        match_count: app_commands.Range[int, 0, 50] = 20,
+        match_count: app_commands.Range[int, 1, 50] = 20,
     ):
         if summoner_name is None:
             summoner_name = discord_to_summoner_name[interaction.user.id]
