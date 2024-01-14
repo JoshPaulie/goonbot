@@ -111,6 +111,7 @@ class League(commands.Cog):
 
     @app_commands.command(name="summoner", description="Get stats for a summoner")
     @app_commands.autocomplete(summoner_name=summoner_name_autocomplete)
+    @app_commands.describe(summoner_name="Provide a summoner, or leave this blank to use yours")
     async def summoner(self, interaction: discord.Interaction, summoner_name: str | None):
         if summoner_name is None:
             summoner_name = discord_to_summoner_name[interaction.user.id]
@@ -173,6 +174,7 @@ class League(commands.Cog):
 
     @app_commands.command(name="lastgame", description="An analysis of your lastest league game!")
     @app_commands.autocomplete(summoner_name=summoner_name_autocomplete)
+    @app_commands.describe(summoner_name="Provide a summoner, or leave this blank to use yours")
     async def last_match_analysis(self, interaction: discord.Interaction, summoner_name: str | None):
         """"""
         if summoner_name is None:
@@ -263,6 +265,7 @@ class League(commands.Cog):
 
     @app_commands.command(name="aram", description="An analysis of your last 50 ARAM games")
     @app_commands.autocomplete(summoner_name=summoner_name_autocomplete)
+    @app_commands.describe(summoner_name="Provide a summoner, or leave this blank to use yours")
     async def aram_analysis(self, interaction: discord.Interaction, summoner_name: str | None):
         if summoner_name is None:
             summoner_name = discord_to_summoner_name[interaction.user.id]
@@ -335,6 +338,9 @@ class League(commands.Cog):
             app_commands.Choice(name="Ranked Flex", value=470),
         ]
     )
+    @app_commands.describe(summoner_name="Provide a summoner, or leave this blank to use yours")
+    @app_commands.describe(gamemode="Select a queue type")
+    @app_commands.describe(match_count="Enter how many games to analyze (max 50)")
     async def recent_games_analysis(
         self,
         interaction: discord.Interaction,
@@ -400,7 +406,8 @@ class League(commands.Cog):
         last20_embed.set_footer(text=f"Elapsed loading time: {loading_time}s")
         await interaction.followup.send(embed=last20_embed)
 
-    @app_commands.command(name="champion")
+    @app_commands.command(name="champion", description="Get a summary of a given champion's kit")
+    @app_commands.describe(champion_name="Provide a champion name")
     async def champion_spells(self, interaction: discord.Interaction, champion_name: str):
         async with self.client_lock:
             async with self.cdragon_client as client:
