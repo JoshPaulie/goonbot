@@ -80,6 +80,10 @@ def get_host_info() -> dict[str, str]:
     info = {}
     # info["Name"] = platform.node()
     info["OS"] = f"{platform.system()} {platform.release()}"
+    issue_file = pathlib.Path("/etc/issue")
+    if issue_file.exists():
+        issue_file_text = issue_file.read_text()
+        info["OS"] = issue_file_text[: -issue_file_text.find("Linux")]
     info["Processor"] = platform.processor()
     # info["Architecture"] = platform.machine()
     return info
@@ -172,7 +176,10 @@ class Meta(commands.Cog):
         # League matches cached
         if cache_file_count := get_cache_file_count():
             matches_cached_count, cache_size = total_matches_cached(cache_file_count)
-            meta_embed.add_field(name="League Games\nCached", value=f"{matches_cached_count} ({cache_size})")
+            meta_embed.add_field(
+                name="League Games\nCached",
+                value=f"{matches_cached_count} ({cache_size})",
+            )
 
         # Host info
         meta_embed.add_field(
