@@ -1,0 +1,14 @@
+[Unit]
+Description=Goonbot service
+After=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=/home/pi/goonbot
+ExecStartPre=/usr/bin/git -C /home/pi/goonbot pull
+ExecStart=/home/pi/goonbot /home/pi/goonbot/main.py
+User=pi
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
