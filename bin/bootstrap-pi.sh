@@ -42,5 +42,5 @@ SERVICEFILE=/etc/systemd/system/Goonbot.service
 if [ -f "$SERVICEFILE" ]; then
     echo "$SERVICEFILE exists."
 else 
-    cp /home/pi/goonbot/Goonbot.service /etc/systemd/system
+    cp /home/pi/goonbot/bin/Goonbot.service /etc/systemd/system
 fi
