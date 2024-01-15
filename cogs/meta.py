@@ -78,14 +78,12 @@ def timestamp(input_seconds: int) -> str:
 
 def get_host_info() -> dict[str, str]:
     info = {}
-    # info["Name"] = platform.node()
+    # info["Name"] = platform.node() # this just says "raspberry"
     info["OS"] = f"{platform.system()} {platform.release()}"
     issue_file = pathlib.Path("/etc/issue")
     if issue_file.exists():
         issue_file_text = issue_file.read_text()
         info["OS"] = issue_file_text[: -issue_file_text.find("Linux")]
-    info["Processor"] = platform.processor()
-    # info["Architecture"] = platform.machine()
     return info
 
 
