@@ -48,7 +48,7 @@ def size_str(size: int):
         return f"{round(size / gb, 2)}gb"
     if size > mb:
         return f"{round(size / mb, 2)}mb"
-    return f"{round(size, 2)}"
+    return f"{round(size / kb, 2)}kb"
 
 
 def total_matches_cached(cache_file_count: int) -> tuple[int, str]:
