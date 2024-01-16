@@ -11,7 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 Changes made, but not associated with a particular version yet
 
 ## [6.0.0]
-> [!Tip]
+> [!Note]
 > The "goonbot" project no longer has a separate codebases to distinguish between major version changes. This is the true "final" goonbot. The reason for separating projects is explained a bit more [here](README.md#why-another-rewrite).
 
 Goonbot 6.0 is considerably more thought out than previous versions. Most commands were rewritten with the following in mind
@@ -22,12 +22,19 @@ Goonbot 6.0 is considerably more thought out than previous versions. Most comman
 
 The code is, dare I say, much more Pythonic and is no longer littered with `type: ignore`
 
+### Didn't make it for launch
+Notable mentions that didn't make it for launch
+
+- Poydok's random YouTube video command
+- Alex's secret feature
+- Suggestion command
+
 ### League commands are BACK!
 Yes! Reliably working league intergration that doesn't hate the name RoninAlex is back, and with a few new goodies. Read more [here](docs/league.md)
 
 ### Added
 - `/about <docs page>` explore goonbot features in detail, without having to leave Discord
-- `/cat` similar to rat but cat, you get it
+- `/cat` similar to rat but cat, you get it (suggested by **Ectoplax**)
 - `/addpic` anyone can add images/gifs to cat, rat, and real
 - **Auto\* twitter embedding** Goonbot listens for twitter links and when they are posted, will offer to "replace" the normal link with a fxtwitter link. Fxtwitter creates a rich embed that twitter no longer provides. Read more [here](docs/twitter-embed.md)
 - `/diceroll` emulates dice rolling and accepts "dnd notation" (ie. 4d6, 2d20)
@@ -36,6 +43,7 @@ Yes! Reliably working league intergration that doesn't hate the name RoninAlex i
   - With special parser for Arena games
 - `/aram` analysis of your last 50 (or all) ARAM games
 - `/champion` summary of a champion's kits
+- `/recent` summary of your recent league games, of a specified queue (quickplay, draft, both ranks). In addition to the gamemode, you can also specify how many matches to go back. (Max 50)
 
 
 ### Fixed
@@ -48,7 +56,10 @@ Yes! Reliably working league intergration that doesn't hate the name RoninAlex i
   - added halloween
 
 ### Changed
-- all commands that utilize randomness (rats, wow no invite responses) won't repeat content until all available options have been served
+- all commands that utilize randomness (rats, wow no invite responses)
+  - won't repeat content until all available options have been served
+- The **:chatting:** listener
+  - Ectoplax is no longer totally exempt from getting *chatted*! He is now only exempt when in a voice channel
 - `/today` & `/calendar`
   - refactored to handle many events on the same day, or the day after
 - `/rat`, `/real`, all other commands that serve images or gifs
@@ -59,7 +70,7 @@ Yes! Reliably working league intergration that doesn't hate the name RoninAlex i
   - new responses
 - `/creator <name>`
   - the new way to quickly link our favorite personalities, like NL or Baus
-  - although it's not as convenient calling the personality name directly, this is a cleaner implementation. Read more [here](docs/creator-watch.md)
+  - although it's not as convenient calling the personality name directly, this is a cleaner implementation. 
   - New personalities
     - Library of Letourneau
     - Dr. Todd Grande
@@ -73,6 +84,7 @@ Yes! Reliably working league intergration that doesn't hate the name RoninAlex i
 ### Removed
 - Hobo's `/username`
   - seldom used
+  - this is a project i'd list on a portfolio, and i can't be bothered to pick out any potentially problematic user names
 - Gambling games
   - little interest from dev
   - annoying to maintain and balance related games
