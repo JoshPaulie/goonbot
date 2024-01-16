@@ -144,17 +144,14 @@ async def sync(ctx: commands.Context):
 @goonbot.command(name="restart", description="[Meta] Restart the bot")
 @commands.is_owner()
 async def restart(ctx: commands.Context):
-    """Restarts the service responsible for updating and running the bot."""
-    if not platform.node() == "raspberrypi":
-        await ctx.send(
-            embed=goonbot.embed(
-                title="Nope",
-                description="You can only restart the bot when it's running on the Pi",
-            )
+    """ "Restarts" the bot by turning it off, so the service responsible for updating and running the bot will notice it's off and restart it."""
+    await ctx.send(
+        embed=goonbot.embed(
+            title="Stopping the bot...",
+            description="The service responsible for running the bot will notice it's off and restart it. The service also updates the bot",
         )
-    await ctx.send(embed=goonbot.embed(title="Restarting..."))
-    subprocess.Popen("touch 'Popen its workin.txt'")
-    subprocess.Popen("sudo systemctl restart Goonbot.service")
+    )
+    await goonbot.close()
 
 
 # This catches and processes ext (or "prefixed") commands
