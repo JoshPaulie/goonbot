@@ -1,14 +1,27 @@
+# Future Josh:
+# It's tempting to symlink this to /etc/systemd/system; don't. :)
+# If the service file is modified after it's started, the service can't be restarted until the daemon is
+# manually reset, which the bot shouldn't be responible for. This means you need to
+# cp bin/Goonbot.service /etc/systemd/system
+# any time you push a change that needs to be implemented
 [Unit]
-Description=Goonbot service
+Description=Responsible for starting, restarting, and updating Goonbot
 After=network-online.target
 
 [Service]
 Type=simple
 WorkingDirectory=/home/pi/goonbot
+# Pull any changes from the repo
 ExecStartPre=/usr/bin/git -C /home/pi/goonbot pull
+# Start goonbot with the venv interpreter
 ExecStart=/home/pi/goonbot/.venv/bin/python /home/pi/goonbot/main.py
 User=pi
+# Restart bot if it stops (ie. from a fatal crash or the bot stopped via the restart command)
 Restart=always
+# For whatever reason, particularly during startup, the ExecStartPre fatally fails.
+# The error explains how git can't resolve the url to github, despite the service waiting for networking to turn on
+# By default, the service SPAMS the command for a bit then stops trying all together.
+# This gives the service some time to fully come online so it can run ExecStartPre
 RestartSec=10s
 
 [Install]
