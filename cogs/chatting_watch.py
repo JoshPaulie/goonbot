@@ -5,6 +5,8 @@ from discord.ext import commands
 
 from goonbot import Goonbot
 
+ECTOPLAX_ID = 104488848309895168
+
 
 def sequence_same_value(seq: Sequence[Any]):
     """Makes sure all the values in a sequence in the same.
@@ -32,6 +34,14 @@ class ChattingWatch(commands.Cog):
         # Get message details
         channel_id = message.channel.id
         author_id = message.author.id
+
+        # This user is commonly in VC but needs to be muted, and uses text to communicate.
+        # We'll except him from this "feature" when he's in voice channel
+        assert message.guild
+        for channel in message.guild.voice_channels:
+            for user in channel.members:
+                if user.id == ECTOPLAX_ID:
+                    return
 
         # Make sure the channel is in the dict
         if not self.channels.get(channel_id):
