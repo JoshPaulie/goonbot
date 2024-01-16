@@ -1,7 +1,8 @@
 import asyncio
 import logging
-import pathlib
+import platform
 import random
+import subprocess
 import time
 import traceback
 from collections import defaultdict
@@ -138,6 +139,21 @@ async def sync(ctx: commands.Context):
     await goonbot.tree.sync(guild=ctx.guild)
     assert goonbot.user
     await ctx.send(embed=goonbot.embed(title=f"{goonbot.user.name} commands synced to {ctx.guild.name}"))
+
+
+@goonbot.command(name="restart", description="[Meta] Restart the bot")
+@commands.is_owner()
+async def restart(ctx: commands.Context):
+    """Restarts the service responsible for updating and running the bot."""
+    if not platform.node() == "raspberry":
+        await ctx.send(
+            embed=goonbot.embed(
+                title="Nope",
+                description="You can only restart the bot when it's running on the Pi",
+            )
+        )
+    subprocess.Popen("systemctl restart Goonbot.service")
+    await ctx.send(embed=goonbot.embed(title="Restarting..."))
 
 
 # This catches and processes ext (or "prefixed") commands
