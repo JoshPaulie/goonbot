@@ -34,35 +34,16 @@ def matches_cached(path: str) -> list[str]:
     return keys
 
 
-def get_file_size(path: str) -> int:
-    file_stats = os.stat(path)
-    file_size = file_stats.st_size
-    return file_size
-
-
-def size_str(size: int):
-    kb = 1024
-    mb = kb * kb
-    gb = kb * kb * kb
-    if size > gb:
-        return f"{round(size / gb, 2)}gb"
-    if size > mb:
-        return f"{round(size / mb, 2)}mb"
-    return f"{round(size / kb, 2)}kb"
-
-
-def total_matches_cached(cache_file_count: int) -> tuple[int, str]:
+def total_matches_cached(cache_file_count: int) -> int:
     all_links = []
-    total_size = 0
     for n in range(cache_file_count):
         path = f"cache/{n:03}/cache.db"
         all_links.extend(matches_cached(path))
-        total_size += get_file_size(path)
 
     # At time of writing, the cache doesn't store duplicate entries.
     # In the event the pulsefire author implements some sort of redundancy, let's make sure
     # we're only counting unique matches
-    return len(set(all_links)), size_str(total_size)
+    return len(set(all_links))
 
 
 def timestamp(input_seconds: int) -> str:
@@ -173,10 +154,10 @@ class Meta(commands.Cog):
 
         # League matches cached
         if cache_file_count := get_cache_file_count():
-            matches_cached_count, cache_size = total_matches_cached(cache_file_count)
+            matches_cached_count = total_matches_cached(cache_file_count)
             meta_embed.add_field(
                 name="League Games\nCached",
-                value=f"{matches_cached_count} ({cache_size})",
+                value=matches_cached_count,
             )
 
         # Host info
