@@ -152,8 +152,9 @@ async def restart(ctx: commands.Context):
                 description="You can only restart the bot when it's running on the Pi",
             )
         )
-    subprocess.Popen("systemctl restart Goonbot.service")
     await ctx.send(embed=goonbot.embed(title="Restarting..."))
+    subprocess.Popen("touch 'Popen its workin.txt'")
+    subprocess.Popen("sudo systemctl restart Goonbot.service")
 
 
 # This catches and processes ext (or "prefixed") commands
