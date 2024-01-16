@@ -145,7 +145,7 @@ async def sync(ctx: commands.Context):
 @commands.is_owner()
 async def restart(ctx: commands.Context):
     """Restarts the service responsible for updating and running the bot."""
-    if not platform.node() == "raspberry":
+    if not platform.node() == "raspberrypi":
         await ctx.send(
             embed=goonbot.embed(
                 title="Nope",
