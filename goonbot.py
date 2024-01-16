@@ -74,8 +74,7 @@ class Goonbot(commands.Bot):
         """
         await self.load_cogs()
         guilds = [
-            # Goon HQ will be uncommented once the bot is ready for "production"
-            # GOON_HQ,
+            GOON_HQ,
             BOTTING_TOGETHER,
         ]
         for guild in guilds:
