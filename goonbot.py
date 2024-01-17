@@ -219,6 +219,15 @@ async def delete_bot_message(interaction: discord.Interaction, message: discord.
             ephemeral=True,
         )
 
+    if message.interaction and message.interaction.user.id != interaction.user:
+        return await interaction.response.send_message(
+            embed=goonbot.embed(
+                description=f"Only {interaction.user.mention} can delete this message",
+                color=discord.Color.greyple(),
+            ),
+            ephemeral=True,
+        )
+
     # Send response to satisfy the discord interaction (without this the user gets "Interaction failed")
     await interaction.response.send_message(embed=goonbot.embed(title="🚮"), ephemeral=True)
     # Delete selected message
