@@ -103,6 +103,7 @@ def html_to_md(text: str) -> str:
         "</i>": "*",
         "<b>": "**",
         "</b>": "**",
+        "</br>": "\n",
     }
     for html_token, md_token in mappings.items():
         text = text.replace(html_token, md_token)
