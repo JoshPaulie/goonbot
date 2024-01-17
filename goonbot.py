@@ -1,8 +1,6 @@
 import asyncio
 import logging
-import platform
 import random
-import subprocess
 import time
 import traceback
 from collections import defaultdict
@@ -16,11 +14,11 @@ from discord.ext import commands
 from keys import Keys
 from text_processing import acronymize, join_lines
 
-GOON_HQ = discord.Object(177125557954281472)  # The main ("production") server
-BOTTING_TOGETHER = discord.Object(510865274594131968)  # The development server
-
 
 class Goonbot(commands.Bot):
+    GOON_HQ = discord.Object(177125557954281472)  # The main ("production") server
+    BOTTING_TOGETHER = discord.Object(510865274594131968)  # The development server
+
     VERSION = (6, 0, 0)
 
     keys = Keys
@@ -76,8 +74,8 @@ class Goonbot(commands.Bot):
         """
         await self.load_cogs()
         guilds = [
-            GOON_HQ,
-            BOTTING_TOGETHER,
+            self.GOON_HQ,
+            self.BOTTING_TOGETHER,
         ]
         for guild in guilds:
             self.tree.copy_global_to(guild=guild)
