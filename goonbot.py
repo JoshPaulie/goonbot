@@ -24,6 +24,8 @@ class Goonbot(commands.Bot):
     VERSION = (6, 0, 0)
 
     keys = Keys
+
+    # Used to calculate command execution times with on_interaction & on_app_command_completion
     timer_lock = asyncio.Lock()
     command_timer = defaultdict(time.perf_counter)
 
@@ -173,6 +175,7 @@ async def on_command_error(ctx: commands.Context, error: commands.CommandError):
 
 @goonbot.event
 async def on_interaction(interaction: discord.Interaction):
+    # Logs the time when an app command starts an interation
     async with goonbot.timer_lock:
         if interaction.type == discord.InteractionType.application_command:
             assert interaction.command
@@ -181,6 +184,8 @@ async def on_interaction(interaction: discord.Interaction):
 
 @goonbot.event
 async def on_app_command_completion(interaction: discord.Interaction, command: discord.app_commands.Command):
+    # When an app command is done processing and ready to send, check the command timer dict for the interaction id
+    # If interaction id present, we can calculate the execution time for the log
     async with goonbot.timer_lock:
         if command_start_time := goonbot.command_timer.get(interaction.id):
             del goonbot.command_timer[interaction.id]
