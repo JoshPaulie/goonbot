@@ -19,7 +19,7 @@ class Pics(commands.Cog):
     def __init__(self, bot: Goonbot):
         self.bot = bot
 
-    @app_commands.command(name="addpic", description="Add a new image link to car, rat, or real")
+    @app_commands.command(name="addpic", description="Add a new image link to cat, rat, or real")
     @app_commands.describe(link="Add the image/gif link here")
     @app_commands.describe(categories="Specify which category your link should be added to")
     @app_commands.choices(
