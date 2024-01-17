@@ -35,6 +35,11 @@ class ChattingWatch(commands.Cog):
         channel_id = message.channel.id
         author_id = message.author.id
 
+        # Ignore messages sent in the testing guild
+        assert message.guild
+        if message.guild == self.bot.BOTTING_TOGETHER:
+            return
+
         # This user is commonly in VC but needs to be muted, and uses text to communicate.
         # We'll except him from this "feature" when he's in voice channel
         assert message.guild
