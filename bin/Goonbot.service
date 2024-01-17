@@ -23,6 +23,8 @@ Restart=always
 # By default, the service SPAMS the command for a bit then stops trying all together.
 # This gives the service some time to fully come online so it can run ExecStartPre
 RestartSec=10s
+# Add production env var for the bot to determine which key
+Environment="GOONBOT_ENV=PROD"
 
 [Install]
 WantedBy=multi-user.target
