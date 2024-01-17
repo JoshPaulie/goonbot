@@ -10,6 +10,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 Changes made, but not associated with a particular version yet
 
+## [6.0.1]
+First patch!
+
+### Changed
+- **Delete a bot message** feature has been limited to whoever invoked the bot message
+  - The community (predictably to anyone not named 'josh') abused this feature mere moments after discovering it
+- `/lastgame`
+  - The "match ended X minutes ago" now uses the end time of the game, and not the start. It looked weird if you checked the command immediately after the game ended, and it said you played it 35 minutes ago.
+
+### Fixed
+- `/addpic`
+  - Typo in description 🚗 (thanks for report alex)
+- `/summoner`
+  - Champions (like Akshan) sometimes have line breaks in their kit, apparently. They were the \<br> tags. They now render correctly in Discord
+
 ## [6.0.0]
 > [!Note]
 > The "goonbot" project no longer has a separate codebases to distinguish between major version changes. This is the true "final" goonbot. The reason for separating projects is explained a bit more [here](README.md#why-another-rewrite).
