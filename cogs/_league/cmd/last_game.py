@@ -252,7 +252,7 @@ class StandardMatchParser:
             game_duration += " 🔥"
         if game_duration_minutes > 40:
             game_duration += " 🐢"
-        ended_ago = time_ago(self.match["info"]["gameStartTimestamp"] // 1000)
+        ended_ago = time_ago(self.match["info"]["gameEndTimestamp"] // 1000)
 
         # Build embed
         last_match_embed = discord.Embed(
