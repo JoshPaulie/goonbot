@@ -19,7 +19,7 @@ class Goonbot(commands.Bot):
     GOON_HQ = discord.Object(177125557954281472)  # The main ("production") server
     BOTTING_TOGETHER = discord.Object(510865274594131968)  # The development server
 
-    VERSION = (6, 0, 0)
+    VERSION = (6, 0, 1)
 
     keys = Keys
 
