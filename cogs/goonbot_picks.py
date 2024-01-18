@@ -6,7 +6,7 @@ from discord import app_commands
 from discord.ext import commands
 
 from goonbot import Goonbot
-from text_processing import comma_list, join_lines
+from text_processing import bullet_points, comma_list
 
 
 class PickForMeModal(discord.ui.Modal, title="Pick for Me!"):
@@ -87,7 +87,7 @@ class GoonbotPicks(commands.Cog):
             )
 
         caller_channel = caller.voice.channel  # type: ignore
-        users_in_channel = [m.display_name for m in caller_channel.members]
+        users_in_channel = [m for m in caller_channel.members]
         random.shuffle(users_in_channel)
 
         # If no team size is provided, split the group as evenly in half as possible by
@@ -96,7 +96,10 @@ class GoonbotPicks(commands.Cog):
             team_size = len(users_in_channel) // 2
 
         teams = batched(users_in_channel, team_size)
-        teams_result = join_lines([comma_list(team) for team in teams])
+        teams_result = bullet_points(
+            [comma_list([team_mate.mention for team_mate in team]) for team in teams],
+            numerical=True,
+        )
         await interaction.response.send_message(embed=self.bot.embed(title="Teams", description=teams_result))
 
 
