@@ -271,9 +271,14 @@ async def send_love(interaction: discord.Interaction, user: discord.User):
     trendy_affirmations = []
     affirmations = permenant_affirmations + trendy_affirmations
     affirmation = random.choice(affirmations)
-    assert user
     await interaction.response.send_message(
         embed=goonbot.embed(
             title=affirmation,
+            description=join_lines(
+                [
+                    f"From: {interaction.user.mention}",
+                    f"To: {user.mention}",
+                ]
+            ),
         )
     )
