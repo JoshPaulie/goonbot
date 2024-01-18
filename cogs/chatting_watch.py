@@ -1,3 +1,4 @@
+import random
 from typing import Any, Sequence
 
 import discord
@@ -30,14 +31,15 @@ class ChattingWatch(commands.Cog):
 
     @commands.Cog.listener("on_message")
     async def chatting_listener(self, message: discord.Message):
-        """This listener is responsible for adding a particular reaction to a message, if the message author has typed consecutive 5 messages"""
+        """This listener is responsible for adding a random reaction to a message, if the message author has typed consecutive 5 messages without getting interuptted"""
         # Get message details
         channel_id = message.channel.id
         author_id = message.author.id
 
-        # Ignore messages sent in the testing guild
+        # Ignore messages sent in the testing guild, or sent by the bot
         assert message.guild
-        if message.guild == self.bot.BOTTING_TOGETHER:
+        assert self.bot.user
+        if message.guild == self.bot.BOTTING_TOGETHER or message.author.id == self.bot.user.id:
             return
 
         # This user is commonly in VC but needs to be muted, and uses text to communicate.
@@ -63,7 +65,15 @@ class ChattingWatch(commands.Cog):
 
         # If the same chatter has posted 5 times without being interrupted, send the reaction
         if len(channel_past_chatters) == 5:
-            await message.add_reaction("<a:chatting:1196923520442191923>")
+            await message.add_reaction(
+                random.choice(
+                    [
+                        "<a:chatting:1196923520442191923>",
+                        "💀",
+                        "<:clueless:934933705611444234>",
+                    ]
+                )
+            )
             self.channels[channel_id] = []
 
 
