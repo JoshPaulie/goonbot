@@ -12,12 +12,14 @@ import discord
 from discord.ext import commands
 
 from keys import Keys
+from main import EnvironmentType
 from text_processing import acronymize, join_lines
 
 
 class Goonbot(commands.Bot):
-    GOON_HQ = discord.Object(177125557954281472)  # The main ("production") server
-    BOTTING_TOGETHER = discord.Object(510865274594131968)  # The development server
+    GOON_HQ = discord.Object(177125557954281472, type=discord.Guild)  # The main ("production") server
+    BOTTING_TOGETHER = discord.Object(510865274594131968, type=discord.Guild)  # The development server
+    owner_id = 177131156028784640  # bexli boy
 
     VERSION = (6, 0, 2)
 
@@ -30,14 +32,14 @@ class Goonbot(commands.Bot):
     # A default embed that will sprinkled around (so I don't have to manually set the color every time)
     embed = partial(discord.Embed, color=discord.Color.blurple())
 
-    def __init__(self, intents: discord.Intents, **kwargs):
+    def __init__(self, intents: discord.Intents, environment: EnvironmentType | None = None, **kwargs):
         super().__init__(
             command_prefix=commands.when_mentioned_or("."),
             help_command=None,
             intents=intents,
             **kwargs,
         )
-        self.owner_id = 177131156028784640  # bexli boy
+        self.environment = environment
 
     def ping_owner(self) -> str:
         return f"<@{self.owner_id}>"
@@ -121,7 +123,7 @@ async def on_app_command_error(interaction: discord.Interaction, error: discord.
 
 @goonbot.command(name="sync", description="[Meta] Syncs commands to server")
 @commands.is_owner()
-async def sync(ctx: commands.Context):
+async def sync(ctx: commands.Context, guild: str | None = None):
     """
     This command syncs all of the bot's commands (names & descriptions) to a given server
 
@@ -134,10 +136,17 @@ async def sync(ctx: commands.Context):
     of new features when frequent restarts are necessary, you'll get rate-limited by Discord into next week.
     They really don't like people spamming app command syncs to servers.
     """
-    assert ctx.guild
-    await goonbot.tree.sync(guild=ctx.guild)
+    if goonbot.environment == EnvironmentType.development:
+        await goonbot.tree.sync(guild=goonbot.BOTTING_TOGETHER)
+    if goonbot.environment == EnvironmentType.production:
+        await goonbot.tree.sync(guild=goonbot.GOON_HQ)
+
     assert goonbot.user
-    await ctx.send(embed=goonbot.embed(title=f"{goonbot.user.name} commands synced to {ctx.guild.name}"))
+    await ctx.send(
+        embed=goonbot.embed(
+            title=f"{goonbot.user.name} commands synced to {'prod' if goonbot.environment == EnvironmentType.production else 'dev'}"
+        )
+    )
 
 
 @goonbot.command(name="restart", description="[Meta] Restart the bot")
