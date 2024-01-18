@@ -220,7 +220,7 @@ async def delete_bot_message(interaction: discord.Interaction, message: discord.
     if message.interaction and message.interaction.user.id != interaction.user.id:
         return await interaction.response.send_message(
             embed=goonbot.embed(
-                description=f"Only {interaction.user.mention} can delete this message",
+                description=f"Only {message.interaction.user.mention} can delete this message",
                 color=discord.Color.greyple(),
             ),
             ephemeral=True,
