@@ -21,7 +21,7 @@ def make_possessive(noun: str) -> str:
     return noun + "'s"
 
 
-def bullet_points(lst: Sequence[Any]) -> str:
+def bullet_points(lst: Sequence[Any], numerical: bool = False) -> str:
     """Takes list of items, return bullet point version
 
     Example
@@ -30,6 +30,8 @@ def bullet_points(lst: Sequence[Any]) -> str:
         - two
         - three
     """
+    if numerical:
+        return "\n".join([f"{indx + 1}. {item}" for indx, item in enumerate(lst)])
     return "\n".join([f"- {item}" for item in lst])
 
 
