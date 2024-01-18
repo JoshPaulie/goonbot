@@ -12,7 +12,6 @@ import discord
 from discord.ext import commands
 
 from keys import Keys
-from main import EnvironmentType
 from text_processing import acronymize, join_lines
 
 
@@ -32,14 +31,13 @@ class Goonbot(commands.Bot):
     # A default embed that will sprinkled around (so I don't have to manually set the color every time)
     embed = partial(discord.Embed, color=discord.Color.blurple())
 
-    def __init__(self, intents: discord.Intents, environment: EnvironmentType | None = None, **kwargs):
+    def __init__(self, intents: discord.Intents, **kwargs):
         super().__init__(
             command_prefix=commands.when_mentioned_or("."),
             help_command=None,
             intents=intents,
             **kwargs,
         )
-        self.environment = environment
 
     def ping_owner(self) -> str:
         return f"<@{self.owner_id}>"
@@ -125,28 +123,41 @@ async def on_app_command_error(interaction: discord.Interaction, error: discord.
 @commands.is_owner()
 async def sync(ctx: commands.Context, guild: str | None = None):
     """
-    This command syncs all of the bot's commands (names & descriptions) to a given server
+    This command syncs all of the bot's commands (names & descriptions) to a given server.
+    It must be called from within DMs.
 
-    It's a newer standard for discord.py bots, and is required to quickly debug and develop new features.
-    Without syncing the bot command tree to a server, it can take an hour (or longer) for changes to
-    trickle to all the servers the bot is in.
+    This may seem convoluted, but this is necessary because there are usually two instances of the bot
+    running at a time, and they're both in the development server.
+
+    ---
+    Including a sync prefix command is a newer standard for discord.py bots, and is required to
+    quickly debug and develop new features. Without syncing the bot command tree to a server, it
+    can take an hour (or longer) for changes to trickle to all the servers the bot is in.
 
     It might be tempting to add the bot.tree.sync(guild) line in bot.setup_hook().
     However, if you sync your bot commands every time it restarts, especially during the development
     of new features when frequent restarts are necessary, you'll get rate-limited by Discord into next week.
     They really don't like people spamming app command syncs to servers.
     """
-    if goonbot.environment == EnvironmentType.development:
+    # This "DM-only" rule keeps me from syncing both bots in the dev environment,
+    # when I usually only need to sync one or the other
+    if ctx.message.guild is not None:
+        return await ctx.send(embed=goonbot.embed(title="You can only call this command from within DMs."))
+
+    if not guild:
+        return await ctx.send("You must specify a guild, either prod of dev")
+
+    if guild in ["testing", "test", "dev", "development"]:
         await goonbot.tree.sync(guild=goonbot.BOTTING_TOGETHER)
-    if goonbot.environment == EnvironmentType.production:
+        selected_guild = "Botting together (development server)"
+    elif guild in ["live", "goon", "prod", "production"]:
         await goonbot.tree.sync(guild=goonbot.GOON_HQ)
+        selected_guild = "Goon HQ"
+    else:
+        return f"{guild} was neither 'dev' or 'prod', aborting."
 
     assert goonbot.user
-    await ctx.send(
-        embed=goonbot.embed(
-            title=f"{goonbot.user.name} commands synced to {'prod' if goonbot.environment == EnvironmentType.production else 'dev'}"
-        )
-    )
+    await ctx.send(embed=goonbot.embed(title=f"{goonbot.user.name} commands synced to {selected_guild}"))
 
 
 @goonbot.command(name="restart", description="[Meta] Restart the bot")
