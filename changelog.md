@@ -10,6 +10,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 Changes made, but not associated with a particular version yet
 
+## [6.0.2]
+First hot fix! And `/teams` changes
+
+### Hot Fixed
+- **Delete a bot message**
+  - Goonbot got a bit over zealous with the last patch, and was stopping anyone from deleting any of his messages. He's been nerfed
+- **Send Love**
+  - Mentions the user, so you're no longer sending love the ether
+
+### Changed
+- `/teams`
+  - Formatting changes!
+    - "Mention" users
+    - Numbered teams, which discord nicely spaces out because it's technically markdown
+
 ## [6.0.1]
 First patch!
 
