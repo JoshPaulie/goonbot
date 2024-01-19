@@ -10,6 +10,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 Changes made, but not associated with a particular version yet
 
+## [6.0.3]
+A few community suggestions
+
+> [!None]
+> This update technically (🤓☝️) involves user tracking
+> Read more about the privacy policy [here](docs/privacy-policy.md)
+
+### Added
+- Command usage tracker (suggested by boxrog)
+  - Goonbot will tally how many times each user has used a command
+  - This data will be fun for later use, like a Goonbot unwrapped
+
+### Changed
+- **Chatting Watch** (suggested by Ectoplax)
+  - Now uses a random reaction
+  - New reactions
+    - 💀
+    - :clueless:
+
+
 ## [6.0.2]
 First hot fix! And `/teams` changes
 
