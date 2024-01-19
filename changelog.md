@@ -11,7 +11,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 Changes made, but not associated with a particular version yet
 
 ## [6.0.3a]
-A the first small batch of community suggestions
+The first small batch of community suggestions
+
+**6.0.3** will be made up of two parts. I wanted to get the command tracking going ASAP, to minimize how far back I need to manually enter command usage stats
 
 > [!Note]
 > This update technically (🤓☝️) involves user tracking. Read more about the privacy policy [here](docs/privacy-policy.md)
