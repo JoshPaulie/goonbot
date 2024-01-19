@@ -13,7 +13,7 @@ Changes made, but not associated with a particular version yet
 ## [6.0.3]
 A few community suggestions
 
-> [!None]
+> [!Note]
 > This update technically (🤓☝️) involves user tracking
 > Read more about the privacy policy [here](docs/privacy-policy.md)
 
