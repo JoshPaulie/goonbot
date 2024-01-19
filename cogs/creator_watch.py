@@ -145,12 +145,19 @@ class CreatorWatch(commands.Cog):
         "Settled": ("UCs-w7E2HZWwXmjt9RTvBB_A", None),
         "Review Brah": ("UCeR0n8d3ShTn_yrMhpwyE1Q", None),
         "Dr. Grande": ("UCC_0vyFTKk1Nlodo4QsiQkw", None),
+        "NeverKnowsBest": ("UC1fKT0wuhchtclPqpdWEnHw", None),
+        "Patrician": ("UCnw3aIEiz60S6O3XcztCVkQ", None),
+        "Mega64": ("UCgc4xqIMDoiP4KOTFS21TJA", "mega64podcast"),
+        "Nemesis": ("UCbMm7Vn6HCXquHX4ooqLIag", "lol_nemesis"),
     }
 
     def __init__(self, bot: Goonbot):
         self.bot = bot
 
-    @app_commands.command(name="creator")
+    @app_commands.command(
+        name="creator",
+        description="Multitool for quickly linking recent content from a given creator",
+    )
     @app_commands.choices(
         creator_name=[app_commands.Choice(name=c, value=c) for c in sorted(creators.keys())]
     )
