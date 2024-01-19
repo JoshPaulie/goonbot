@@ -10,12 +10,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 Changes made, but not associated with a particular version yet
 
-## [6.0.3]
-A few community suggestions
+## [6.0.3a]
+A the first small batch of community suggestions
 
 > [!Note]
-> This update technically (🤓☝️) involves user tracking
-> Read more about the privacy policy [here](docs/privacy-policy.md)
+> This update technically (🤓☝️) involves user tracking. Read more about the privacy policy [here](docs/privacy-policy.md)
 
 ### Added
 - Command usage tracker (suggested by boxrog)
