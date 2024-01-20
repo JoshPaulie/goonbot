@@ -32,19 +32,21 @@ class ChattingWatch(commands.Cog):
     @commands.Cog.listener("on_message")
     async def chatting_listener(self, message: discord.Message):
         """This listener is responsible for adding a random reaction to a message, if the message author has typed consecutive 5 messages without getting interuptted"""
+        # If we're in DM, ignore
+        if not message.guild:
+            return
+
         # Get message details
         channel_id = message.channel.id
         author_id = message.author.id
 
         # Ignore messages sent in the testing guild, or sent by the bot
-        assert message.guild
         assert self.bot.user
         if message.guild == self.bot.BOTTING_TOGETHER or message.author.id == self.bot.user.id:
             return
 
         # This user is commonly in VC but needs to be muted, and uses text to communicate.
         # We'll except him from this "feature" when he's in voice channel
-        assert message.guild
         for channel in message.guild.voice_channels:
             for user in channel.members:
                 if user.id == ECTOPLAX_ID:
