@@ -59,6 +59,12 @@ class TwitterEmbeds(commands.Cog):
 
     @commands.Cog.listener("on_message")
     async def embed_twitter_link(self, message: discord.Message):
+        # Twitter random decides to enable and disable embedding within apps like discord or telegram
+        # At time of writing, it's disabled. So we'll halt this for the time being.
+        disabled = True
+        if disabled:
+            return
+
         # Do nothing if the message doesn't start with a twitter domain
         if not any([message.content.startswith(f"https://{domain}") for domain in ["twitter", "x"]]):
             return
