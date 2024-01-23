@@ -10,6 +10,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 Changes made, but not associated with a particular version yet
 
+## [6.0.3b]
+Second batch of suggestions
+
+### Added
+- **Grammar geek** cog to make goonbot the most annoying bot ever (inspired by RoninAlex suggestion)
+  - No extra note. Wouldn't want to spoil the fun, would we?
+- `/creator`
+  - New personalities
+    - NeverKnowsBest (suggested by Poydok)
+    - Patritian (suggested by Poydok)
+    - Nemesis (a favorite of Ectoplax)
+    - Mega64 (a favorite of RoninAlex)
+
+### Fixed
+- `/peepotalk` is no longer `/peepotlak`
+
+### Disabled
+- FixTweet
+  - FixTweet is disabled until space man decides to disable twitter embeds again
+
 ## [6.0.3a]
 The first small batch of community suggestions
 
