@@ -64,8 +64,9 @@ class GoonbotPicks(commands.Cog):
         num_of_dice = int(num_of_dice)
         rolls = [random.randint(1, dice_sides) for _ in range(num_of_dice)]
         dice_roll_embed = self.bot.embed(title="  |  ".join(map(str, rolls)))
-        dice_roll_embed.add_field(name="Advantage" if len(rolls) == 2 else "Highest", value=max(rolls))
-        dice_roll_embed.add_field(name="Disadvantage" if len(rolls) == 2 else "Lowest", value=min(rolls))
+        if len(rolls) > 1:
+            dice_roll_embed.add_field(name="Advantage" if len(rolls) == 2 else "Highest", value=max(rolls))
+            dice_roll_embed.add_field(name="Disadvantage" if len(rolls) == 2 else "Lowest", value=min(rolls))
         dice_roll_embed.set_footer(text=f"Total: {sum(rolls)}")
 
         await interaction.response.send_message(embed=dice_roll_embed)
