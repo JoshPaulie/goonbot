@@ -448,7 +448,7 @@ class League(commands.Cog):
                 inline=False,
             )
 
-        await interaction.response.send_message(embed=champion_embed)
+        await interaction.response.send_message(embed=champion_embed, ephemeral=True)
 
 
 async def setup(bot):
