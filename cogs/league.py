@@ -1,4 +1,5 @@
 import asyncio
+import datetime as dt
 import time
 
 import discord
@@ -333,6 +334,7 @@ class League(commands.Cog):
     @app_commands.choices(
         gamemode=[
             app_commands.Choice(name="Draft Pick", value=400),
+            app_commands.Choice(name="ARAM", value=450),
             app_commands.Choice(name="Quickplay", value=490),
             app_commands.Choice(name="Ranked Solo/Duo", value=420),
             app_commands.Choice(name="Ranked Flex", value=470),
@@ -346,7 +348,7 @@ class League(commands.Cog):
         interaction: discord.Interaction,
         summoner_name: str | None,
         gamemode: app_commands.Choice[int],
-        match_count: app_commands.Range[int, 1, 50] = 20,
+        match_count: app_commands.Range[int, 0, 50] = 20,
     ):
         if summoner_name is None:
             summoner_name = discord_to_summoner_name[interaction.user.id]
@@ -367,13 +369,26 @@ class League(commands.Cog):
                 )
             )
 
+        client_query = {
+            "queue": gamemode.value,
+            "count": match_count,
+        }
+        if not match_count:
+            this_morning = (
+                dt.datetime.now(dt.timezone.utc)
+                .replace(hour=0, minute=0, second=0, microsecond=0)
+                .timestamp()
+            )
+            client_query["startTime"] = int(this_morning)
+            client_query["count"] = 100
+
         # Use Riot client to get a ton of matches
         async with self.client_lock:
             async with self.riot_client as client:
                 match_ids = await client.get_lol_match_v5_match_ids_by_puuid(
                     region="americas",
                     puuid=summoner["puuid"],
-                    queries={"queue": gamemode.value, "count": match_count},
+                    queries=client_query,
                 )
                 async with TaskGroup(asyncio.Semaphore(100)) as tg:
                     for match_id in match_ids:
@@ -384,7 +399,9 @@ class League(commands.Cog):
         if not matches:
             return await interaction.followup.send(
                 embed=self.bot.embed(
-                    title=f"{summoner_name} doesn't have any {gamemode.name} games played",
+                    title=f"{summoner_name} hasn't played any {gamemode.name} games today. 🥱"
+                    if not match_count
+                    else f"{summoner_name} doesn't have any {gamemode.name} games played",
                     color=discord.Color.greyple(),
                 )
             )
@@ -400,6 +417,8 @@ class League(commands.Cog):
 
         last20_stats = RecentGamesParser(summoner, matches, gamemode.name)
         last20_embed = last20_stats.make_embed(champion_id_to_image_path, champion_id_to_name)
+        if last20_embed.title:
+            last20_embed.title += " (today)"
 
         end_time = time.perf_counter()
         loading_time = round(end_time - start_time, 2)
