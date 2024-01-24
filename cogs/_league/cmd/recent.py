@@ -113,7 +113,7 @@ class RecentGamesParser:
 
     def make_embed(self, champion_id_to_image_path: dict[int, str], champion_id_to_name: dict[int, str]):
         recent_embed = discord.Embed(
-            title=f"{self.summoner['name']} {self.gamemode_name} stats",
+            title=f"{self.summoner['name']} recent games",
             description=f"Analysis of your last **{len(self.matches)}** {self.gamemode_name} games!",
         )
 
