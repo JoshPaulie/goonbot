@@ -51,3 +51,13 @@ Literal [multi-billion](https://levvvel.com/riot-games-statistics/) dollar Riot 
 Similar to lastgame but analyzes your last 50 ARAM games, and returns fun stats. Stats are cumulative, so "deaths" represents how many deaths you had in the 50 games in total.
 
 If you have less than 50 ARAM games, all of your games will be analyzed
++++
+## 'Recent' Command
+The recent command is used to analyze recent games of a particular gamemode.
+
+By default, it analyzes your past 20 games, but this can be specified to be as high as 50. If you have less than the match count specified, all of your games will be analyzed.
+
+### Today's games
+You can also specify the match count to be 0. By doing so, Goonbot will analyze all your games played today, if any.
+
+> "Today" starts at 12:00AM, of the current day, in UTC. Goonbot usually operates in CST, where it's hosted, but Riot servers are on UTC time. This may lead to some minor inaccuracies for those who play late into the night (nobody around here)
