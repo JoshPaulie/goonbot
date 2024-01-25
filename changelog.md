@@ -10,6 +10,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 Changes made, but not associated with a particular version yet
 
+## [6.0.4]
+😌 evening patches 1/24/24
+
+### Add
+- `/recent`
+  - New feature that allows you to specify 0 as the `match_count`, which gathers games played today rather than a specific amount
+  - Example usage: `/recent gamemode:Draft Pick summoner_name:bexli match_count:0`
+  - Recent also now has a doc page, which was somehow missed
+
+### Changed
+- `/diceroll`
+  - No longer shows advantage/disadvantage when user only rolls one die
+- `/champion`
+  - Response is now ephemeral, meaning only you can see the response and auto deletes after awhile
+
 ## [6.0.3b]
 Second batch of suggestions
 
