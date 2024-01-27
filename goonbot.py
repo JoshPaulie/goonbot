@@ -215,7 +215,10 @@ async def on_app_command_completion(interaction: discord.Interaction, command: d
 # Context menus
 # Context menus are most easily defined here, directly in the goonbot instance file
 # Defining most of the general contexts menus here would make since
-# but not for cog specific commands like cog/rats.report_rap.
+# but not for cog specific commands.
+
+# For more on cog specific commands
+# https://github.com/Rapptz/discord.py/issues/7823#issuecomment-1086830458
 
 # > "What are context menus?"
 # They're commands that you can bind to particular "contexts," namley messages or users.
