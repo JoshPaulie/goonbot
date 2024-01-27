@@ -1,4 +1,3 @@
-from typing import Any, Coroutine
 from urllib.parse import urlparse
 
 import discord
@@ -6,7 +5,6 @@ from discord import app_commands
 from discord.ext import commands
 
 from goonbot import Goonbot
-from text_processing import join_lines
 
 
 def fix_link(url: str, use_gallery_view: bool = False) -> str:
@@ -23,75 +21,47 @@ def fix_link(url: str, use_gallery_view: bool = False) -> str:
     return parsed_url.scheme + "://" + fixed_netloc + parsed_url.path
 
 
-class Confirm(discord.ui.View):
-    def __init__(self):
-        super().__init__(timeout=8)
-        self.value = None
-        self.gallery_view = False
-
-    def on_timeout(self) -> Coroutine[Any, Any, None]:
-        self.stop()
-        return super().on_timeout()
-
-    @discord.ui.button(label="Replace link", style=discord.ButtonStyle.green)
-    async def replace_link_button(self, interaction: discord.Interaction, button: discord.ui.Button):
-        await interaction.response.defer()
-        self.value = True
-        self.stop()
-
-    @discord.ui.button(label="Media only", style=discord.ButtonStyle.green)
-    async def replace_link_gallery_button(self, interaction: discord.Interaction, button: discord.ui.Button):
-        await interaction.response.defer()
-        self.value = True
-        self.gallery_view = True
-        self.stop()
-
-    @discord.ui.button(label="Cancel", style=discord.ButtonStyle.grey)
-    async def cancel_button(self, interaction: discord.Interaction, button: discord.ui.Button):
-        await interaction.response.defer()
-        self.value = False
-        self.stop()
-
-
 class TwitterEmbeds(commands.Cog):
     def __init__(self, bot: Goonbot):
         self.bot = bot
+        self.fix_tweet_ctx_menu = app_commands.ContextMenu(
+            name="Embed Tweet",
+            callback=self.embed_tweet,
+        )
+        self.bot.tree.add_command(self.fix_tweet_ctx_menu)
 
-    @commands.Cog.listener("on_message")
-    async def embed_twitter_link(self, message: discord.Message):
-        # Twitter random decides to enable and disable embedding within apps like discord or telegram
-        # At time of writing, it's disabled. So we'll halt this for the time being.
-        disabled = True
-        if disabled:
-            return
+    async def embed_tweet(self, interaction: discord.Interaction, message: discord.Message) -> None:
+        link = message.content
 
         # Do nothing if the message doesn't start with a twitter domain
-        if not any([message.content.startswith(f"https://{domain}") for domain in ["twitter", "x"]]):
+        if not any([link.startswith(f"https://{domain}") for domain in ["twitter", "x"]]):
+            return await interaction.response.send_message(
+                embed=discord.Embed(description="This is not a tweet. 😴", color=discord.Color.greyple()),
+                ephemeral=True,
+            )
+
+        await interaction.response.send_message(fix_link(link))
+
+    @commands.Cog.listener("on_message")
+    async def auto_embed_media_tweets(self, message: discord.Message):
+        """
+        Automatically reply to tweet with media, with an embedded version mirrored through FixTweet
+        You can watch FixTweet videos in discord
+
+        Currently only covers
+        - Tweets that aren't replies
+        - Tweets that contain a video
+        """
+        link = message.content
+        # Do nothing if the message doesn't start with a twitter domain
+        if not any([link.startswith(f"https://{domain}") for domain in ["twitter", "x"]]):
             return
 
-        confirmation_view = Confirm()
-        confirmation_message = await message.reply(
-            embed=self.bot.embed(title="Replace this link with a fxTwitter link?").set_footer(
-                text="You can just ignore this, it'll clear a few seconds."
-            ),
-            view=confirmation_view,
-        )
+        # Only embed if it's a video link
+        if not link.endswith("?s=20"):
+            return
 
-        # Wait for response (or timeout)
-        await confirmation_view.wait()
-        # Clean up confirmation message (it's spammy)
-        await confirmation_message.delete()
-        # If they chose to replace, delete the original message and send a
-        if confirmation_view.value:
-            await message.delete()
-            await message.channel.send(
-                join_lines(
-                    [
-                        f"**{message.author.mention}** shared",
-                        fix_link(message.content, use_gallery_view=confirmation_view.gallery_view),
-                    ]
-                ),
-            )
+        await message.reply(fix_link(link, use_gallery_view=True))
 
 
 async def setup(bot):
