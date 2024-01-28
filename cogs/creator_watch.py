@@ -149,19 +149,20 @@ class CreatorWatch(commands.Cog):
         "Patrician": ("UCnw3aIEiz60S6O3XcztCVkQ", None),
         "Mega64": ("UCgc4xqIMDoiP4KOTFS21TJA", "mega64podcast"),
         "Nemesis": ("UCbMm7Vn6HCXquHX4ooqLIag", "lol_nemesis"),
+        "Dantes": ("UCcIKDdClybN7AWT4OHcMWzQ", "dantes"),
     }
 
     def __init__(self, bot: Goonbot):
         self.bot = bot
 
     @app_commands.command(
-        name="creator",
+        name="watch",
         description="Multitool for quickly linking recent content from a given creator",
     )
     @app_commands.choices(
         creator_name=[app_commands.Choice(name=c, value=c) for c in sorted(creators.keys())]
     )
-    async def creator(self, interaction: discord.Interaction, creator_name: app_commands.Choice[str]):
+    async def watch(self, interaction: discord.Interaction, creator_name: app_commands.Choice[str]):
         youtube_id, twitch_username = self.creators[creator_name.value]
         if youtube_id and twitch_username:
             return await interaction.response.send_message(
