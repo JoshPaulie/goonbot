@@ -10,6 +10,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 Changes made, but not associated with a particular version yet
 
+## [6.0.5]
+`/creator` is now `/watch`
+
+### Changed
+- `/creator` was renamed to `/watch`
+
+### Added
+- `/watch`
+  - New personalities
+    - Dantes
+
 ## [6.0.4]
 😌 evening patches 1/24/24
 
