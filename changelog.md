@@ -11,15 +11,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 Changes made, but not associated with a particular version yet
 
 ## [6.0.5]
-`/creator` is now `/watch`
-
-### Changed
-- `/creator` was renamed to `/watch`
+Biggest change: `/creator` is now `/watch`
 
 ### Added
+- **Twitter Embed** message command
+  - Used to run a twitter link through FixTweet
+- **How long ago** message command
+  - Tells you how long ago a message was sent
+  - "I'll be on in 10"
 - `/watch`
   - New personalities
     - Dantes
+
+### Changed
+- `/creator` was renamed to `/watch`
+- **Twitter Embedding**
+  - Tweets that have media (polls, videos) are automatically replied with links served through FixTweet. Read more [here](docs/twitter-embed.md)
+
 
 ## [6.0.4]
 😌 evening patches 1/24/24
