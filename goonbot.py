@@ -1,4 +1,5 @@
 import asyncio
+import datetime as dt
 import logging
 import random
 import time
@@ -12,7 +13,7 @@ import discord
 from discord.ext import commands
 
 from keys import Keys
-from text_processing import acronymize, join_lines
+from text_processing import acronymize, join_lines, time_ago
 
 
 class Goonbot(commands.Bot):
@@ -262,6 +263,15 @@ async def make_acronym(interaction: discord.Interaction, message: discord.Messag
         if message.embeds[0].title:
             message_content = message.embeds[0].title
     await interaction.response.send_message(embed=goonbot.embed(title=acronymize(message_content)))
+
+
+@goonbot.tree.context_menu(name="How long ago")
+async def message_age(interaction: discord.Interaction, message: discord.Message):
+    created_at_utc = message.created_at
+    created_ago = time_ago(int(created_at_utc.timestamp()))
+    await interaction.response.send_message(
+        embed=goonbot.embed(description=f"This message was created {created_ago}")
+    )
 
 
 @goonbot.tree.context_menu(name="Profile pic")
