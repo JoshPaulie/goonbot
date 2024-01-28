@@ -121,9 +121,9 @@ async def on_app_command_error(interaction: discord.Interaction, error: discord.
 
 @goonbot.command(name="sync", description="[Meta] Syncs commands to server")
 @commands.is_owner()
-async def sync(ctx: commands.Context, guild: str | None = None):
+async def sync(ctx: commands.Context):
     """
-    This command syncs all of the bot's commands (names & descriptions) to a given server.
+    This command syncs all of the bot's commands (names, descriptions, autocomplete options & choices) to a given server.
     It must be called from within DMs.
 
     This may seem convoluted, but this is necessary because there are usually two instances of the bot
@@ -144,20 +144,15 @@ async def sync(ctx: commands.Context, guild: str | None = None):
     if ctx.message.guild is not None:
         return await ctx.send(embed=goonbot.embed(title="You can only call this command from within DMs."))
 
-    if not guild:
-        return await ctx.send("You must specify a guild, either prod of dev")
-
-    if guild in ["testing", "test", "dev", "development"]:
-        await goonbot.tree.sync(guild=goonbot.BOTTING_TOGETHER)
-        selected_guild = "Botting together (development server)"
-    elif guild in ["live", "goon", "prod", "production"]:
-        await goonbot.tree.sync(guild=goonbot.GOON_HQ)
-        selected_guild = "Goon HQ"
-    else:
-        return f"{guild} was neither 'dev' or 'prod', aborting."
+    # Actual syncing
+    # By not specifying a guild, it syncs its commands to all the guilds its in
+    await goonbot.tree.sync()
 
     assert goonbot.user
-    await ctx.send(embed=goonbot.embed(title=f"{goonbot.user.name} commands synced to {selected_guild}"))
+    guild_names = [guild.name for guild in goonbot.guilds]
+    await ctx.send(
+        embed=goonbot.embed(title=f"{goonbot.user.name} commands synced to {', '.join(guild_names)}")
+    )
 
 
 @goonbot.command(name="restart", description="[Meta] Restart the bot")
