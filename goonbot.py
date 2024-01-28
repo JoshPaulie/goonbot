@@ -20,7 +20,7 @@ class Goonbot(commands.Bot):
     BOTTING_TOGETHER = discord.Object(510865274594131968, type=discord.Guild)  # The development server
     owner_id = 177131156028784640  # bexli boy
 
-    VERSION = (6, 0, 4)
+    VERSION = (6, 0, 5)
 
     keys = Keys
 
