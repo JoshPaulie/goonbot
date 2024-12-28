@@ -149,9 +149,11 @@ async def sync(ctx: commands.Context, guild: str | None = None):
         return await ctx.send("You must specify a guild, either prod of dev")
 
     if guild in ["testing", "test", "dev", "development"]:
+        goonbot.tree.clear_commands(guild=goonbot.BOTTING_TOGETHER)
         await goonbot.tree.sync(guild=goonbot.BOTTING_TOGETHER)
         selected_guild = "Botting together (development server)"
     elif guild in ["live", "goon", "prod", "production"]:
+        goonbot.tree.clear_commands(guild=goonbot.GOON_HQ)
         await goonbot.tree.sync(guild=goonbot.GOON_HQ)
         selected_guild = "Goon HQ"
     else:
