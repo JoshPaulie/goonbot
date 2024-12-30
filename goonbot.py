@@ -65,21 +65,9 @@ class Goonbot(commands.Bot):
     async def setup_hook(self):
         """
         Called while the bot is logging in, but before it's ready to be used by users.
-        Handles startup actions like call load_cogs(), and copy all the commands to
-        both servers, allowing for new features and changes to be used immediately
-
-        > "What's the difference between 'syncing' and 'copying' commands to a server?"
-        I'm not super sure at this time. Copy seems to be a primer for sync in some way.
-        What I do know for sure is that copying can be done added to the startup_hook(),
-        while syncing shouldn't. (Citation needed)
+        Handles startup actions like call load_cogs()
         """
         await self.load_cogs()
-        guilds = [
-            self.GOON_HQ,
-            self.BOTTING_TOGETHER,
-        ]
-        for guild in guilds:
-            self.tree.copy_global_to(guild=guild)
 
     async def on_ready(self):
         """Called after the bot is finished logging in and is ready to use"""
@@ -149,11 +137,9 @@ async def sync(ctx: commands.Context, guild: str | None = None):
         return await ctx.send("You must specify a guild, either prod of dev")
 
     if guild in ["testing", "test", "dev", "development"]:
-        goonbot.tree.clear_commands(guild=goonbot.BOTTING_TOGETHER)
         await goonbot.tree.sync(guild=goonbot.BOTTING_TOGETHER)
         selected_guild = "Botting together (development server)"
     elif guild in ["live", "goon", "prod", "production"]:
-        goonbot.tree.clear_commands(guild=goonbot.GOON_HQ)
         await goonbot.tree.sync(guild=goonbot.GOON_HQ)
         selected_guild = "Goon HQ"
     else:
