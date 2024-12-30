@@ -110,20 +110,17 @@ async def on_app_command_error(interaction: discord.Interaction, error: discord.
 
 @goonbot.command(name="sync", description="[Meta] Syncs commands to server")
 @commands.is_owner()
-async def sync(ctx: commands.Context, guild: str | None = None):
+async def sync(ctx: commands.Context):
     """
-    This command syncs all of the bot's commands (names & descriptions) to a given server.
+    This command syncs all of the bot's commands (names & descriptions) to a all servers its in.
     It must be called from within DMs.
-
-    This may seem convoluted, but this is necessary because there are usually two instances of the bot
-    running at a time, and they're both in the development server.
 
     ---
     Including a sync prefix command is a newer standard for discord.py bots, and is required to
     quickly debug and develop new features. Without syncing the bot command tree to a server, it
     can take an hour (or longer) for changes to trickle to all the servers the bot is in.
 
-    It might be tempting to add the bot.tree.sync(guild) line in bot.setup_hook().
+    It might be tempting to add the bot.tree.sync() line in bot.setup_hook().
     However, if you sync your bot commands every time it restarts, especially during the development
     of new features when frequent restarts are necessary, you'll get rate-limited by Discord into next week.
     They really don't like people spamming app command syncs to servers.
@@ -133,20 +130,18 @@ async def sync(ctx: commands.Context, guild: str | None = None):
     if ctx.message.guild is not None:
         return await ctx.send(embed=goonbot.embed(title="You can only call this command from within DMs."))
 
-    if not guild:
-        return await ctx.send("You must specify a guild, either prod of dev")
+    await goonbot.tree.sync()
 
-    if guild in ["testing", "test", "dev", "development"]:
-        await goonbot.tree.sync(guild=goonbot.BOTTING_TOGETHER)
-        selected_guild = "Botting together (development server)"
-    elif guild in ["live", "goon", "prod", "production"]:
-        await goonbot.tree.sync(guild=goonbot.GOON_HQ)
-        selected_guild = "Goon HQ"
-    else:
-        return f"{guild} was neither 'dev' or 'prod', aborting."
+    goonbot_guilds = [g.name for g in goonbot.guilds]
+    goonbot_guilds_str = ", ".join(goonbot_guilds)
 
     assert goonbot.user
-    await ctx.send(embed=goonbot.embed(title=f"{goonbot.user.name} commands synced to {selected_guild}"))
+    await ctx.send(
+        embed=goonbot.embed(
+            title="Synced ✅",
+            description=f"{goonbot.user.name} commands synced to {goonbot_guilds_str}",
+        )
+    )
 
 
 @goonbot.command(name="restart", description="[Meta] Restart the bot")
