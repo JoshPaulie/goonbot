@@ -82,13 +82,11 @@ goonbot = Goonbot(
     intents=discord.Intents.all(),
 )
 
+
 # Generic last-resort error message to be sent, in hopes of negating all "interaction failed messages"
 # (by effectively replacing it with a different error message lol)
 # Doesn't catch "unknown interaction" failures
-command_tree = goonbot.tree
-
-
-@command_tree.error
+@goonbot.tree.error
 async def on_app_command_error(interaction: discord.Interaction, error: discord.app_commands.AppCommandError):
     await interaction.followup.send(
         embed=goonbot.embed(
@@ -130,11 +128,14 @@ async def sync(ctx: commands.Context):
     if ctx.message.guild is not None:
         return await ctx.send(embed=goonbot.embed(title="You can only call this command from within DMs."))
 
+    # Sync commands to all guilds
     await goonbot.tree.sync()
 
+    # Gather list of guilds bot is in
     goonbot_guilds = [g.name for g in goonbot.guilds]
     goonbot_guilds_str = ", ".join(goonbot_guilds)
 
+    # Confirmation message
     assert goonbot.user
     await ctx.send(
         embed=goonbot.embed(
@@ -147,13 +148,18 @@ async def sync(ctx: commands.Context):
 @goonbot.command(name="restart", description="[Meta] Restart the bot")
 @commands.is_owner()
 async def restart(ctx: commands.Context):
-    """ "Restarts" the bot by turning it off, so the service responsible for updating and running the bot will notice it's off and restart it."""
+    """
+    "Restarts" the bot by turning it off, so the service responsible for updating
+    and running the bot will notice it's off and restart it.
+    """
     await ctx.send(
         embed=goonbot.embed(
             title="Stopping the bot...",
-            description="The service responsible for running the bot will notice it's off and restart it. The service also updates the bot",
+            description="The service responsible for running the bot will notice it's off and restart it.",
         )
     )
+
+    # Kill the bot routine
     await goonbot.close()
 
 
