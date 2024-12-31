@@ -1,6 +1,6 @@
 # Used for both command fallbacks and autocomplete
-discord_to_summoner_name = {
-    177131156028784640: "bexli",
+discord_to_riot_account = {
+    177131156028784640: "bexli#bex",
     186642971972730881: "mltsimpleton",
     104488848309895168: "ectoplax",
     218567485308403712: "roninalex",
