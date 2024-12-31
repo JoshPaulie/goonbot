@@ -10,6 +10,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 Changes made, but not associated with a particular version yet
 
+## [6.1.0]
+First minor release, including important command tree changes. Big thanks to @Sobheab from the discord.py gang.
+
+### Fixed
+- `.sync` and other meta command-related changes
+
+#### League
+League commands are back!
+- Updated pulsefire (underlying league package)
+- Refactored commands to use "new" Riot ID convention
+
+### Removed
+- **Grammar geek** (you're*) cog removed
+
 ## [6.0.5]
 Biggest change: `/creator` is now `/watch`
 
