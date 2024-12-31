@@ -28,7 +28,7 @@ from ._league.cmd.last_game import ArenaMatchParser, StandardMatchParser, get_al
 from ._league.cmd.recent import RecentGamesParser
 from ._league.cmd.summoner import league_entry_stats
 from ._league.formatting import format_big_number
-from ._league.lookups import discord_to_summoner_name, rank_reaction_strs
+from ._league.lookups import discord_to_riot_account, rank_reaction_strs
 
 REGION_NA1 = "na1"
 REGION_AMERICAS = "americas"
@@ -38,10 +38,10 @@ cache = DiskCache("cache")
 riot_cache_middleware = cache_middleware(
     cache,
     [
-        (lambda inv: inv.invoker.__name__ == "get_lol_summoner_v4_by_name", duration(days=1)),
-        (lambda inv: inv.invoker.__name__ == "get_lol_match_v5_match", float("inf")),
-        (lambda inv: inv.invoker.__name__ == "get_account_v1_by_puuid", duration(days=1)),
-        (lambda inv: inv.invoker.__name__ == "get_lol_champion_v4_masteries_by_puuid", duration(days=1)),
+        (lambda inv: inv.invoker.__name__ == "get_lol_summoner_v4_by_name", duration(days=1)),  # type: ignore
+        (lambda inv: inv.invoker.__name__ == "get_lol_match_v5_match", float("inf")),  # type: ignore
+        (lambda inv: inv.invoker.__name__ == "get_account_v1_by_puuid", duration(days=1)),  # type: ignore
+        (lambda inv: inv.invoker.__name__ == "get_lol_champion_v4_masteries_by_puuid", duration(days=1)),  # type: ignore
     ],
 )
 
@@ -49,9 +49,9 @@ cdragon_cache_middleware = cache_middleware(
     cache,
     [
         # Get champion pool
-        (lambda inv: inv.invoker.__name__ == "get_lol_v1_champion_summary", duration(hours=4)),
+        (lambda inv: inv.invoker.__name__ == "get_lol_v1_champion_summary", duration(hours=4)),  # type: ignore
         # Get specific champion details
-        (lambda inv: inv.invoker.__name__ == "get_lol_v1_champion", duration(weeks=1)),
+        (lambda inv: inv.invoker.__name__ == "get_lol_v1_champion", duration(weeks=1)),  # type: ignore
     ],
 )
 
@@ -80,12 +80,23 @@ class League(commands.Cog):
             ],
         )
 
-    async def get_summoner(self, summoner_name: str) -> RiotAPISchema.LolSummonerV4Summoner | None:
+    async def get_summoner(self, riot_username: str) -> RiotAPISchema.LolSummonerV4Summoner | None:
+        game_name, tag_line = riot_username.split("#")
         async with self.client_lock:
             async with self.riot_client as client:
                 try:
-                    return await client.get_lol_summoner_v4_by_name(region=REGION_NA1, name=summoner_name)
-                except ClientResponseError:
+                    riot_account = await client.get_account_v1_by_riot_id(
+                        region="americas",
+                        game_name=game_name,
+                        tag_line=tag_line,
+                    )
+                    print("riot uuid:", riot_account["puuid"])
+                    summoner = await client.get_lol_summoner_v4_by_puuid(
+                        region="na1", puuid=riot_account["puuid"]
+                    )
+                    return summoner
+                except ClientResponseError as e:
+                    print(e)
                     return None
 
     async def build_log_urls(self, puuids: list[str]):
@@ -103,29 +114,29 @@ class League(commands.Cog):
             for acc in account_details
         ]
 
-    async def summoner_name_autocomplete(self, interaction: discord.Interaction, current: str):
+    async def riot_name_autocomplete(self, interaction: discord.Interaction, current: str):
         return [
             app_commands.Choice(name=name, value=name)
-            for name in sorted(discord_to_summoner_name.values())
+            for name in sorted(discord_to_riot_account.values())
             if current.lower() in name.lower()
         ]
 
     @app_commands.command(name="summoner", description="Get stats for a summoner")
-    @app_commands.autocomplete(summoner_name=summoner_name_autocomplete)
-    @app_commands.describe(summoner_name="Provide a summoner, or leave this blank to use yours")
-    async def summoner(self, interaction: discord.Interaction, summoner_name: str | None):
-        if summoner_name is None:
-            summoner_name = discord_to_summoner_name[interaction.user.id]
+    @app_commands.autocomplete(riot_name=riot_name_autocomplete)
+    @app_commands.describe(riot_name="Provide a riot id, or leave this blank to use yours")
+    async def summoner(self, interaction: discord.Interaction, riot_name: str | None):
+        if riot_name is None:
+            riot_name = discord_to_riot_account[interaction.user.id]
 
         # Incase it takes longer than 3 seconds to respond, we defer the response and followup later
         await interaction.response.defer()
 
         # Get summoner data
-        summoner = await self.get_summoner(summoner_name)
+        summoner = await self.get_summoner(riot_name)
         if not summoner:
             return await interaction.followup.send(
                 embed=self.bot.embed(
-                    title=f"Summoner '{summoner_name}' not found",
+                    title=f"Summoner '{riot_name}' not found",
                     color=discord.Color.brand_red(),
                 )
             )
@@ -141,7 +152,7 @@ class League(commands.Cog):
                 )
 
         # Build embed
-        summoner_embed = self.bot.embed(title=summoner["name"])
+        summoner_embed = self.bot.embed(title=riot_name.split("#")[0])
         summoner_embed.set_thumbnail(url=make_profile_url(summoner["profileIconId"]))
 
         # Get league ranks
@@ -174,12 +185,12 @@ class League(commands.Cog):
         await interaction.followup.send(embed=summoner_embed)
 
     @app_commands.command(name="lastgame", description="An analysis of your lastest league game!")
-    @app_commands.autocomplete(summoner_name=summoner_name_autocomplete)
+    @app_commands.autocomplete(summoner_name=riot_name_autocomplete)
     @app_commands.describe(summoner_name="Provide a summoner, or leave this blank to use yours")
     async def last_match_analysis(self, interaction: discord.Interaction, summoner_name: str | None):
         """"""
         if summoner_name is None:
-            summoner_name = discord_to_summoner_name[interaction.user.id]
+            summoner_name = discord_to_riot_account[interaction.user.id]
 
         # Incase it takes longer than 3 seconds to respond, we defer the response and followup later
         await interaction.response.defer()
@@ -265,11 +276,11 @@ class League(commands.Cog):
         await interaction.followup.send(embed=last_match_embed)
 
     @app_commands.command(name="aram", description="An analysis of your last 50 ARAM games")
-    @app_commands.autocomplete(summoner_name=summoner_name_autocomplete)
+    @app_commands.autocomplete(summoner_name=riot_name_autocomplete)
     @app_commands.describe(summoner_name="Provide a summoner, or leave this blank to use yours")
     async def aram_analysis(self, interaction: discord.Interaction, summoner_name: str | None):
         if summoner_name is None:
-            summoner_name = discord_to_summoner_name[interaction.user.id]
+            summoner_name = discord_to_riot_account[interaction.user.id]
 
         # Start timer for response time
         start_time = time.perf_counter()
@@ -330,7 +341,7 @@ class League(commands.Cog):
     @app_commands.command(
         name="recent", description="An analysis of your recent games in a specific game mode"
     )
-    @app_commands.autocomplete(summoner_name=summoner_name_autocomplete)
+    @app_commands.autocomplete(summoner_name=riot_name_autocomplete)
     @app_commands.choices(
         gamemode=[
             app_commands.Choice(name="Draft Pick", value=400),
@@ -351,7 +362,7 @@ class League(commands.Cog):
         match_count: app_commands.Range[int, 0, 50] = 20,
     ):
         if summoner_name is None:
-            summoner_name = discord_to_summoner_name[interaction.user.id]
+            summoner_name = discord_to_riot_account[interaction.user.id]
 
         # Start timer for response time
         start_time = time.perf_counter()
@@ -399,9 +410,11 @@ class League(commands.Cog):
         if not matches:
             return await interaction.followup.send(
                 embed=self.bot.embed(
-                    title=f"{summoner_name} hasn't played any {gamemode.name} games today. 🥱"
-                    if not match_count
-                    else f"{summoner_name} doesn't have any {gamemode.name} games played",
+                    title=(
+                        f"{summoner_name} hasn't played any {gamemode.name} games today. 🥱"
+                        if not match_count
+                        else f"{summoner_name} doesn't have any {gamemode.name} games played"
+                    ),
                     color=discord.Color.greyple(),
                 )
             )
