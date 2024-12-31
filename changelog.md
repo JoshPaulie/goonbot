@@ -17,9 +17,10 @@ First minor release, including important command tree changes. Big thanks to @So
 - `.sync` and other meta command-related changes
 
 #### League
-League commands are back!
+League commands are back(ish)!
 - Updated pulsefire (underlying league package)
-- Refactored commands to use "new" Riot ID convention
+- Refactored the following commands to use "new" Riot ID convention
+  - `/lastgame`
 
 ### Removed
 - **Grammar geek** (you're*) cog removed
