@@ -10,6 +10,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 Changes made, but not associated with a particular version yet
 
+## [6.1.0]
+The NYE 2024-2025 Release! First minor release, including important command tree changes. Big thanks to @Sobheab from the discord.py gang.
+
+### Fixed
+- `.sync` and other meta command-related changes
+
+#### League
+League commands are back(ish)!
+- Updated pulsefire (underlying league package)
+- Refactored the following commands to use "new" Riot ID convention
+  - `/summoner`
+
+### Changed
+The cog used to create Goonbot Wrapped 2024 has been greatly expanded, for a more data driven recap of a year, outside of just goonbot interactions. Note the privacy policy reamins the same, message contents are **never** saved. :)
+
+### Removed
+- **Grammar geek** (you're*) cog removed
+
 ## [6.0.5]
 Biggest change: `/creator` is now `/watch`
 

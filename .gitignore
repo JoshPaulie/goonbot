@@ -35,5 +35,9 @@ keys.py
 
 # Riot cache
 cache/
+
+# Legacy command usage tracker file
 commands-processed.txt
-command_usage.db
+
+# Archiver
+gbdb.sqlite
