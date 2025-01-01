@@ -35,5 +35,6 @@ keys.py
 
 # Riot cache
 cache/
-commands-processed.txt
-command_usage.db
+
+# Archiver
+gbdb.sqlite
