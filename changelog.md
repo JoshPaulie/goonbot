@@ -20,7 +20,7 @@ First minor release, including important command tree changes. Big thanks to @So
 League commands are back(ish)!
 - Updated pulsefire (underlying league package)
 - Refactored the following commands to use "new" Riot ID convention
-  - `/lastgame`
+  - `/summoner`
 
 ### Removed
 - **Grammar geek** (you're*) cog removed
