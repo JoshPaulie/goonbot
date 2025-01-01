@@ -1,13 +1,13 @@
 # Used for both command fallbacks and autocomplete
 discord_to_riot_account = {
     177131156028784640: "bexli#bex",
-    186642971972730881: "mltsimpleton",
-    104488848309895168: "ectoplax",
-    218567485308403712: "roninalex",
-    104488534936666112: "boxrog",
-    164598493933993984: "vynle",
-    196009306133495812: "poydok",
-    164600098142158848: "cradmajone",
+    186642971972730881: "mltsimpleton#NA1",
+    104488848309895168: "ectoplax#NA1",
+    218567485308403712: "roninalex#NA1",
+    104488534936666112: "boxrog#NA1",
+    164598493933993984: "vynle#NA1",
+    196009306133495812: "poydok#NA1",
+    164600098142158848: "cradmajone#NA1",
 }
 
 
