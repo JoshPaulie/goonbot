@@ -68,25 +68,23 @@ def get_host_info() -> dict[str, str]:
     return info
 
 
-def create_processed_file():
+def ensure_processed_file():
     """Create the file that tallies how many commands have been processed, if it doesn't exist"""
     file = pathlib.Path(COMMANDS_PROCESSED_FILE_NAME)
     if not file.exists():
         logging.info(f"{COMMANDS_PROCESSED_FILE_NAME} not found...")
         with open(COMMANDS_PROCESSED_FILE_NAME, mode="w") as new_file:
             new_file.write("0")
-    logging.info(f"Created {COMMANDS_PROCESSED_FILE_NAME}")
+        logging.info(f"Created {COMMANDS_PROCESSED_FILE_NAME}")
 
 
 def get_commands_processed_value():
-    create_processed_file()
     with open(COMMANDS_PROCESSED_FILE_NAME, mode="r") as file:
         counter_value = file.read()
         return int(counter_value)
 
 
 def inc_processed_file(amount: int = 1):
-    create_processed_file()
     with open(COMMANDS_PROCESSED_FILE_NAME, mode="r") as file:
         counter_value = file.read()
     counter_value = int(counter_value)
@@ -100,6 +98,7 @@ class Meta(commands.Cog):
         self.bot = bot
         self.startup_time = time.perf_counter()
         self.counter_file_lock = asyncio.Lock()
+        ensure_processed_file()
 
     def count_app_commands(self) -> int:
         """Returns how many app (or "slash") commands are registered in all of the cogs"""
