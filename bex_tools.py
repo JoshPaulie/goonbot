@@ -29,6 +29,6 @@ class CycleRandom:
         if len(self.items) == len(self.used_items):
             self.used_items.clear()
 
-        next_item = random.choice(self.items)
+        next_item = random.choice([i for i in self.items if i not in self.used_items])
         self.used_items.append(next_item)
-        return random.choice([i for i in self.items if i not in self.used_items])
+        return next_item
