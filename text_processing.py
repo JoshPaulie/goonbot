@@ -21,6 +21,13 @@ def make_possessive(noun: str) -> str:
     return noun + "'s"
 
 
+def join_lines(lst: Sequence[str]) -> str:
+    """Helper for writing multiline embed descriptions, field values, etc. easier to hardcode
+
+    Functionally the inverse of str.splitlines()"""
+    return "\n".join(lst)
+
+
 def bullet_points(lst: Sequence[Any], numerical: bool = False) -> str:
     """Takes list of items, return bullet point version
 
@@ -31,15 +38,8 @@ def bullet_points(lst: Sequence[Any], numerical: bool = False) -> str:
         - three
     """
     if numerical:
-        return "\n".join([f"{indx + 1}. {item}" for indx, item in enumerate(lst)])
-    return "\n".join([f"- {item}" for item in lst])
-
-
-def join_lines(lst: Sequence[str]) -> str:
-    """Helper for writing multiline embed descriptions, field values, etc. easier to hardcode
-
-    Functionally the inverse of str.splitlines()"""
-    return "\n".join(lst)
+        return join_lines([f"{indx + 1}. {item}" for indx, item in enumerate(lst)])
+    return join_lines([f"- {item}" for item in lst])
 
 
 def comma_list(nouns: Sequence[str]) -> str:
@@ -100,6 +100,8 @@ def time_ago(timestamp: int) -> str:
 
 
 def html_to_md(text: str) -> str:
+    """Incredibly crude way of converting HTML tags to MD tags"""
+
     mappings = {
         "<i>": "*",
         "</i>": "*",
@@ -113,4 +115,10 @@ def html_to_md(text: str) -> str:
 
 
 def acronymize(input: str) -> str:
+    """
+    Create an acronym for any given sentence.
+    Done by splitting the sentence by white space, keeping only the capitalized first character of each word.
+
+    'This is a dumb bit' -> 'TIADB'
+    """
     return "".join([chars[0].upper() for chars in input.split()])
