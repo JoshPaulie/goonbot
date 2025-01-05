@@ -10,6 +10,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 Changes made, but not associated with a particular version yet
 
+## [6.1.1]
+Ancient bugs squashed, and change in archiver database (raw dogging SQL, like a man)
+
+### Fixed
+- Bug causing side effects with the custom randomness callable used to serve random content like `/cat` or the activities the bot decides to do
+- Corrected `/wie` logic (finally)
+- Archiver correctly documents reactions, with vanilla SQL and aiosqlite
+- Long standing bug causing slow restart times for service responsible for monitoring goonbot
+
 ## [6.1.0]
 The NYE 2024-2025 Release! First minor release, including important command tree changes. Big thanks to @Sobheab from the discord.py gang.
 
