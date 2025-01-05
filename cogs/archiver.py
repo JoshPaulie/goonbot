@@ -67,7 +67,7 @@ class CommandUsage(commands.Cog):
             )
             await db.commit()
 
-    @commands.Cog.listener("on_reaction_add")
+    @commands.Cog.listener("on_raw_reaction_add")
     async def reaction_used(self, reaction: discord.Reaction, user: discord.User):
         if reaction.message.guild != self.bot.GOON_HQ:
             return
