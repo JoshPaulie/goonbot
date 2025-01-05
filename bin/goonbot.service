@@ -2,7 +2,7 @@
 # It's tempting to symlink this to /etc/systemd/system; don't. :)
 # If the service file is modified after it's started, the service can't be restarted until the daemon is
 # manually reset, which the bot shouldn't be responsible for. This means you need to run
-# cp /home/pi/goonbot/bin/goonbot.service /etc/systemd/system; sudo systemctl daemon-reload
+# sudo cp /home/pi/goonbot/bin/goonbot.service /etc/systemd/system; sudo systemctl daemon-reload
 # any time you push a change that needs to be implemented
 
 [Unit]
