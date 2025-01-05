@@ -1,120 +1,105 @@
 import datetime as dt
 import uuid
 
+import aiosqlite
 import discord
-import sqlalchemy
 from discord.ext import commands
-from sqlalchemy import Column, create_engine
-from sqlalchemy.orm import Mapped, declarative_base, sessionmaker
 
 from goonbot import Goonbot
-
-# SQLAlchemy
-engine = create_engine("sqlite:///gbdb.sqlite")
-Session = sessionmaker(bind=engine)
-session = Session()
-
-# Record objects
-Base = declarative_base()
-
-
-class CommandRecord(Base):
-    __tablename__ = "command"
-
-    id = Column(sqlalchemy.String, primary_key=True, default=lambda: str(uuid.uuid4()))
-    userID = Column(sqlalchemy.Integer, unique=False)
-    commandName = Column(sqlalchemy.Integer, unique=False)
-    timestamp = Column(sqlalchemy.DateTime, unique=False)
-
-
-class ReactionRecord(Base):
-    __tablename__ = "reaction"
-
-    id = Column(sqlalchemy.String, primary_key=True, default=lambda: str(uuid.uuid4()))
-    userID = Column(sqlalchemy.Integer, unique=False)
-    reactionID = Column(sqlalchemy.Integer, unique=False)
-    messageID = Column(sqlalchemy.Integer, unique=False)
-    timestamp = Column(sqlalchemy.DateTime, unique=False)
-
-
-class MessageRecord(Base):
-    __tablename__ = "message"
-
-    id = Column(sqlalchemy.String, primary_key=True, default=lambda: str(uuid.uuid4()))
-    userID = Column(sqlalchemy.Integer, unique=False)
-    messageID = Column(sqlalchemy.Integer, unique=False)
-    channelID = Column(sqlalchemy.Integer, unique=False)
-    timestamp = Column(sqlalchemy.DateTime, unique=False)
 
 
 class CommandUsage(commands.Cog):
     def __init__(self, bot: Goonbot):
         self.bot = bot
+        self.db_path = "gbdb.sqlite"
+        self.bot.loop.create_task(self.ensure_database())
 
-        # Ensure DB exists
-        Base.metadata.create_all(engine)
+    async def ensure_database(self):
+        # Ensure database and tables exist
+        async with aiosqlite.connect(self.db_path) as db:
+            await db.execute(
+                """
+            CREATE TABLE IF NOT EXISTS command (
+                id TEXT PRIMARY KEY,
+                userID INTEGER,
+                commandName TEXT,
+                timestamp TEXT
+            )
+            """
+            )
+            await db.execute(
+                """
+            CREATE TABLE IF NOT EXISTS reaction (
+                id TEXT PRIMARY KEY,
+                userID INTEGER,
+                reactionStr TEXT,
+                messageID INTEGER,
+                timestamp TEXT
+            )
+            """
+            )
+            await db.execute(
+                """
+            CREATE TABLE IF NOT EXISTS message (
+                id TEXT PRIMARY KEY,
+                userID INTEGER,
+                messageID INTEGER,
+                channelID INTEGER,
+                timestamp TEXT
+            )
+            """
+            )
+            await db.commit()
 
     @commands.Cog.listener("on_app_command_completion")
     async def app_command_used(self, interaction: discord.Interaction, command: discord.app_commands.Command):
-        if interaction.guild != Goonbot.GOON_HQ:
-            # Only track instances from Goon HQ
+        if interaction.guild != self.bot.GOON_HQ:
             return
 
-        # Fresh timestamp
-        now = dt.datetime.now()
-
-        # Construct record
-        record = CommandRecord(userID=interaction.user.id, commandName=command.name, timestamp=now)
-
-        # Add & commit it to db
-        session.add(record)
-        session.commit()
+        now = dt.datetime.now().isoformat()
+        async with aiosqlite.connect(self.db_path) as db:
+            await db.execute(
+                """
+            INSERT INTO command (id, userID, commandName, timestamp) 
+            VALUES (?, ?, ?, ?)
+            """,
+                (str(uuid.uuid4()), interaction.user.id, command.name, now),
+            )
+            await db.commit()
 
     @commands.Cog.listener("on_reaction_add")
     async def reaction_used(self, reaction: discord.Reaction, user: discord.User):
-        if reaction.message.guild != Goonbot.GOON_HQ:
-            # Only track instances from Goon HQ
+        if reaction.message.guild != self.bot.GOON_HQ:
             return
 
-        # Fresh timestamp
-        now = dt.datetime.now()
+        now = dt.datetime.now().isoformat()
+        reaction_str = reaction.emoji if isinstance(reaction.emoji, str) else reaction.emoji.name
 
-        # Construct record
-        record = ReactionRecord(
-            userID=user.id,
-            reactionID=reaction.emoji,
-            messageID=reaction.message.id,
-            timestamp=now,
-        )
-
-        # Add & commit it to db
-        session.add(record)
-        session.commit()
+        async with aiosqlite.connect(self.db_path) as db:
+            await db.execute(
+                """
+            INSERT INTO reaction (id, userID, reactionStr, messageID, timestamp) 
+            VALUES (?, ?, ?, ?, ?)
+            """,
+                (str(uuid.uuid4()), user.id, reaction_str, reaction.message.id, now),
+            )
+            await db.commit()
 
     @commands.Cog.listener("on_message")
     async def message_sent(self, message: discord.Message):
-        if message.guild != Goonbot.GOON_HQ:
-            # Only track instances from Goon HQ
+        if message.guild != self.bot.GOON_HQ or message.author == self.bot:
             return
 
-        if message.author == Goonbot.user:
-            # Ignore goonbot messages
-            return
-
-        # Fresh timestamp
-        now = dt.datetime.now()
-
-        # Construct record
-        record = MessageRecord(
-            userID=message.author.id,
-            messageID=message.id,
-            channelID=message.channel.id,
-            timestamp=now,
-        )
-
-        # Add & commit it to db
-        session.add(record)
-        session.commit()
+        now = dt.datetime.now().isoformat()
+        async with aiosqlite.connect(self.db_path) as db:
+            await db.execute(
+                """
+            INSERT INTO message (id, userID, messageID, channelID, timestamp) 
+            VALUES (?, ?, ?, ?, ?)
+            """,
+                (str(uuid.uuid4()), message.author.id, message.id, message.channel.id, now),
+            )
+            await db.commit()
 
 
 async def setup(bot):
