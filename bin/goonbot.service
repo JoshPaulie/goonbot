@@ -1,13 +1,15 @@
 # Future Josh:
 # It's tempting to symlink this to /etc/systemd/system; don't. :)
+
 # If the service file is modified after it's started, the service can't be restarted until the daemon is
 # manually reset, which the bot shouldn't be responsible for. This means you need to run
 # sudo cp /home/pi/goonbot/bin/goonbot.service /etc/systemd/system; sudo systemctl daemon-reload
 # any time you push a change that needs to be implemented
 
 [Unit]
-Description=Responsible for starting, restarting, and updating Goonbot
-After=network.target
+Description=Goonbot
+After=network-online.target
+Wants=network-online.target
 
 [Service]
 Type=simple
@@ -20,8 +22,8 @@ ExecStart=/home/pi/goonbot/.venv/bin/python /home/pi/goonbot/main.py
 User=pi
 # Restart bot if it stops (ie. from a fatal crash or the bot stopped via the restart command)
 Restart=always
-# Wait 1 second between restart attempts
-RestartSec=1s
+# Wait 5 seconds between restart attempts
+RestartSec=5s
 # Add production env var for the bot to determine which API key the will use
 Environment="GOONBOT_ENV=PROD"
 
