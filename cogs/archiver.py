@@ -68,12 +68,12 @@ class CommandUsage(commands.Cog):
             await db.commit()
 
     @commands.Cog.listener("on_raw_reaction_add")
-    async def reaction_used(self, reaction: discord.Reaction, user: discord.User):
-        if reaction.message.guild != self.bot.GOON_HQ:
+    async def reaction_used(self, payload: discord.RawReactionActionEvent):
+        if payload.guild_id != self.bot.GOON_HQ.id:
             return
 
         now = dt.datetime.now().isoformat()
-        reaction_str = reaction.emoji if isinstance(reaction.emoji, str) else reaction.emoji.name
+        reaction_str = payload.emoji if isinstance(payload.emoji, str) else payload.emoji.name
 
         async with aiosqlite.connect(self.db_path) as db:
             await db.execute(
@@ -81,7 +81,7 @@ class CommandUsage(commands.Cog):
             INSERT INTO reaction (id, userID, reactionStr, messageID, timestamp) 
             VALUES (?, ?, ?, ?, ?)
             """,
-                (str(uuid.uuid4()), user.id, reaction_str, reaction.message.id, now),
+                (str(uuid.uuid4()), payload.user_id, reaction_str, payload.message_id, now),
             )
             await db.commit()
 
