@@ -43,31 +43,32 @@ class General(commands.Cog):
         Used to broadcast you're board and want to hang out/play games in VC.
 
         Sends a message indicating the general time of day (morning, afternoon, night) based on the current hour.
-            The time of day is determined as follows:
-            - 12AM to 4AM is considered as the previous day's night.
-                - This is based on the social convention that early hours are often considered part of the previous day's night.
-                - If you hear someone say "I was up until 2AM Saturday night," you understand they mean "I stayed up until 2AM Sunday morning"
-            - 6AM to 11AM is considered morning.
-            - 12PM to 5PM is considered afternoon.
-            - Any other time is considered night.
+
+        The time of day is determined as follows:
+        - 12AM to 3AM is considered the previous day's night.
+          - For example, 2AM Sunday is treated as Saturday night.
+        - 4AM to 11AM is considered morning.
+        - 12PM to 5PM is considered afternoon.
+        - 6PM to 11:59PM is considered night.
         """
         today = dt.datetime.today()
         current_hour = dt.datetime.now().hour
         response = self.bot.embed(title="Where is everybody?")
-        # 12AM to 4AM
-        if current_hour in [n for n in range(0, 3 + 1)]:
-            # Early morning should be night of the day after
+
+        # 12AM to 3AM (Night of previous day)
+        if 0 <= current_hour <= 3:
             today -= dt.timedelta(days=1)
             response.description = f"It's a {today.strftime('%A')} night!"
-        # 6AM to 11PM
-        elif current_hour in [n for n in range(6, 10 + 1)]:
+        # 4AM to 11AM
+        elif 4 <= current_hour <= 11:
             response.description = f"It's a {today.strftime('%A')} morning!"
         # 12PM to 5PM
-        elif current_hour in [n for n in range(12, 16 + 1)]:
+        elif 12 <= current_hour <= 17:
             response.description = f"It's a {today.strftime('%A')} afternoon!"
-        # 6PM to (effectively) 4AM
+        # 6PM to 11:59PM
         else:
             response.description = f"It's a {today.strftime('%A')} night!"
+
         await interaction.response.send_message(embed=response)
 
 
