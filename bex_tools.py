@@ -1,22 +1,28 @@
 """Collection of utility objects"""
 
-
 import random
 from typing import Any
 
 
 class CycleRandom:
     """
-    Functionally similar to itertools.Cycle(), but it shuffles the order each time it starts over.
+    Functionally similar to itertools.Cycle(), but shuffles the order each time it starts over.
     Oh, and without the memory benefits.
 
     > "Why does this exist?"
-    This pseudo-generator is serves all of the random content behind many commands and features.
-    As of now, all but one of these in use need to ability to add new items into the cycle with disrupting it
+    Goonbot serves a lot of randomly picked content. If we used random.choice() to select this content,
+    there's a high likelihood of being served repeat content, or back-to-back results.
+    CycleRandom resolves this be randomly serving content, and keeping track of what it's already presented.
+    No repeats are served until all content has been.
+
+    > "Why is it a class and not a generator of some kind?"
+    Some commands (namely /rat, /cat, & /real) allow for new data to be loaded while the bot is running.
+    The related command for adding new images also add them into the "live mix", this way new images
+    don't require a restart to be served.
 
     Example
     ```
-    CycleRandom([1, 2, 3]) -> 3 1 2 2 3 1 ...
+    >>> next(CycleRandom([1, 2, 3, 4])) # 3 1 4 2 2 3 4 1 ...
     ```
     """
 

@@ -96,8 +96,14 @@ def inc_processed_file(amount: int = 1):
 class Meta(commands.Cog):
     def __init__(self, bot: Goonbot):
         self.bot = bot
+
+        # Get accurate timestamp for uptime
         self.startup_time = time.perf_counter()
+
+        # Lock to prevent concurrent access
         self.counter_file_lock = asyncio.Lock()
+
+        # Ensure file exists
         ensure_processed_file()
 
     def count_app_commands(self) -> int:
@@ -109,12 +115,13 @@ class Meta(commands.Cog):
 
     @commands.Cog.listener("on_app_command_completion")
     async def counter_ticker(self, interaction: discord.Interaction, command: app_commands.Command):
-        """Increments the processed commands tally each time a command is used"""
+        """Increments the processed commands tally each time a command is successfully used"""
         # Don't add another tally if in dev channel
-        dev_guild_id = 510865274594131968
         assert interaction.guild
-        if interaction.guild.id == dev_guild_id:
+        if interaction.guild == self.bot.BOTTING_TOGETHER:
             return
+
+        # Inc commands processed file
         async with self.counter_file_lock:
             inc_processed_file()
 

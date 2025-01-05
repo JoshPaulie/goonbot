@@ -10,9 +10,9 @@ ECTOPLAX_ID = 104488848309895168
 
 
 def sequence_same_value(seq: Sequence[Any]):
-    """Makes sure all the values in a sequence in the same.
+    """Checks if all values in a sequence are the same.
 
-    Examples
+    Examples:
         - sequence_same_value([1, 1, 1]) == True
         - sequence_same_value([1, 2, 1]) == False
     """
@@ -24,6 +24,7 @@ def sequence_same_value(seq: Sequence[Any]):
 
 
 class ChattingWatch(commands.Cog):
+    # Dictionary to track message authors for each channel: {channel_id: [author_ids]}
     channels: dict[int, list[int]] = {}
 
     def __init__(self, bot: Goonbot):
@@ -31,8 +32,7 @@ class ChattingWatch(commands.Cog):
 
     @commands.Cog.listener("on_message")
     async def chatting_listener(self, message: discord.Message):
-        """This listener is responsible for adding a random reaction to a message, if the message author has typed consecutive 5 messages without getting interuptted"""
-        # If we're in DM, ignore
+        # Ignore messages in direct messages (DMs)
         if not message.guild:
             return
 
@@ -40,33 +40,33 @@ class ChattingWatch(commands.Cog):
         channel_id = message.channel.id
         author_id = message.author.id
 
-        # Ignore messages sent in the testing guild, or sent by the bot
+        # Ensure the bot's user is defined and ignore specific guild and self-messages
         assert self.bot.user
         if message.guild == self.bot.BOTTING_TOGETHER or message.author.id == self.bot.user.id:
             return
 
         # This user is commonly in VC but needs to be muted, and uses text to communicate.
-        # We'll except him from this "feature" when he's in voice channel
+        # We'll exempt him from this "feature" when he's in voice channel
         for channel in message.guild.voice_channels:
             for user in channel.members:
                 if user.id == ECTOPLAX_ID:
                     return
 
-        # Make sure the channel is in the dict
+        # Initialize the channel's list of past chatters if not already present
         if not self.channels.get(channel_id):
             self.channels[channel_id] = []
 
-        # Add whoever posted a message to the channel queue
+        # Add the message's author to the list of past chatters for this channel
         self.channels[channel_id].append(author_id)
-        channel_past_chatters = self.channels[channel_id]
+        channel_past_chatters_list = self.channels[channel_id]
 
-        # If someone else sends a message that wasn't the previous chatter, clear the streak
-        if not sequence_same_value(channel_past_chatters):
+        # If authors differ, reset the tracking for this channel
+        if not sequence_same_value(channel_past_chatters_list):
             self.channels[channel_id] = []
             return
 
-        # If the same chatter has posted 5 times without being interrupted, send the reaction
-        if len(channel_past_chatters) == 5:
+        # If the same author sends 5 consecutive messages, react to the message
+        if len(channel_past_chatters_list) == 5:
             await message.add_reaction(
                 random.choice(
                     [
@@ -76,6 +76,8 @@ class ChattingWatch(commands.Cog):
                     ]
                 )
             )
+
+            # Reset the channel's list after reacting
             self.channels[channel_id] = []
 
 

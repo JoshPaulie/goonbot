@@ -11,12 +11,12 @@ from text_processing import comma_list, join_lines
 
 
 class GoonCalendar(commands.Cog):
-    # Basic in-memory cache. Keeps the bot from needing to calculate and create lists
+    # Basic in-memory cache. Keeps the bot from needing to calculate and create embeds
     # for each command more than once a day, so long as the bot isn't restarted
-    today_last_called: dt.date | None = None
+    today_command_last_called_date: dt.date | None = None
     today_embed_cache: discord.Embed | None = None
 
-    calendar_last_called: dt.date | None = None
+    calendar_command_last_called_date: dt.date | None = None
     calendar_embed_cache: discord.Embed | None = None
 
     def __init__(self, bot: Goonbot):
@@ -29,7 +29,7 @@ class GoonCalendar(commands.Cog):
         today = dt.date.today()
 
         # See if cached embed is available
-        if today == self.calendar_last_called and self.calendar_embed_cache:
+        if today == self.calendar_command_last_called_date and self.calendar_embed_cache:
             return await interaction.response.send_message(embed=self.calendar_embed_cache)
 
         # Create embed
@@ -60,7 +60,7 @@ class GoonCalendar(commands.Cog):
         today = dt.date.today()
 
         # See if cached embed is available
-        if today == self.today_last_called and self.today_embed_cache:
+        if today == self.today_command_last_called_date and self.today_embed_cache:
             return await interaction.response.send_message(embed=self.today_embed_cache)
 
         # Gather and sort events
@@ -105,7 +105,7 @@ class GoonCalendar(commands.Cog):
             )
 
         # Send it
-        self.today_last_called = today
+        self.today_command_last_called_date = today
         self.today_embed_cache = today_embed
         await interaction.response.send_message(embed=today_embed)
 

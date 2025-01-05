@@ -38,7 +38,7 @@ class GoonbotPicks(commands.Cog):
     def __init__(self, bot: Goonbot):
         self.bot = bot
 
-    @app_commands.command(name="diceroll")
+    @app_commands.command(name="diceroll", description="Have Goonbot roll you dnd-style dice")
     @app_commands.describe(dice_specs="Enter your dice specification (ie. 4d6)")
     async def diceroll(self, interaction: discord.Interaction, dice_specs: str):
         """
@@ -62,16 +62,25 @@ class GoonbotPicks(commands.Cog):
 
         dice_sides = int(dice_sides)
         num_of_dice = int(num_of_dice)
+
+        # 'Roll' dice
         rolls = [random.randint(1, dice_sides) for _ in range(num_of_dice)]
+
+        # Create the embed
         dice_roll_embed = self.bot.embed(title="  |  ".join(map(str, rolls)))
+
+        # If multiple rolls, add 'advantage' and 'disadvantage' fields
         if len(rolls) > 1:
             dice_roll_embed.add_field(name="Advantage" if len(rolls) == 2 else "Highest", value=max(rolls))
             dice_roll_embed.add_field(name="Disadvantage" if len(rolls) == 2 else "Lowest", value=min(rolls))
+
+        # Sum footer
         dice_roll_embed.set_footer(text=f"Total: {sum(rolls)}")
 
+        # Send it
         await interaction.response.send_message(embed=dice_roll_embed)
 
-    @app_commands.command(name="pickforme")
+    @app_commands.command(name="pickforme", description="Let Goonbot decide from a list of choices!")
     async def pickforme(self, interaction: discord.Interaction):
         await interaction.response.send_modal(PickForMeModal())
 
