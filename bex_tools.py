@@ -26,14 +26,13 @@ class CycleRandom:
     ```
     """
 
-    used_items = []
-
     def __init__(self, items: list[Any]) -> None:
         self.items = items
+        self.used_items = []
 
     def __next__(self):
         if len(self.items) == len(self.used_items):
-            self.used_items.clear()
+            self.used_items = []
 
         next_item = random.choice([i for i in self.items if i not in self.used_items])
         self.used_items.append(next_item)
