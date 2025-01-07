@@ -6,12 +6,32 @@ It's important each time calendar commands are used, a "fresh" dt.date.today() i
 Without a fresh object, the bot is stuck at whatever day it was last started
 """
 
+import calendar
 import datetime as dt
 from dataclasses import dataclass
 from random import choice
 from typing import Literal
 
 from text_processing import make_possessive
+
+
+def get_thanksgiving_date(year) -> dt.date | None:
+    """Determine a year's Thanksgiving date by getting the fourth Thursday of November"""
+    november_month_num = 11
+    three_weeks_in_days = 21
+
+    # Get the calendar for the specified month
+    november = calendar.monthcalendar(year, november_month_num)
+
+    # Iterate over the weeks in the month
+    for week in november:
+        # Find first week that has a Thursday
+        if week[calendar.THURSDAY]:
+            # Calculate the date of the fourth Thursday,
+            # by adding 3-weeks worth of days to the first Thursday
+            thanksgiving_day = week[calendar.THURSDAY] + three_weeks_in_days
+            return dt.date(year, november_month_num, thanksgiving_day)
+    return None
 
 
 @dataclass
@@ -79,8 +99,7 @@ def holiday_dict(today: dt.date) -> dict[str, dt.date]:
         "Valentine's Day 💕": dt.date(current_year, 2, 14),
         "Freedom Day 🎇": dt.date(current_year, 7, 4),
         "Halloween 🎃": dt.date(current_year, 10, 31),
-        # TODO make a mapping for this
-        "Thanksgiving 🦃": dt.date(2024, 11, 28),  # Must be hard coded once a year :')
+        "Thanksgiving 🦃": get_thanksgiving_date(current_year),
         "Christmas 🎄": dt.date(current_year, 12, 25),
         "New Year's Eve 🥳": dt.date(current_year, 12, 31),
     }
