@@ -2,12 +2,15 @@ import datetime as dt
 import logging
 
 import discord
+from dateutil import tz
 from discord import app_commands
-from discord.ext import commands
+from discord.ext import commands, tasks
 
-from calendar_events import get_events
+from calendar_events import get_special_events
 from goonbot import Goonbot
 from text_processing import comma_list, join_lines
+
+eight_am_cst = dt.time(hour=8, minute=0, second=0, tzinfo=tz.gettz("America/Chicago"))
 
 
 class GoonCalendar(commands.Cog):
@@ -21,6 +24,7 @@ class GoonCalendar(commands.Cog):
 
     def __init__(self, bot: Goonbot):
         self.bot = bot
+        self.announce_birthdays.start()
 
     @app_commands.command(name="calendar")
     @app_commands.describe(show_remaining_only="Show only remaining events for this year??")
@@ -40,7 +44,7 @@ class GoonCalendar(commands.Cog):
             calendar_embed.description = f"All events for {today.year}!"
 
         # Add events
-        for event in get_events(today, show_remaining_only):
+        for event in get_special_events(today, show_remaining_only):
             calendar_embed.add_field(
                 name=event.name,
                 value=join_lines(
@@ -64,7 +68,7 @@ class GoonCalendar(commands.Cog):
             return await interaction.response.send_message(embed=self.today_embed_cache)
 
         # Gather and sort events
-        events = get_events(today, remaining_only=True)
+        events = get_special_events(today, remaining_only=True)
         today_events = [e for e in events if e.is_today()]
         tomorrow_events = [e for e in events if e.is_tomorrow()]
         remaining_events = [e for e in events if not e.is_today() and not e.is_tomorrow()]
@@ -108,6 +112,39 @@ class GoonCalendar(commands.Cog):
         self.today_command_last_called_date = today
         self.today_embed_cache = today_embed
         await interaction.response.send_message(embed=today_embed)
+
+    @tasks.loop(time=eight_am_cst)
+    async def announce_birthdays(self):
+        # Fresh date
+        today = dt.date.today()
+
+        # All birthdays today
+        today_birthdays = [
+            event
+            for event in get_special_events(today, remaining_only=True)
+            if event.is_today() and event.event_type == "birthday"
+        ]
+
+        # No birthdays today, exit early
+        if not len(today_birthdays):
+            return
+
+        # Fetch guild
+        goonhq = self.bot.get_channel(177125557954281472)
+
+        # Ensure it exists and is not a private channel
+        assert isinstance(goonhq, (discord.abc.GuildChannel, discord.Thread))
+
+        # Ensure correct channel type
+        if goonhq.type != discord.ChannelType.text:
+            return
+
+        # Happy birthday embed
+        today_birthday_embed = self.bot.embed()
+        today_birthday_embed.title = f"Today is {comma_list([e.name for e in today_birthdays])}!"
+
+        # Send it
+        await goonhq.send(embed=today_birthday_embed)
 
 
 async def setup(bot):
