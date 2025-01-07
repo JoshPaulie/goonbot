@@ -145,13 +145,6 @@ async def sync(ctx: commands.Context):
     )
 
 
-@goonbot.command(name="fixsync", description="Fix duplicate commands in server")
-@commands.is_owner()
-async def fixsync(ctx: commands.Context):
-    await goonbot.tree.sync(guild=goonbot.GOON_HQ)
-    await ctx.send(embed=goonbot.embed(title="Synced ✅"))
-
-
 @goonbot.command(name="restart", description="[Meta] Restart the bot")
 @commands.is_owner()
 async def restart(ctx: commands.Context):
