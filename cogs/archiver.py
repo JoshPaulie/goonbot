@@ -15,9 +15,11 @@ class CommandUsage(commands.Cog):
 
     def __init__(self, bot: Goonbot):
         self.bot = bot
-        self.bot.loop.create_task(self.ensure_database())
 
-    async def ensure_database(self):
+    async def cog_load(self):
+        await self.ensure_archiver_tables()
+
+    async def ensure_archiver_tables(self):
         """Ensure database and tables exist"""
 
         async with aiosqlite.connect(self.bot.database_path) as db:
