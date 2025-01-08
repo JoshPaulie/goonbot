@@ -7,6 +7,7 @@ import platform
 import sqlite3
 import time
 
+import aiosqlite
 import discord
 from dateutil import tz
 from discord import app_commands
@@ -72,31 +73,6 @@ def get_host_info() -> dict[str, str]:
     return info
 
 
-def ensure_processed_file():
-    """Create the file that tallies how many commands have been processed, if it doesn't exist"""
-    file = pathlib.Path(COMMANDS_PROCESSED_FILE_NAME)
-    if not file.exists():
-        logging.info(f"{COMMANDS_PROCESSED_FILE_NAME} not found...")
-        with open(COMMANDS_PROCESSED_FILE_NAME, mode="w") as new_file:
-            new_file.write("0")
-        logging.info(f"Created {COMMANDS_PROCESSED_FILE_NAME}")
-
-
-def get_commands_processed_value():
-    with open(COMMANDS_PROCESSED_FILE_NAME, mode="r") as file:
-        counter_value = file.read()
-        return int(counter_value)
-
-
-def inc_processed_file(amount: int = 1):
-    with open(COMMANDS_PROCESSED_FILE_NAME, mode="r") as file:
-        counter_value = file.read()
-    counter_value = int(counter_value)
-    new_value = counter_value + amount
-    with open(COMMANDS_PROCESSED_FILE_NAME, mode="w") as file:
-        file.write(str(new_value))
-
-
 class Meta(commands.Cog):
     def __init__(self, bot: Goonbot):
         self.bot = bot
@@ -104,11 +80,8 @@ class Meta(commands.Cog):
         # Get accurate timestamp for uptime
         self.startup_time = time.perf_counter()
 
-        # Lock to prevent concurrent access
-        self.counter_file_lock = asyncio.Lock()
-
-        # Ensure file exists
-        ensure_processed_file()
+    async def cog_load(self):
+        await self.ensure_command_usage_legacy_table()
 
     def count_app_commands(self) -> int:
         """Returns how many app (or "slash") commands are registered in all of the cogs"""
@@ -117,17 +90,35 @@ class Meta(commands.Cog):
             command_count += len(cog.get_app_commands())
         return command_count
 
+    async def ensure_command_usage_legacy_table(self):
+        async with aiosqlite.connect(self.bot.database_path) as db:
+            await db.execute(
+                "CREATE TABLE IF NOT EXISTS command_usage_legacy (id INTEGER PRIMARY KEY, count INTEGER)"
+            )
+            await db.execute("INSERT OR IGNORE INTO command_usage_legacy (id, count) VALUES (1, 0)")
+            await db.commit()
+
+    async def get_count(self):
+        async with aiosqlite.connect(self.bot.database_path) as db:
+            async with db.execute("SELECT count FROM command_usage_legacy WHERE id = 1") as cursor:
+                row = await cursor.fetchone()
+                return row[0] if row else 0
+
+    async def increment_count(self):
+        async with aiosqlite.connect(self.bot.database_path) as db:
+            await db.execute("UPDATE command_usage_legacy SET count = count + 1 WHERE id = 1")
+            await db.commit()
+
     @commands.Cog.listener("on_app_command_completion")
     async def counter_ticker(self, interaction: discord.Interaction, command: app_commands.Command):
         """Increments the processed commands tally each time a command is successfully used"""
-        # Don't add another tally if in dev channel
-        assert interaction.guild
-        if interaction.guild == self.bot.BOTTING_TOGETHER:
-            return
+        # Ignore dev guild
+        if interaction.guild:
+            if interaction.guild == self.bot.BOTTING_TOGETHER:
+                return
 
         # Inc commands processed file
-        async with self.counter_file_lock:
-            inc_processed_file()
+        await self.increment_count()
 
     @app_commands.command(name="meta")
     async def meta(self, interaction: discord.Interaction):
@@ -151,7 +142,7 @@ class Meta(commands.Cog):
         meta_embed.add_field(name="Commands", value=self.count_app_commands())
 
         # Commands served
-        amount = get_commands_processed_value()
+        amount = await self.get_count()
         meta_embed.add_field(name="Served", value=f"{amount:,}")
 
         # Bot uptime
