@@ -25,6 +25,9 @@ class Goonbot(commands.Bot):
 
     keys = Keys
 
+    # Database path
+    database_path = "gbdb.sqlite"
+
     # Used to calculate command execution times with on_interaction & on_app_command_completion
     timer_lock = asyncio.Lock()
     command_timer = defaultdict(time.perf_counter)

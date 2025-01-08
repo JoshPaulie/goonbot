@@ -15,13 +15,12 @@ class CommandUsage(commands.Cog):
 
     def __init__(self, bot: Goonbot):
         self.bot = bot
-        self.db_path = "gbdb.sqlite"
         self.bot.loop.create_task(self.ensure_database())
 
     async def ensure_database(self):
         """Ensure database and tables exist"""
 
-        async with aiosqlite.connect(self.db_path) as db:
+        async with aiosqlite.connect(self.bot.database_path) as db:
             # command table
             await db.execute(
                 """
@@ -70,7 +69,7 @@ class CommandUsage(commands.Cog):
         timestamp = dt.datetime.now().isoformat()
 
         # Insert into database
-        async with aiosqlite.connect(self.db_path) as db:
+        async with aiosqlite.connect(self.bot.database_path) as db:
             await db.execute(
                 """
             INSERT INTO command (id, userID, commandName, timestamp) 
@@ -94,7 +93,7 @@ class CommandUsage(commands.Cog):
         reaction_str = payload.emoji if isinstance(payload.emoji, str) else payload.emoji.name
 
         # Insert into database
-        async with aiosqlite.connect(self.db_path) as db:
+        async with aiosqlite.connect(self.bot.database_path) as db:
             await db.execute(
                 """
             INSERT INTO reaction (id, userID, reactionStr, messageID, timestamp) 
@@ -113,7 +112,7 @@ class CommandUsage(commands.Cog):
         timestamp = dt.datetime.now().isoformat()
 
         # Insert into database
-        async with aiosqlite.connect(self.db_path) as db:
+        async with aiosqlite.connect(self.bot.database_path) as db:
             await db.execute(
                 """
             INSERT INTO message (id, userID, messageID, channelID, timestamp) 
