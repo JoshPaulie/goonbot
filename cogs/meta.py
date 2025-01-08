@@ -193,10 +193,9 @@ class Meta(commands.Cog):
         owner = self.bot.get_user(self.bot.owner_id)
         assert owner
 
-        gbdb = "gbdb.sqlite"
         gigabyte = 1_000_000_000
         size_limit = 10 * gigabyte
-        if os.path.getsize(gbdb) > size_limit:
+        if os.path.getsize(self.bot.database_path) > size_limit:
             await owner.send(f"Database size exceeds {size_limit}GB")
 
 
