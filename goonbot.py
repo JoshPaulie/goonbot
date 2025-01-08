@@ -24,7 +24,7 @@ class Goonbot(commands.Bot):
     owner_id = 177131156028784640
 
     # Bot version
-    VERSION = (6, 1, 1)
+    VERSION = (6, 1, 2)
 
     # API secrets
     keys = Keys
