@@ -1,4 +1,5 @@
 import asyncio
+import datetime as dt
 import logging
 import os
 import pathlib
@@ -7,13 +8,16 @@ import sqlite3
 import time
 
 import discord
+from dateutil import tz
 from discord import app_commands
-from discord.ext import commands
+from discord.ext import commands, tasks
 
 from goonbot import Goonbot
 from text_processing import join_lines
 
 COMMANDS_PROCESSED_FILE_NAME = "commands-processed.txt"
+
+eight_am_cst = dt.time(hour=8, minute=0, second=0, tzinfo=tz.gettz("America/Chicago"))
 
 
 def get_cache_file_count() -> int | None:
@@ -190,6 +194,19 @@ class Meta(commands.Cog):
         await interaction.response.send_message(embed=meta_embed)
 
     # todo suggestion
+
+    @tasks.loop(time=eight_am_cst)
+    async def db_size_alert(self):
+        """Alerts bot owner if the database exceeds a certain size"""
+        assert self.bot.owner_id
+        owner = self.bot.get_user(self.bot.owner_id)
+        assert owner
+
+        gbdb = "gbdb.sqlite"
+        gigabyte = 1_000_000_000
+        size_limit = 10 * gigabyte
+        if os.path.getsize(gbdb) > size_limit:
+            await owner.send(f"Database size exceeds {size_limit}GB")
 
 
 async def setup(bot):
