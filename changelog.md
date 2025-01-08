@@ -10,6 +10,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 Changes made, but not associated with a particular version yet
 
+## [6.1.2]
+Birthday announcements and database work 🎉
+This is pretty much everything I wanted to get done, other than fixing the league commands.
+
+Perhaps I'll rewrite gambling.. without mugging 👊
+
+### Fixed
+- Duplicate commands
+
+### Events, birthdays announcements
+- `SpecialEvents` can now either be of event type "birthday" or "holiday"
+- Birthdays are now auto announced at 8AM CST 🥳
+- Goonbot can now dynamically determine when thanksgiving is 🦃
+
+### Database
+- The commands servered number `/meta` was previously tracked in a text file, which was prone to concurrent write issues (albeit unlikely for our server size). Created a new table for it, with a single "count" column.
+  - Manually inserted old value
+- Database is automatically backed up to an attached USB at 2AM CST
+- Database size alerts
+
 ## [6.1.1]
 Ancient bugs squashed, and change in archiver database (raw dogging SQL, like a man)
 
