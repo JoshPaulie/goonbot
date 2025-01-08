@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set +xe
+
 # Variables
 DATABASE_PATH="/home/pi/goonbot/gbdb.sqlite"
 BACKUP_DIR="/mnt/gbdb-backup"
