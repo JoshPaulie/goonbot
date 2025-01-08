@@ -115,6 +115,7 @@ class GoonCalendar(commands.Cog):
 
     @tasks.loop(time=eight_am_cst)
     async def announce_birthdays(self):
+        """Announces birthdays in the goonhq channel at 8am CST"""
         # Fresh date
         today = dt.date.today()
 
@@ -127,6 +128,7 @@ class GoonCalendar(commands.Cog):
 
         # No birthdays today, exit early
         if not len(today_birthdays):
+            logging.info("No birthdays today.")
             return
 
         # Fetch guild
