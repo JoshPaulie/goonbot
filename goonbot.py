@@ -148,7 +148,7 @@ async def sync(ctx: commands.Context):
     )
 
 
-@goonbot.command(name="restart", description="[Meta] Restart the bot")
+@goonbot.command(name="restart", aliases=["stop", "update"], description="[Meta] Restart the bot")
 @commands.is_owner()
 async def restart(ctx: commands.Context):
     """
