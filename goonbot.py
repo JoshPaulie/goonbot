@@ -1,5 +1,4 @@
 import asyncio
-import datetime as dt
 import logging
 import random
 import time
@@ -17,12 +16,17 @@ from text_processing import acronymize, join_lines, time_ago
 
 
 class Goonbot(commands.Bot):
-    GOON_HQ = discord.Object(177125557954281472, type=discord.Guild)  # The main ("production") server
-    BOTTING_TOGETHER = discord.Object(510865274594131968, type=discord.Guild)  # The development server
-    owner_id = 177131156028784640  # bexli boy
+    # Guilds
+    GOON_HQ = discord.Object(177125557954281472, type=discord.Guild)  # Main ("production") server
+    BOTTING_TOGETHER = discord.Object(510865274594131968, type=discord.Guild)  # Development server
 
+    # bexli
+    owner_id = 177131156028784640
+
+    # Bot version
     VERSION = (6, 1, 1)
 
+    # API secrets
     keys = Keys
 
     # Database path
