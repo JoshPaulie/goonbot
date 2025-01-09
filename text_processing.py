@@ -99,6 +99,11 @@ def time_ago(timestamp: int) -> str:
     return f"{math.floor(seconds)} seconds ago"
 
 
+def md_codeblock(text: str, language: str | None = "") -> str:
+    """Wrap text in backticks for markdown codeblocks"""
+    return f"```{language}\n{text}\n```"
+
+
 def html_to_md(text: str) -> str:
     """Incredibly crude way of converting HTML tags to MD tags"""
 
