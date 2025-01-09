@@ -1,6 +1,4 @@
-import asyncio
 import datetime as dt
-import logging
 import os
 import pathlib
 import platform
@@ -15,8 +13,6 @@ from discord.ext import commands, tasks
 
 from goonbot import Goonbot
 from text_processing import join_lines
-
-COMMANDS_PROCESSED_FILE_NAME = "commands-processed.txt"
 
 eight_am_cst = dt.time(hour=8, minute=0, second=0, tzinfo=tz.gettz("America/Chicago"))
 
@@ -77,7 +73,7 @@ class Meta(commands.Cog):
     def __init__(self, bot: Goonbot):
         self.bot = bot
 
-        # Get accurate timestamp for uptime
+        # Get precise timestamp for uptime
         self.startup_time = time.perf_counter()
 
     async def cog_load(self):
