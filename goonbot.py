@@ -115,6 +115,7 @@ async def on_app_command_error(interaction: discord.Interaction, error: discord.
 
 @goonbot.command(name="sync", description="[Meta] Syncs commands to server")
 @commands.is_owner()
+@commands.dm_only()
 async def sync(ctx: commands.Context):
     """
     This command syncs all of the bot's commands (names & descriptions) to a all servers its in.
@@ -130,11 +131,6 @@ async def sync(ctx: commands.Context):
     of new features when frequent restarts are necessary, you'll get rate-limited by Discord into next week.
     They really don't like people spamming app command syncs to servers.
     """
-    # This "DM-only" rule keeps me from syncing both bots in the dev environment,
-    # when I usually only need to sync one or the other
-    if ctx.message.guild is not None:
-        return await ctx.send(embed=goonbot.embed(title="You can only call this command from within DMs."))
-
     # Sync commands to all guilds
     await goonbot.tree.sync()
 
@@ -154,6 +150,7 @@ async def sync(ctx: commands.Context):
 
 @goonbot.command(name="restart", aliases=["stop", "update"], description="[Meta] Restart the bot")
 @commands.is_owner()
+@commands.dm_only()
 async def restart(ctx: commands.Context):
     """
     "Restarts" the bot by turning it off, so the service responsible for updating
@@ -196,9 +193,14 @@ async def on_command_error(ctx: commands.Context, error: commands.CommandError):
                 title="This is an administrative command, sorry 🤭",
                 color=discord.Color.greyple(),
             ),
-            ephemeral=True,
         )
-        await ctx.message.add_reaction("❌")
+    elif isinstance(error, commands.PrivateMessageOnly):
+        await ctx.reply(
+            embed=goonbot.embed(
+                title="This command must be called from within DMs",
+                color=discord.Color.greyple(),
+            ),
+        )
     else:
         # Without this line, prefixed commands throwing exceptions that will get gobbled
         # up by this event and make me real mad later when I break something
