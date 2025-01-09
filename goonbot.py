@@ -12,7 +12,7 @@ import discord
 from discord.ext import commands
 
 from keys import Keys
-from text_processing import acronymize, join_lines, time_ago
+from text_processing import acronymize, join_lines, md_codeblock, time_ago
 
 
 class Goonbot(commands.Bot):
@@ -168,6 +168,23 @@ async def restart(ctx: commands.Context):
 
     # Kill the bot routine
     await goonbot.close()
+
+
+@goonbot.command(name="log", description="[Meta] Sends bot log")
+@commands.is_owner()
+async def log(ctx: commands.Context, lines: int = 10):
+    """Sends the last n lines of the bot.log file to the channel"""
+    # Read in log file and split into lines
+    log_file_text = Path("bot.log").read_text().splitlines()
+
+    # Send last n lines of log file (with backticks for formatting)
+    await ctx.send(
+        md_codeblock(
+            join_lines(
+                [line for line in log_file_text[-lines:]],
+            ),
+        ),
+    )
 
 
 # This catches and processes ext (or "prefixed") commands
