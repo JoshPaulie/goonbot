@@ -185,7 +185,7 @@ async def on_command_error(ctx: commands.Context, error: commands.CommandError):
     else:
         # Without this line, prefixed commands throwing exceptions that will get gobbled
         # up by this event and make me real mad later when I break something
-        logging.error(traceback.format_exc())
+        logging.error(error)
 
 
 @goonbot.event
