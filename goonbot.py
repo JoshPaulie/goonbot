@@ -21,9 +21,6 @@ class Goonbot(commands.Bot):
     GOON_HQ = discord.Object(177125557954281472, type=discord.Guild)  # Main ("production") server
     BOTTING_TOGETHER = discord.Object(510865274594131968, type=discord.Guild)  # Development server
 
-    # bexli
-    owner_id = 177131156028784640
-
     # Bot version
     VERSION = (6, 1, 2)
 
@@ -43,6 +40,7 @@ class Goonbot(commands.Bot):
     def __init__(self, intents: discord.Intents, **kwargs):
         super().__init__(
             command_prefix=commands.when_mentioned_or("."),
+            owner_id=177131156028784640,  # bexli
             help_command=None,
             intents=intents,
             **kwargs,
