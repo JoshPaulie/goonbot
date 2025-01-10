@@ -1,3 +1,4 @@
+import asyncio
 import datetime as dt
 import logging
 import os
@@ -77,12 +78,44 @@ def uptime_timestamp(input_seconds: int) -> str:
 def get_host_info() -> dict[str, str]:
     info = {}
     # info["Name"] = platform.node() # this just says "raspberry"
-    info["OS"] = f"{platform.system()} {platform.release()}"
+    info["Kernel"] = f"{platform.system()} {platform.release()}"
     issue_file = pathlib.Path("/etc/issue")
     if issue_file.exists():
-        issue_file_text = issue_file.read_text()
-        info["OS"] = issue_file_text[: -issue_file_text.find("Linux")]
+        info["OS"] = issue_file.read_text().strip()
     return info
+
+
+async def get_last_commit_time() -> dt.datetime | None:
+    # Run the Git command to get the timestamp of the last commit
+    process = await asyncio.create_subprocess_shell(
+        "git log -1 --format=%ct",
+        stdout=asyncio.subprocess.PIPE,
+        stderr=asyncio.subprocess.PIPE,
+    )
+
+    # Wait for the command to finish
+    stdout, _ = await process.communicate()
+
+    # Check for errors
+    if process.returncode != 0:
+        print("Error: Unable to retrieve last commit time. Are you in a Git repository?")
+        return None
+
+    # Extract the timestamp
+    commit_timestamp = int(stdout.strip())
+
+    # Convert to a datetime object
+    return dt.datetime.fromtimestamp(commit_timestamp)
+
+
+async def time_since_last_commit():
+    last_commit_time = await get_last_commit_time()
+    if last_commit_time:
+        now = dt.datetime.now()
+        time_difference = now - last_commit_time
+        return humanize.naturaltime(time_difference)
+    else:
+        print("Could not determine time since last commit.")
 
 
 class Meta(commands.Cog):
@@ -204,10 +237,17 @@ class Meta(commands.Cog):
             inline=False,
         )
 
+        # Set thumbnail
         assert self.bot.user
         if self.bot.user.avatar:
             meta_embed.set_thumbnail(url=self.bot.user.avatar.url)
 
+        # Set footer (last commit time)
+        meta_embed.set_footer(
+            text=f"Last commit: {await time_since_last_commit()}",
+        )
+
+        # Send it
         await interaction.response.send_message(embed=meta_embed)
 
     # todo suggestion
