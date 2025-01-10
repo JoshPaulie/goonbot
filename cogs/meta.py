@@ -1,12 +1,13 @@
 import datetime as dt
+import logging
 import os
 import pathlib
 import platform
-import sqlite3
 import time
 
 import aiosqlite
 import discord
+import humanize
 from dateutil import tz
 from discord import app_commands
 from discord.ext import commands, tasks
@@ -17,7 +18,11 @@ from text_processing import join_lines
 eight_am_cst = dt.time(hour=8, minute=0, second=0, tzinfo=tz.gettz("America/Chicago"))
 
 
-def get_cache_file_count() -> int | None:
+async def get_cache_file_count() -> int | None:
+    """
+    The diskcache used for Pulsefire is made up of a series of directories, eaching having a database
+    file. This function returns the count of these directories, if any.
+    """
     cache_dir_path = pathlib.Path("cache")
     if not cache_dir_path.exists():
         return None
@@ -25,21 +30,31 @@ def get_cache_file_count() -> int | None:
     return len(cache_files)
 
 
-def matches_cached(path: str) -> list[str]:
-    conn = sqlite3.connect(path)
-    cur = conn.cursor()
-    cur.execute("SELECT key FROM Cache")
-    keys = cur.fetchall()
-    keys = [key for key in keys if "match/v5/matches" in key[0]]
-    conn.close()
-    return keys
+async def matches_cached(path: str) -> list[str]:
+    """
+    The diskcache used for Pulsefire is made up of a series of directories, eaching having a database
+    file. This function takes the path to one of these database files and returns a list rows, each
+    row being a cached league match.
+    """
+    async with aiosqlite.connect(path) as conn:
+        async with conn.cursor() as cur:
+            await cur.execute("SELECT key FROM Cache")
+            keys = await cur.fetchall()
+            keys = [key for key in keys if "match/v5/matches" in key[0]]
+    return [key[0] for key in keys]
 
 
-def total_matches_cached(cache_file_count: int) -> int:
+async def total_league_matches_cached(cache_file_count: int) -> int:
+    """
+    In congution with the `matches_cached` function, this function takes the count of cache files
+    (provided by `get_cache_file_count`) and returns the total number of league matches cached across
+    all of them.
+    """
     all_links = []
     for n in range(cache_file_count):
+        # The database file path format "cache/001/cache.db"
         path = f"cache/{n:03}/cache.db"
-        all_links.extend(matches_cached(path))
+        all_links.extend(await matches_cached(path))
 
     # At time of writing, the cache doesn't store duplicate entries.
     # In the event the pulsefire author implements some sort of redundancy, let's make sure
@@ -47,7 +62,8 @@ def total_matches_cached(cache_file_count: int) -> int:
     return len(set(all_links))
 
 
-def timestamp(input_seconds: int) -> str:
+def uptime_timestamp(input_seconds: int) -> str:
+    """Converts seconds to a human readable timestamp"""
     seconds_in_day = 60 * 60 * 24
     days, remaining_seconds = divmod(input_seconds, seconds_in_day)
     hours, minutes = divmod(remaining_seconds, 3600)
@@ -89,9 +105,22 @@ class Meta(commands.Cog):
     async def ensure_command_usage_legacy_table(self):
         async with aiosqlite.connect(self.bot.database_path) as db:
             await db.execute(
-                "CREATE TABLE IF NOT EXISTS command_usage_legacy (id INTEGER PRIMARY KEY, count INTEGER)"
+                """
+                CREATE TABLE IF NOT EXISTS command_usage_legacy (
+                    id INTEGER PRIMARY KEY,
+                    count INTEGER
+                )
+                """
             )
-            await db.execute("INSERT OR IGNORE INTO command_usage_legacy (id, count) VALUES (1, 0)")
+
+            # Create the single row, with id 1, value of 0
+            # Existing row error ignored
+            await db.execute(
+                """
+                INSERT OR IGNORE INTO command_usage_legacy (id, count) 
+                VALUES (1, 0)
+                """
+            )
             await db.commit()
 
     async def get_count(self):
@@ -144,14 +173,14 @@ class Meta(commands.Cog):
         # Bot uptime
         now = time.perf_counter()
         uptime = round(now - self.startup_time)
-        meta_embed.add_field(name="Uptime", value=timestamp(uptime))
+        meta_embed.add_field(name="Uptime", value=uptime_timestamp(uptime))
 
         # Latency
         meta_embed.add_field(name="Latency", value=f"{round(self.bot.latency * 1000, 2)}ms")
 
         # League matches cached
-        if cache_file_count := get_cache_file_count():
-            matches_cached_count = total_matches_cached(cache_file_count)
+        if cache_file_count := await get_cache_file_count():
+            matches_cached_count = await total_league_matches_cached(cache_file_count)
             meta_embed.add_field(
                 name="League Games\nCached",
                 value=matches_cached_count,
@@ -183,15 +212,24 @@ class Meta(commands.Cog):
     # todo suggestion
 
     @tasks.loop(time=eight_am_cst)
-    async def db_size_alert(self):
-        """Alerts bot owner if the database exceeds a certain size"""
+    async def db_size_check(self):
+        """Log database size, message josh if database exceeds limit"""
         assert self.bot.owner_id
         owner = self.bot.get_user(self.bot.owner_id)
         assert owner
 
-        gigabyte = 1_000_000_000
-        size_limit = 10 * gigabyte
-        if os.path.getsize(self.bot.database_path) > size_limit:
+        # Size limit
+        gigabyte_in_bytes = 1_000_000_000
+        size_limit = 10 * gigabyte_in_bytes
+
+        # Get database size
+        db_size = os.path.getsize(self.bot.database_path)
+
+        # Log size
+        logging.info(f"DB size: {humanize.naturalsize(db_size)}")
+
+        # Notify owner if database exceeds size limit
+        if db_size > size_limit:
             await owner.send(f"Database size exceeds {size_limit}GB")
 
 
