@@ -19,6 +19,15 @@ from text_processing import join_lines
 eight_am_cst = dt.time(hour=8, minute=0, second=0, tzinfo=tz.gettz("America/Chicago"))
 
 
+class SuggestionModal(discord.ui.Modal, title="Suggestion"):
+    details = discord.ui.TextInput(label="Suggestion details", style=discord.TextStyle.paragraph)
+
+    async def on_submit(self, interaction: discord.Interaction):
+        details = self.details.value
+        print(details)
+        await interaction.response.send_message(f"Thanks for your suggestion!", ephemeral=True)
+
+
 async def get_cache_file_count() -> int | None:
     """
     The diskcache used for Pulsefire is made up of a series of directories, eaching having a database
@@ -256,7 +265,9 @@ class Meta(commands.Cog):
         # Send it
         await interaction.response.send_message(embed=meta_embed)
 
-    # todo suggestion
+    @app_commands.command(name="suggestion")
+    async def suggestion(self, interaction: discord.Interaction):
+        await interaction.response.send_modal(SuggestionModal())
 
     @tasks.loop(time=eight_am_cst)
     async def db_size_check(self):
