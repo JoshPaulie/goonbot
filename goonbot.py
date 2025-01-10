@@ -33,8 +33,8 @@ class Goonbot(commands.Bot):
     database_path = "gbdb.sqlite"
 
     # Used to calculate command execution times with on_interaction & on_app_command_completion
-    timer_lock = asyncio.Lock()
-    command_timer = defaultdict(time.perf_counter)
+    command_timer_lock = asyncio.Lock()
+    command_timer_journal = defaultdict(time.perf_counter)
 
     # A default embed that will sprinkled around (so I don't have to manually set the color every time)
     embed = partial(discord.Embed, color=discord.Color.blurple())
@@ -207,25 +207,28 @@ async def on_command_error(ctx: commands.Context, error: commands.CommandError):
         logging.error(error)
 
 
-@goonbot.event
-async def on_interaction(interaction: discord.Interaction):
+# The following commands are used to log command execution time. `track_command_start` adds a
+# timestamp and interaction ID pair to `command_timer` when a command interaction begins, then
+# `log_command_elapsed_time` finds this pair and calculates the elapsed time.
+@goonbot.listen("on_interaction")
+async def track_command_start(interaction: discord.Interaction):
     # Logs the time when an app command starts an interation
-    async with goonbot.timer_lock:
+    async with goonbot.command_timer_lock:
         if interaction.type == discord.InteractionType.application_command:
             assert interaction.command
-            goonbot.command_timer[interaction.id] = time.perf_counter()
+            goonbot.command_timer_journal[interaction.id] = time.perf_counter()
 
 
-@goonbot.event
-async def on_app_command_completion(interaction: discord.Interaction, command: discord.app_commands.Command):
-    # When an app command is done processing and ready to send, check the command timer dict for the interaction id
-    # If interaction id present, we can calculate the execution time for the log
-    async with goonbot.timer_lock:
-        if command_start_time := goonbot.command_timer.get(interaction.id):
-            del goonbot.command_timer[interaction.id]
+@goonbot.listen("on_app_command_completion")
+async def log_command_elapsed_time(interaction: discord.Interaction, command: discord.app_commands.Command):
+    # When an app command is done processing and ready to send, check the command timer dict for the
+    # interaction id. If interaction id present, we can calculate the execution time for the log
+    async with goonbot.command_timer_lock:
+        if command_start_time := goonbot.command_timer_journal.get(interaction.id):
+            del goonbot.command_timer_journal[interaction.id]
             command_end_time = time.perf_counter()
             command_elapsed_time = command_end_time - command_start_time
-            logging.info(f"{command.name} execution time: {command_elapsed_time}")
+            logging.info(f"{command.name} execution time: {round(command_elapsed_time, 3)}s")
 
 
 # Context menus
