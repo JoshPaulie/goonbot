@@ -116,7 +116,7 @@ def format_uptime(uptime_in_seconds: int) -> str:
 def get_host_info() -> dict[str, str]:
     info = {}
     # info["Hostname"] = platform.node() # this just says "raspberry"
-    info["Model"] = "[4b](https://www.raspberrypi.com/products/raspberry-pi-4-model-b/)"
+    info["Model"] = "[RPi 4B](https://www.raspberrypi.com/products/raspberry-pi-4-model-b/)"
     info["Kernel"] = f"{platform.system()} {platform.release()}"  # Linux 0.00.00-v0+
     issue_file = pathlib.Path("/etc/issue")
     if issue_file.exists():
@@ -170,13 +170,6 @@ class Meta(commands.Cog):
     async def cog_load(self):
         await self.ensure_command_usage_legacy_table()
         await self.ensure_suggestion_table()
-
-    def count_app_commands(self) -> int:
-        """Returns how many app (or "slash") commands are registered in all of the cogs"""
-        command_count = 0
-        for _, cog in self.bot.cogs.items():
-            command_count += len(cog.get_app_commands())
-        return command_count
 
     async def ensure_suggestion_table(self):
         async with aiosqlite.connect(self.bot.database_path) as db:
@@ -250,14 +243,15 @@ class Meta(commands.Cog):
         )
 
         # Bot version
-        meta_embed.add_field(name="Version", value=".".join(map(str, self.bot.VERSION)))
+        meta_embed.add_field(name="Bot\nVersion", value="v" + ".".join(map(str, self.bot.VERSION)))
 
         # Total commands
-        meta_embed.add_field(name="Commands", value=self.count_app_commands())
+        total_commands = sum(len(cog.get_app_commands()) for cog in self.bot.cogs.values())
+        meta_embed.add_field(name="Total\nCommands", value=total_commands)
 
         # Commands served
         amount = await self.get_count()
-        meta_embed.add_field(name="Served", value=f"{amount:,}")
+        meta_embed.add_field(name="Commands Served\nsince Jan 9th, 2024", value=f"{amount:,}")
 
         # Bot uptime
         now = time.perf_counter()
