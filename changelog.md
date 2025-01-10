@@ -10,6 +10,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 Changes made, but not associated with a particular version yet
 
+## [6.1.3]
+Added `/suggest` command
+
+### Added
+- `/suggest` command 📬
+  - Works as you'd expect
+  - Way to view other's suggestions coming next patch (i love lying!)
+
+### Tweaks
+- `/meta` has had various tweaks done
+  - "Last commit time" shows how long it's been since the source code of goonbot has Changed
+  - Added /about page
+
 ## [6.1.2]
 Birthday announcements and database work 🎉
 This is pretty much everything I wanted to get done (other than fixing the league commands, like I meant to do this patch)

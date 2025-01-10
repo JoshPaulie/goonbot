@@ -22,7 +22,7 @@ class Goonbot(commands.Bot):
     BOTTING_TOGETHER = discord.Object(510865274594131968, type=discord.Guild)  # Development server
 
     # Bot version
-    VERSION = (6, 1, 2)
+    VERSION = (6, 1, 3)
 
     # API secrets
     keys = Keys
@@ -82,6 +82,7 @@ class Goonbot(commands.Bot):
         print(f"{self.user.name} is ready")
 
 
+bot = commands.bot
 # Bot instance
 goonbot = Goonbot(
     # Gives the bot the ability to read messages, view profiles, etc
