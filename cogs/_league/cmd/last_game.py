@@ -5,11 +5,12 @@ from itertools import batched
 
 import aiohttp
 import discord
+import humanize
 from pulsefire.clients import RiotAPISchema
 
 from cogs._league.cdragon_builders import get_cdragon_url
 from cogs._league.objects import ParticipantStat, calc_kill_participation, create_participant_stat
-from text_processing import bullet_points, join_lines, make_possessive, time_ago
+from text_processing import bullet_points, join_lines, make_possessive
 
 from ..annotations import Augment, GameMode
 from ..formatting import format_big_number, fstat, humanize_seconds, timestamp_from_seconds
@@ -252,7 +253,7 @@ class StandardMatchParser:
             game_duration += " 🔥"
         if game_duration_minutes > 40:
             game_duration += " 🐢"
-        ended_ago = time_ago(self.match["info"]["gameEndTimestamp"] // 1000)
+        ended_ago = humanize.naturaltime(self.match["info"]["gameEndTimestamp"] // 1000)
 
         # Build embed
         last_match_embed = discord.Embed(
