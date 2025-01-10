@@ -251,7 +251,7 @@ class Meta(commands.Cog):
 
         # Commands served
         amount = await self.get_count()
-        meta_embed.add_field(name="Commands Served\nsince Jan 9th, 2024", value=f"{amount:,}")
+        meta_embed.add_field(name="Command Served\nsince v6.0", value=f"{amount:,}")
 
         # Bot uptime
         now = time.perf_counter()
