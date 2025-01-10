@@ -63,16 +63,26 @@ async def total_league_matches_cached(cache_file_count: int) -> int:
     return len(set(all_links))
 
 
-def uptime_timestamp(input_seconds: int) -> str:
-    """Converts seconds to a human readable timestamp"""
-    seconds_in_day = 60 * 60 * 24
-    days, remaining_seconds = divmod(input_seconds, seconds_in_day)
-    hours, minutes = divmod(remaining_seconds, 3600)
-    minutes, seconds = divmod(minutes, 60)
-    output = f"{hours:02}:{minutes:02}:{seconds:02}"
-    if not days:
-        return output
-    return f"{days} {'day' if days == 1 else 'days'},\n" + output
+def format_uptime(uptime_in_seconds: int) -> str:
+    """
+    Converts seconds to a human-readable timestamp
+
+    Examples:
+    - format_uptime(86400) -> "1 day"
+    - format_uptime(86401) -> "1 day, 00:00:01"
+    """
+    SECONDS_IN_DAY = 86400
+    SECONDS_IN_HOUR = 3600
+    SECONDS_IN_MINUTE = 60
+
+    days, remainder = divmod(uptime_in_seconds, SECONDS_IN_DAY)
+    hours, remainder = divmod(remainder, SECONDS_IN_HOUR)
+    minutes, seconds = divmod(remainder, SECONDS_IN_MINUTE)
+    formatted_time = f"{hours:02}:{minutes:02}:{seconds:02}"
+
+    if days == 0:
+        return formatted_time
+    return f"{days} {'day' if days == 1 else 'days'},\n" + formatted_time
 
 
 def get_host_info() -> dict[str, str]:
@@ -207,7 +217,7 @@ class Meta(commands.Cog):
         # Bot uptime
         now = time.perf_counter()
         uptime = round(now - self.startup_time)
-        meta_embed.add_field(name="Uptime", value=uptime_timestamp(uptime))
+        meta_embed.add_field(name="Uptime", value=format_uptime(uptime))
 
         # Latency
         meta_embed.add_field(name="Latency", value=f"{round(self.bot.latency * 1000, 2)}ms")
