@@ -23,9 +23,28 @@ class SuggestionModal(discord.ui.Modal, title="Suggestion"):
     details = discord.ui.TextInput(label="Suggestion details", style=discord.TextStyle.paragraph)
 
     async def on_submit(self, interaction: discord.Interaction):
+        # Parse user suggestion
         details = self.details.value
-        print(details)
-        await interaction.response.send_message(f"Thanks for your suggestion!", ephemeral=True)
+
+        # Get timestamp
+        timestamp = dt.datetime.now().isoformat()
+
+        # Make entry in database
+        async with aiosqlite.connect(Goonbot.database_path) as db:
+            await db.execute(
+                """
+                INSERT INTO suggestion (id, userID, details, devNotes, timestamp) 
+                VALUES (?, ?, ?, ?, ?)
+                """,
+                (interaction.id, interaction.user.id, details, None, timestamp),
+            )
+            await db.commit()
+
+        # Send confirmation
+        await interaction.response.send_message(
+            embed=Goonbot.embed(title=f"Thanks for your suggestion!"),
+            ephemeral=True,
+        )
 
 
 async def get_cache_file_count() -> int | None:
@@ -150,6 +169,7 @@ class Meta(commands.Cog):
 
     async def cog_load(self):
         await self.ensure_command_usage_legacy_table()
+        await self.ensure_suggestion_table()
 
     def count_app_commands(self) -> int:
         """Returns how many app (or "slash") commands are registered in all of the cogs"""
@@ -157,6 +177,23 @@ class Meta(commands.Cog):
         for _, cog in self.bot.cogs.items():
             command_count += len(cog.get_app_commands())
         return command_count
+
+    async def ensure_suggestion_table(self):
+        async with aiosqlite.connect(self.bot.database_path) as db:
+            # Ensure "suggestion" table exists
+            await db.execute(
+                """
+                CREATE TABLE IF NOT EXISTS suggestion (
+                    id INTEGER PRIMARY KEY,
+                    userID INTEGER,
+                    details TEXT,
+                    devNotes TEXT,
+                    timestamp TEXT
+                )
+                """
+            )
+            # Commit changes
+            await db.commit()
 
     async def ensure_command_usage_legacy_table(self):
         async with aiosqlite.connect(self.bot.database_path) as db:
@@ -265,9 +302,11 @@ class Meta(commands.Cog):
         # Send it
         await interaction.response.send_message(embed=meta_embed)
 
-    @app_commands.command(name="suggestion")
-    async def suggestion(self, interaction: discord.Interaction):
+    @app_commands.command(name="suggest", description="Suggest a feature or improvement")
+    async def suggest(self, interaction: discord.Interaction):
         await interaction.response.send_modal(SuggestionModal())
+
+    # TODO drop down modal thing to check out suggestions by user
 
     @tasks.loop(time=eight_am_cst)
     async def db_size_check(self):
