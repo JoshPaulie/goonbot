@@ -246,7 +246,7 @@ class Meta(commands.Cog):
         )
 
         # Bot version
-        meta_embed.add_field(name="Bot\nVersion", value="v" + ".".join(map(str, self.bot.VERSION)))
+        meta_embed.add_field(name="Bot\nVersion", value=".".join(map(str, self.bot.VERSION)))
 
         # Total commands
         total_commands = sum(len(cog.get_app_commands()) for cog in self.bot.cogs.values())
@@ -254,7 +254,7 @@ class Meta(commands.Cog):
 
         # Commands served
         amount = await self.get_count()
-        meta_embed.add_field(name="Command Served\nsince v6.0", value=f"{amount:,}")
+        meta_embed.add_field(name="Commands\nServed (6.0)", value=f"{amount:,}")
 
         # Bot uptime
         now = time.perf_counter()
