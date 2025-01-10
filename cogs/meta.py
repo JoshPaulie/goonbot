@@ -87,11 +87,14 @@ def format_uptime(uptime_in_seconds: int) -> str:
 
 def get_host_info() -> dict[str, str]:
     info = {}
-    # info["Name"] = platform.node() # this just says "raspberry"
-    info["Kernel"] = f"{platform.system()} {platform.release()}"
+    # info["Hostname"] = platform.node() # this just says "raspberry"
+    info["Model"] = "[4b](https://www.raspberrypi.com/products/raspberry-pi-4-model-b/)"
+    info["Kernel"] = f"{platform.system()} {platform.release()}"  # Linux 0.00.00-v0+
     issue_file = pathlib.Path("/etc/issue")
     if issue_file.exists():
-        info["OS"] = issue_file.read_text().strip()
+        # The issue file on raspberry Pi has artifacts which aren't removed by str.strip()
+        issue_file_text = issue_file.read_text()
+        info["OS"] = issue_file_text[: -issue_file_text.find("Linux")]  # Debian GNU/Linux
     return info
 
 
@@ -193,15 +196,11 @@ class Meta(commands.Cog):
     async def meta(self, interaction: discord.Interaction):
         """Fun meta stats pertaining to the bot itself"""
         meta_embed = self.bot.embed(title="Goonbot")
-        meta_embed.description = (
-            "**"
-            + ", ".join(
-                [
-                    "[Project Repo](https://github.com/JoshPaulie/goonbot/)",
-                    "[Changelog](https://github.com/JoshPaulie/goonbot/blob/main/changelog.md)",
-                ]
-            )
-            + "**"
+        meta_embed.description = " • ".join(
+            [
+                "[Project Repo](https://github.com/JoshPaulie/goonbot/)",
+                "[Changelog](https://github.com/JoshPaulie/goonbot/blob/main/changelog.md)",
+            ]
         )
 
         # Bot version
@@ -233,10 +232,7 @@ class Meta(commands.Cog):
         # Host info
         meta_embed.add_field(
             name="Hosted on Raspberry Pi <:rpi:1194061870831763486>",
-            value=join_lines(
-                ["[Model 4](https://www.raspberrypi.com/products/raspberry-pi-4-model-b/)"]
-                + [f"**{name}** {value}" for name, value in get_host_info().items()]
-            ),
+            value=join_lines([f"**{name}** {value}" for name, value in get_host_info().items()]),
             inline=False,
         )
 
