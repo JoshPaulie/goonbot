@@ -88,6 +88,7 @@ def get_host_info() -> dict[str, str]:
 class Meta(commands.Cog):
     def __init__(self, bot: Goonbot):
         self.bot = bot
+        self.db_size_check.start()
 
         # Get precise timestamp for uptime
         self.startup_time = time.perf_counter()
