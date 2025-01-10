@@ -42,7 +42,10 @@ class SuggestionModal(discord.ui.Modal, title="Suggestion"):
 
         # Send confirmation
         await interaction.response.send_message(
-            embed=Goonbot.embed(title=f"Thanks for your suggestion!"),
+            embed=Goonbot.embed(
+                title=f"Thanks for your suggestion!",
+                description="Suggestion has been added to the database and Josh has been notified.",
+            ),
             ephemeral=True,
         )
 
@@ -298,7 +301,20 @@ class Meta(commands.Cog):
 
     @app_commands.command(name="suggest", description="Suggest a feature or improvement")
     async def suggest(self, interaction: discord.Interaction):
-        await interaction.response.send_modal(SuggestionModal())
+        suggestion_modal = SuggestionModal()
+        await interaction.response.send_modal(suggestion_modal)
+        await suggestion_modal.wait()
+
+        # Alert owner of new suggestion
+        assert self.bot.owner_id
+        owner = self.bot.get_user(self.bot.owner_id)
+        assert owner
+        await owner.send(
+            embed=self.bot.embed(
+                title=f"{interaction.user.name} suggests:",
+                description=suggestion_modal.details.value,
+            )
+        )
 
     # TODO drop down modal thing to check out suggestions by user
 
