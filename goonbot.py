@@ -9,10 +9,11 @@ from pathlib import Path
 from typing import Iterator
 
 import discord
+import humanize
 from discord.ext import commands
 
 from keys import Keys
-from text_processing import acronymize, join_lines, md_codeblock, time_ago
+from text_processing import acronymize, join_lines, md_codeblock
 
 
 class Goonbot(commands.Bot):
@@ -286,7 +287,7 @@ async def make_acronym(interaction: discord.Interaction, message: discord.Messag
 @goonbot.tree.context_menu(name="How long ago")
 async def message_age(interaction: discord.Interaction, message: discord.Message):
     created_at_utc = message.created_at
-    created_ago = time_ago(int(created_at_utc.timestamp()))
+    created_ago = humanize.naturaltime(created_at_utc)
     await interaction.response.send_message(
         embed=goonbot.embed(description=f"This message was created {created_ago}")
     )

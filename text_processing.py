@@ -1,5 +1,3 @@
-import datetime
-import math
 from typing import Any, Sequence
 
 
@@ -54,49 +52,6 @@ def comma_list(nouns: Sequence[str]) -> str:
         return " and ".join(nouns)
     *body, tail = nouns
     return f"{', '.join(body)}, and {tail}"
-
-
-def time_ago(timestamp: int) -> str:
-    dt = datetime.datetime.fromtimestamp(timestamp)
-    now = datetime.datetime.now()
-    diff = now - dt
-    seconds = diff.total_seconds()
-
-    minutes, seconds = divmod(seconds, 60)
-    hours, minutes = divmod(minutes, 60)
-    days, hours = divmod(hours, 24)
-    weeks, days = divmod(days, 7)
-    months, weeks = divmod(weeks, 4)
-    years, months = divmod(months, 12)
-
-    if years:
-        if years == 1:
-            return "over a year ago"
-        return f"over {math.floor(years)} years ago"
-
-    if months:
-        if months == 1:
-            return "about a month ago"
-        return f"about {math.floor(months)} months ago"
-
-    if weeks:
-        if weeks == 1:
-            return "about a week ago"
-        return f"about {math.floor(weeks)} weeks ago"
-
-    if days:
-        if days == 1:
-            return "yesterday"
-        return f"about {math.floor(days)} months ago"
-
-    if minutes:
-        if minutes == 1:
-            return "about a minute ago"
-        return f"about {math.floor(minutes)} minutes ago"
-
-    if seconds == 1:
-        return "a second ago"
-    return f"{math.floor(seconds)} seconds ago"
 
 
 def md_codeblock(text: str, language: str | None = "") -> str:
