@@ -19,37 +19,6 @@ from text_processing import join_lines
 eight_am_cst = dt.time(hour=8, minute=0, second=0, tzinfo=tz.gettz("America/Chicago"))
 
 
-class SuggestionModal(discord.ui.Modal, title="Suggestion"):
-    details = discord.ui.TextInput(label="Suggestion details", style=discord.TextStyle.paragraph)
-
-    async def on_submit(self, interaction: discord.Interaction):
-        # Parse user suggestion
-        details = self.details.value
-
-        # Get timestamp
-        timestamp = dt.datetime.now().isoformat()
-
-        # Make entry in database
-        async with aiosqlite.connect(Goonbot.database_path) as db:
-            await db.execute(
-                """
-                INSERT INTO suggestion (id, userID, details, devNotes, timestamp) 
-                VALUES (?, ?, ?, ?, ?)
-                """,
-                (interaction.id, interaction.user.id, details, None, timestamp),
-            )
-            await db.commit()
-
-        # Send confirmation
-        await interaction.response.send_message(
-            embed=Goonbot.embed(
-                title=f"Thanks for your suggestion!",
-                description="Suggestion has been added to the database and Josh has been notified.",
-            ),
-            ephemeral=True,
-        )
-
-
 async def get_cache_file_count() -> int | None:
     """
     The diskcache used for Pulsefire is made up of a series of directories, eaching having a database
@@ -172,24 +141,6 @@ class Meta(commands.Cog):
 
     async def cog_load(self):
         await self.ensure_command_usage_legacy_table()
-        await self.ensure_suggestion_table()
-
-    async def ensure_suggestion_table(self):
-        async with aiosqlite.connect(self.bot.database_path) as db:
-            # Ensure "suggestion" table exists
-            await db.execute(
-                """
-                CREATE TABLE IF NOT EXISTS suggestion (
-                    id INTEGER PRIMARY KEY,
-                    userID INTEGER,
-                    details TEXT,
-                    devNotes TEXT,
-                    timestamp TEXT
-                )
-                """
-            )
-            # Commit changes
-            await db.commit()
 
     async def ensure_command_usage_legacy_table(self):
         async with aiosqlite.connect(self.bot.database_path) as db:
@@ -298,25 +249,6 @@ class Meta(commands.Cog):
 
         # Send it
         await interaction.response.send_message(embed=meta_embed)
-
-    @app_commands.command(name="suggest", description="Suggest a feature or improvement")
-    async def suggest(self, interaction: discord.Interaction):
-        suggestion_modal = SuggestionModal()
-        await interaction.response.send_modal(suggestion_modal)
-        await suggestion_modal.wait()
-
-        # Alert owner of new suggestion
-        assert self.bot.owner_id
-        owner = self.bot.get_user(self.bot.owner_id)
-        assert owner
-        await owner.send(
-            embed=self.bot.embed(
-                title=f"{interaction.user.name} suggests:",
-                description=suggestion_modal.details.value,
-            )
-        )
-
-    # TODO drop down modal thing to check out suggestions by user
 
     @tasks.loop(time=eight_am_cst)
     async def db_size_check(self):
