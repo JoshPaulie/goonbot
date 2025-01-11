@@ -74,9 +74,9 @@ class CommandUsage(commands.Cog):
         async with aiosqlite.connect(self.bot.database_path) as db:
             await db.execute(
                 """
-            INSERT INTO command (id, userID, commandName, timestamp) 
-            VALUES (?, ?, ?, ?)
-            """,
+                INSERT INTO command (id, userID, commandName, timestamp) 
+                VALUES (?, ?, ?, ?)
+                """,
                 (str(uuid.uuid4()), interaction.user.id, command.name, timestamp),
             )
             await db.commit()
@@ -98,9 +98,9 @@ class CommandUsage(commands.Cog):
         async with aiosqlite.connect(self.bot.database_path) as db:
             await db.execute(
                 """
-            INSERT INTO reaction (id, userID, reactionStr, messageID, timestamp) 
-            VALUES (?, ?, ?, ?, ?)
-            """,
+                INSERT INTO reaction (id, userID, reactionStr, messageID, timestamp) 
+                VALUES (?, ?, ?, ?, ?)
+                """,
                 (str(uuid.uuid4()), payload.user_id, reaction_str, payload.message_id, timestamp),
             )
             await db.commit()
@@ -117,9 +117,9 @@ class CommandUsage(commands.Cog):
         async with aiosqlite.connect(self.bot.database_path) as db:
             await db.execute(
                 """
-            INSERT INTO message (id, userID, messageID, channelID, timestamp) 
-            VALUES (?, ?, ?, ?, ?)
-            """,
+                INSERT INTO message (id, userID, messageID, channelID, timestamp) 
+                VALUES (?, ?, ?, ?, ?)
+                """,
                 (str(uuid.uuid4()), message.author.id, message.id, message.channel.id, timestamp),
             )
             await db.commit()
