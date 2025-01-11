@@ -1,9 +1,9 @@
 # This template is identical to the keys.py file the bot actually uses
-# If you (for whatever reason) wanted to spin up your own instance of goonbot,
-# fill in the following API keys and run main.py
+# Each of these are required to run the bot.
 
 class Keys:
-    DISCORD_API_TOKEN = ""
+    PROD_DISCORD_API_TOKEN = ""
+    DEV_DISCORD_API_TOKEN = ""
 
     TWITCH_CLIENT_ID = ""
     TWITCH_CLIENT_SECRET = ""
