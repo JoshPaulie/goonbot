@@ -2,12 +2,16 @@
 # Each of these are required to run the bot.
 
 class Keys:
+    # https://discord.com/developers/applications
     PROD_DISCORD_API_TOKEN = ""
     DEV_DISCORD_API_TOKEN = ""
 
+    # https://dev.twitch.tv/console/apps
     TWITCH_CLIENT_ID = ""
     TWITCH_CLIENT_SECRET = ""
 
+    # https://developers.google.com/youtube/v3/quickstart/python
     GOOGLE_API = ""
 
+    # https://developer.riotgames.com
     RIOT_API = ""
