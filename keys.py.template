@@ -15,3 +15,6 @@ class Keys:
 
     # https://developer.riotgames.com
     RIOT_API = ""
+
+    # Arbitrary string
+    NTFY_TOPIC = ""
