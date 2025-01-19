@@ -7,7 +7,7 @@ import traceback
 from collections import defaultdict
 from functools import partial
 from pathlib import Path
-from typing import Iterator
+from typing import Iterator, Literal
 
 import discord
 import humanize
@@ -173,34 +173,52 @@ async def restart(ctx: commands.Context):
     await goonbot.close()
 
 
+class LogFlags(commands.FlagConverter, delimiter=" ", prefix="--"):
+    page_num: int = commands.flag(positional=True, default=1)
+    str_filter: str | None
+    entry_type: str | None = commands.flag(aliases=["et"])
+    line_count: int = 20
+    timestamp: str | None = commands.flag(aliases=["ts"])
+
+
 @goonbot.command(name="log", description="[Meta] Sends bot log")
 @commands.is_owner()
-async def log(ctx: commands.Context, page_num: int = 1, str_filter: str | None = None):
+async def log(ctx: commands.Context, *, flags: LogFlags):
     """
     Crude way for me to read logs remotely.
 
     Batched into "pages" of N lines
     """
     # How many lines of the log to include per 'page'
-    page_line_length = 20
+    page_line_length = flags.line_count
 
     # Read in log file and split into lines
     log_lines = Path("bot.log").read_text().splitlines()
 
-    # Filter is needed
-    if str_filter:
-        log_lines = [line for line in log_lines if str_filter.lower() in line.lower()]
+    # Various filters
+    if flags.str_filter:
+        log_lines = [line for line in log_lines if flags.str_filter.lower() in line.lower()]
+
+    if flags.timestamp:
+        log_lines = [line for line in log_lines if flags.timestamp in line]
+
+    if flags.entry_type:
+        log_lines = [line for line in log_lines if f"[{flags.entry_type.lower()}" in line.lower()]
 
     # Similar to batched, but odd-numbered group is at the start
     # Otherwise, since the log pages are served back-to-front, the first page may just be a few lines
     log_pages = frontloaded_batched(log_lines, page_line_length)
 
+    # Handle if all pages are filtered out
+    if not log_pages:
+        return await ctx.send("No log pages match this query.")
+
     # Prevent out of bounds error
-    if page_num > len(log_pages):
+    if flags.page_num > len(log_pages):
         return await ctx.send("Invalid page number.")
 
     # Because it's a log file, we serve back-to-front
-    page = log_pages[-page_num]
+    page = log_pages[-flags.page_num]
 
     # Send "page" of log file (with backticks for formatting)
     try:
@@ -210,7 +228,7 @@ async def log(ctx: commands.Context, page_num: int = 1, str_filter: str | None =
                     page,
                 )
             )
-            + f"Page **{page_num}** of **{len(log_pages)}**",
+            + f"Page **{flags.page_num}** of **{len(log_pages)}**",
         )
     except discord.HTTPException as e:
         if re.search(r"Must be \d+ or fewer in length", e.text):
