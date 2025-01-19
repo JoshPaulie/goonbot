@@ -182,7 +182,7 @@ async def log(ctx: commands.Context, page_num: int = 1, str_filter: str | None =
     Batched into "pages" of N lines
     """
     # How many lines of the log to include per 'page'
-    page_line_length = 40
+    page_line_length = 20
 
     # Read in log file and split into lines
     log_lines = Path("bot.log").read_text().splitlines()
