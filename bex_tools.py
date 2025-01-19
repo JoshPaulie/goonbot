@@ -1,7 +1,8 @@
 """Collection of utility objects"""
 
 import random
-from typing import Any
+from itertools import batched
+from typing import Any, Sequence
 
 
 class CycleRandom:
@@ -37,3 +38,24 @@ class CycleRandom:
         next_item = random.choice([i for i in self.items if i not in self.used_items])
         self.used_items.append(next_item)
         return next_item
+
+
+def frontloaded_batched(items: Sequence, n: int) -> list[tuple[Any]]:
+    """
+    Functionally similar to itertools.batched, but instead of grouping front-to-back with remaining
+    items being grouped at the end, make the odd-numbered group appear at the front.
+
+    Example
+    ```py
+    items = list(range(1, 11))
+    custom_batched(items, 4) -> [(1, 2), (3, 4, 5, 6), (7, 8, 9, 10)]
+    ```
+    """
+    remaining_count = len(items) % n
+    if not remaining_count:
+        return list(batched(items, n))
+
+    remaining_items = [tuple(items[:remaining_count])]
+    items_without_remaining = items[remaining_count:]
+    batch = list(batched(items_without_remaining, n))
+    return remaining_items + batch
