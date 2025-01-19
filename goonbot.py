@@ -1,6 +1,7 @@
 import asyncio
 import logging
 import random
+import re
 import time
 import traceback
 from collections import defaultdict
@@ -12,6 +13,7 @@ import discord
 import humanize
 from discord.ext import commands
 
+from bex_tools import frontloaded_batched
 from keys import Keys
 from text_processing import acronymize, join_lines, md_codeblock
 
@@ -95,6 +97,10 @@ goonbot = Goonbot(
 # Doesn't catch "unknown interaction" failures
 @goonbot.tree.error
 async def on_app_command_error(interaction: discord.Interaction, error: discord.app_commands.AppCommandError):
+    if isinstance(error, discord.HTTPException):
+        if "fewer in length" in error.text:
+            await interaction.followup.send(embed=goonbot.embed(title="This message was too long"))
+
     await interaction.followup.send(
         embed=goonbot.embed(
             title="An unknown error occurred. 😢",
@@ -169,19 +175,51 @@ async def restart(ctx: commands.Context):
 
 @goonbot.command(name="log", description="[Meta] Sends bot log")
 @commands.is_owner()
-async def log(ctx: commands.Context, lines: int = 10):
-    """Sends the last n lines of the bot.log file to the channel"""
-    # Read in log file and split into lines
-    log_file_text = Path("bot.log").read_text().splitlines()
+async def log(ctx: commands.Context, page_num: int = 1, str_filter: str | None = None):
+    """
+    Crude way for me to read logs remotely.
 
-    # Send last n lines of log file (with backticks for formatting)
-    await ctx.send(
-        md_codeblock(
-            join_lines(
-                [line for line in log_file_text[-lines:]],
-            ),
-        ),
-    )
+    Batched into "pages" of N lines
+    """
+    # How many lines of the log to include per 'page'
+    page_line_length = 40
+
+    # Read in log file and split into lines
+    log_lines = Path("bot.log").read_text().splitlines()
+
+    # Filter is needed
+    if str_filter:
+        log_lines = [line for line in log_lines if str_filter.lower() in line.lower()]
+
+    # Similar to batched, but odd-numbered group is at the start
+    # Otherwise, since the log pages are served back-to-front, the first page may just be a few lines
+    log_pages = frontloaded_batched(log_lines, page_line_length)
+
+    # Prevent out of bounds error
+    if page_num > len(log_pages):
+        return await ctx.send("Invalid page number.")
+
+    # Because it's a log file, we serve back-to-front
+    page = log_pages[-page_num]
+
+    # Send "page" of log file (with backticks for formatting)
+    try:
+        await ctx.send(
+            md_codeblock(
+                join_lines(
+                    page,
+                )
+            )
+            + f"Page **{page_num}** of **{len(log_pages)}**",
+        )
+    except discord.HTTPException as e:
+        if re.search(r"Must be \d+ or fewer in length", e.text):
+            await ctx.send(
+                embed=goonbot.embed(
+                    title="This page exceeded the character limit.",
+                    description=f"Discord says:\n>>> {e.text}",
+                )
+            )
 
 
 # This catches and processes ext (or "prefixed") commands
