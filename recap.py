@@ -1,12 +1,34 @@
 import datetime as dt
 import sqlite3
-from abc import ABC, abstractmethod
-from dataclasses import dataclass
+from abc import ABC
 from typing import Any, Sequence
 
 # Goon server year in a review!
 
 db_path = "gbdb.sqlite"
+
+"""
+The recap will consist of 2 parts: a server wide and one for each user
+
+They'll share a lot of the same structure, but the user one will be filtered by user ID
+
+Server recap:
+- Top channel, reactions, chatters
+- Day with most messages sent (and how many)
+- Most popular command
+- Most popular time of day for a message to be sent (windows of time)
+
+User recap:
+- Commands
+    - Total commands used
+    - Fav command, amount of times used
+- Messages
+    - Total messages sent
+    - Which channel most popular
+- Reactions
+    - Total reactions sent
+    - Favorite reactions
+"""
 
 
 class Row(ABC):
@@ -92,7 +114,40 @@ def avergage_messages_per_day(messages: Sequence[MessageRow]):
     if messages_this_year == 0:
         return 0
     days_this_year = (dt.datetime.now() - dt.datetime(dt.datetime.now().year, 1, 1)).days
-    return messages_this_year / days_this_year
+    return messages_this_year / (days_this_year or 1)
+
+
+def count_reactions(reactions: Sequence[ReactionRow]) -> dict[str, int]:
+    reaction_counts = {}
+    for reaction in reactions:
+        if reaction.reactionStr not in reaction_counts:
+            reaction_counts[reaction.reactionStr] = 0
+        reaction_counts[reaction.reactionStr] += 1
+    # Sort in decreasing order
+    reaction_counts = dict(sorted(reaction_counts.items(), key=lambda item: item[1], reverse=True))
+    return reaction_counts
+
+
+def count_chatters(messages: Sequence[MessageRow]) -> dict[int, int]:
+    chatters = {}
+    for message in messages:
+        if message.userID not in chatters:
+            chatters[message.userID] = 0
+        chatters[message.userID] += 1
+    # Sort in decreasing order
+    chatters = dict(sorted(chatters.items(), key=lambda item: item[1], reverse=True))
+    return chatters
+
+
+def count_commands(commands: Sequence[CommandRow]) -> dict[str, int]:
+    command_counts = {}
+    for command in commands:
+        if command.commandName not in command_counts:
+            command_counts[command.commandName] = 0
+        command_counts[command.commandName] += 1
+    # Sort in decreasing order
+    command_counts = dict(sorted(command_counts.items(), key=lambda item: item[1], reverse=True))
+    return command_counts
 
 
 def print_recap():
@@ -108,9 +163,23 @@ def print_recap():
     print("Messages this year:", len(messages_this_year))
     print("Messages per day this year:", round(avergage_messages_per_day(messages), 2))
 
-    # print("Reactions this year:")
-    # for reaction in reactions_this_year:
-    #     print(reaction)
+    # Top 5 reactions
+    reaction_counts = count_reactions(reactions)
+    print("Top 5 reactions:")
+    for reaction, count in list(reaction_counts.items())[:5]:
+        print(f"{reaction}: {count}")
+
+    # Top 5 chatters
+    chatters = count_chatters(messages)
+    print("Top 5 chatters:")
+    for chatter_id, count in list(chatters.items())[:5]:
+        print(f"{chatter_id}: {count}")
+
+    # Top 5 commands
+    command_counts = count_commands(commands)
+    print("Top 5 commands:")
+    for command, count in list(command_counts.items())[:5]:
+        print(f"{command}: {count}")
 
 
 if __name__ == "__main__":
