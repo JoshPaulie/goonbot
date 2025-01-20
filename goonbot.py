@@ -173,12 +173,13 @@ async def restart(ctx: commands.Context):
     await goonbot.close()
 
 
-class LogFlags(commands.FlagConverter, delimiter=" ", prefix="--"):
+class LogFlags(commands.FlagConverter, delimiter=" ", prefix="-"):
     page_num: int = commands.flag(positional=True, default=1)
-    str_filter: str | None
+    search: str | None = commands.flag(aliases=["s"])
     entry_type: str | None = commands.flag(aliases=["et"])
-    line_count: int = 20
+    line_count: int = commands.flag(aliases=["lc"], default=20)
     timestamp: str | None = commands.flag(aliases=["ts"])
+    consice: int | None = commands.flag(aliases=["c"])
 
 
 @goonbot.command(name="log", description="[Meta] Sends bot log")
@@ -196,14 +197,27 @@ async def log(ctx: commands.Context, *, flags: LogFlags):
     log_lines = Path("bot.log").read_text().splitlines()
 
     # Various filters
-    if flags.str_filter:
-        log_lines = [line for line in log_lines if flags.str_filter.lower() in line.lower()]
+    # Basic grep
+    if flags.search:
+        log_lines = [line for line in log_lines if flags.search.lower() in line.lower()]
 
+    # Timestamp or date..stamp?
     if flags.timestamp:
         log_lines = [line for line in log_lines if flags.timestamp in line]
 
+    # INFO, ERROR, etc.
     if flags.entry_type:
         log_lines = [line for line in log_lines if f"[{flags.entry_type.lower()}" in line.lower()]
+
+    # Remove timestamps
+    if flags.consice == 1:
+        timestamp_length = 22  # "[2025-01-19 20:03:10] "
+        log_lines = [line[timestamp_length:] for line in log_lines]
+
+    # Remove timestamp and INFO, ERROR, etc.
+    if flags.consice == 2:
+        timestamp_and_entry_type_length = 33  # "[2025-01-19 20:03:10] [INFO    ] "
+        log_lines = [line[timestamp_and_entry_type_length:] for line in log_lines]
 
     # Similar to batched, but odd-numbered group is at the start
     # Otherwise, since the log pages are served back-to-front, the first page may just be a few lines
