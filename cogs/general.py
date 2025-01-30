@@ -18,7 +18,7 @@ class General(commands.Cog):
             "not shocked",
             "i thought we were friends?",
             "guess I'll hang out here..alone..",
-            "that's too bad, I'll be doing something much cooler"
+            "that's too bad, I'll be doing something much cooler",
             "i'm starting to get the impression you don't actually want to hangout with me",
             "are you mad at me?",
         ]
