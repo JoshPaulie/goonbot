@@ -40,9 +40,10 @@ class General(commands.Cog):
     @app_commands.command(name="wie", description="Where is everybody?")
     async def where_is_everybody(self, interaction: discord.Interaction):
         """
-        Used to broadcast you're board and want to hang out/play games in VC.
+        Used to broadcast you're bored and want to hang out/play games in VC.
 
         Sends a message indicating the general time of day (morning, afternoon, night) based on the current hour.
+        Follows colloquial norm of early morning being referred to as the pervious day's night.
 
         The time of day is determined as follows:
         - 12AM to 3AM is considered the previous day's night.
