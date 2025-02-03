@@ -120,30 +120,30 @@ class GoonCalendar(commands.Cog):
         today = dt.date.today()
 
         # All birthdays today
-        today_birthdays = [
+        birthdays_today = [
             event
             for event in get_special_events(today, remaining_only=True)
             if event.is_today() and event.event_type == "birthday"
         ]
 
-        # No birthdays today, exit early
-        if not len(today_birthdays):
+        # No birthdays today, exit early, log the check occurred
+        if not birthdays_today:
             logging.info("No birthdays today.")
             return
 
         # Fetch guild
         goonhq = self.bot.get_channel(177125557954281472)
 
-        # Ensure it exists and is not a private channel
+        # Ensure goonhq exists and is not a private channel (it does, but typing)
         assert isinstance(goonhq, (discord.abc.GuildChannel, discord.Thread))
 
-        # Ensure correct channel type
+        # Ensure correct channel type (it is, but typing)
         if goonhq.type != discord.ChannelType.text:
             return
 
         # Happy birthday embed
         today_birthday_embed = self.bot.embed()
-        today_birthday_embed.title = f"Today is {comma_list([e.name for e in today_birthdays])}!"
+        today_birthday_embed.title = f"Today is {comma_list([e.name for e in birthdays_today])}!"
 
         # Send it
         await goonhq.send(embed=today_birthday_embed)
