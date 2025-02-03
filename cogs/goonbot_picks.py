@@ -87,17 +87,30 @@ class GoonbotPicks(commands.Cog):
     @app_commands.command(name="teams", description="Create teams based on who is in the call with you")
     @app_commands.describe(team_size="How many players per team?")
     async def teams(self, interaction: discord.Interaction, team_size: int | None = None):
-        # ! Lots of type: ignore's here. Figure that out >:B
         caller = interaction.user
 
-        # case: call isn't in a voice channel
-        if not caller.voice or not caller.voice.channel:  # type: ignore
+        assert isinstance(caller, discord.Member)
+
+        # Called must be in voice channel
+        if not caller.voice or not caller.voice.channel:
             return await interaction.response.send_message(
                 embed=self.bot.embed(title="You are not in a voice channel."), ephemeral=True
             )
 
-        caller_channel = caller.voice.channel  # type: ignore
+        caller_channel = caller.voice.channel
         users_in_channel = [m for m in caller_channel.members]
+
+        # Dweeb check
+        if len(users_in_channel) == 1:
+            return await interaction.response.send_message(
+                embed=self.bot.embed(
+                    title="You're alone. Need at least 2 players to make teams.",
+                    description="*Is this guy for real?*",
+                ),
+                ephemeral=True,
+            )
+
+        # Shuffle shuffle!
         random.shuffle(users_in_channel)
 
         # If no team size is provided, split the group as evenly in half as possible by
@@ -105,12 +118,24 @@ class GoonbotPicks(commands.Cog):
         if team_size is None:
             team_size = len(users_in_channel) // 2
 
+        # Split users into teams of N size
         teams = batched(users_in_channel, team_size)
+
+        # Numbered list, each being a team
+        # Each entry is comma seperated list
         teams_result = bullet_points(
             [comma_list([team_mate.mention for team_mate in team]) for team in teams],
             numerical=True,
         )
-        await interaction.response.send_message(embed=self.bot.embed(title="Teams", description=teams_result))
+
+        # Final embed
+        teams_embed = self.bot.embed(title="Teams", description=teams_result)
+
+        # Uneven team check
+        if len(users_in_channel) % team_size != 0:
+            teams_embed.set_footer(text="Leftovers have been delegated to 'benched' team.")
+
+        await interaction.response.send_message(embed=teams_embed)
 
 
 async def setup(bot):
